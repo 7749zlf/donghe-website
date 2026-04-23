@@ -48,7 +48,6 @@
           </p>
           <div class="about-actions">
             <button class="ghost-btn" @click="viewMoreCases">查看更多案例</button>
-            <button class="dark-btn">联系我们</button>
           </div>
         </div>
       </div>
@@ -106,7 +105,7 @@
         </article>
       </div>
 
-      <button class="more-btn">查看更多作品</button>
+      <button class="more-btn" @click="viewMoreCases">查看更多作品</button>
     </section>
 
     <section id="contact" class="section contact">
@@ -126,42 +125,6 @@
             <li><strong>工作时间：</strong>周一至周五 9:00 - 18:00</li>
           </ul>
         </div>
-<!-- 
-        <form class="contact-form" @submit.prevent="submitForm">
-          <label>
-            您的姓名
-            <input v-model.trim="form.name" placeholder="请输入您的姓名" />
-            <small v-if="errors.name" class="error">{{ errors.name }}</small>
-          </label>
-
-          <label>
-            联系电话
-            <input v-model.trim="form.phone" placeholder="请输入您的联系电话" />
-            <small v-if="errors.phone" class="error">{{ errors.phone }}</small>
-          </label>
-
-          <label>
-            项目类型
-            <select v-model="form.type">
-              <option value="">请选择项目类型</option>
-              <option>商业空间设计</option>
-              <option>办公空间设计</option>
-              <option>居住空间设计</option>
-            </select>
-            <small v-if="errors.type" class="error">{{ errors.type }}</small>
-          </label>
-
-          <label>
-            项目描述
-            <textarea v-model.trim="form.desc" rows="5" placeholder="请简要描述您的项目需求..."></textarea>
-            <small v-if="errors.desc" class="error">{{ errors.desc }}</small>
-          </label>
-
-          <button type="submit" class="submit-btn" :disabled="isSubmitting">
-            {{ isSubmitting ? '提交中...' : '提交需求' }}
-          </button>
-          <p v-if="submitMessage" class="submit-message">{{ submitMessage }}</p>
-        </form> -->
       </div>
     </section>
 
@@ -200,7 +163,7 @@
 </template>
 
 <script>
-import StickyNavbar from './components/StickyNavbar.vue'
+import StickyNavbar from './StickyNavbar.vue'
 export default {
   name: 'HomePage',
   components: { StickyNavbar },
