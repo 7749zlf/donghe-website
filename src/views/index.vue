@@ -1,7 +1,5 @@
-<template>
+﻿<template>
   <div class="page">
-    <StickyNavbar />
-
     <section class="hero">
       <img :src="currentSlide.image" :alt="currentSlide.alt" class="hero-image" />
       <div class="hero-mask">
@@ -163,10 +161,8 @@
 </template>
 
 <script>
-import StickyNavbar from './StickyNavbar.vue'
 export default {
   name: 'HomePage',
-  components: { StickyNavbar },
   data() {
     return {
       heroSlides: [
@@ -337,7 +333,7 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss" scoped>
 :root {
   --text-primary: #1a1a1a;
   --text-secondary: #666;
@@ -924,4 +920,7 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
 </style>
+
+
