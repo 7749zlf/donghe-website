@@ -95,9 +95,9 @@
           <div class="work-content">
             <h4>{{ item.name }}</h4>
             <p>{{ item.type }}</p>
-            <div class="work-meta">
+            <div class="work-meta" >
               <span>{{ item.year }}</span>
-              <a href="#">查看详情 →</a>
+              <span @click="viewMoreCases">查看详情 →</span>
             </div>
           </div>
         </article>

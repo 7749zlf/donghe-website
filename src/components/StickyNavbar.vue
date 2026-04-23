@@ -185,14 +185,14 @@ export default {
     border-radius: 0 0 10px 10px;
     opacity: 1;
     transform: translateY(10px);
-    pointer-events: none;
+    pointer-events: auto;
     transition: opacity 0.3s ease, transform 0.3s ease;
   }
 
   .nav-item {
     margin: 0;
   }
-  
+
   .nav-list.collapsed {
     opacity: 0;
     transform: none;
