@@ -1,15 +1,17 @@
 
+import IndexView from '@/views/index.vue'
+import ViewMore from '@/components/ViewMore.vue'
+
 export default [
   {
     path: '/',
     name: 'Home',
-    component: () => import('@/views/index.vue'),
+    component: IndexView,
     meta: { keepAlive: true }
   },
   {
     path: '/view-more',
     name: 'ViewMore',
-    component: () => import('@/components/ViewMore.vue')
+    component: ViewMore
   }
 ]
-
