@@ -26,7 +26,9 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, ref } from 'vue'
+
 const seeds = [
   'interior-01', 'interior-02', 'interior-03', 'interior-04', 'interior-05', 'interior-06',
   'interior-07', 'interior-08', 'interior-09', 'interior-10', 'interior-11', 'interior-12',
@@ -36,25 +38,15 @@ const seeds = [
   'interior-31', 'interior-32', 'interior-33', 'interior-34'
 ]
 
-export default {
-  name: 'ViewMore',
-  data() {
-    return {
-      activeIndex: 0,
-      galleryItems: seeds.map((seed, index) => ({
-        seed,
-        alt: `Interior case ${index + 1}`,
-        full: `https://picsum.photos/seed/${seed}/1600/900`,
-        thumb: `https://picsum.photos/seed/${seed}/220/124`
-      }))
-    }
-  },
-  computed: {
-    activeItem() {
-      return this.galleryItems[this.activeIndex]
-    }
-  }
-}
+const activeIndex = ref(0)
+const galleryItems = seeds.map((seed, index) => ({
+  seed,
+  alt: `Interior case ${index + 1}`,
+  full: `https://picsum.photos/seed/${seed}/1600/900`,
+  thumb: `https://picsum.photos/seed/${seed}/220/124`
+}))
+
+const activeItem = computed(() => galleryItems[activeIndex.value])
 </script>
 
 <style scoped lang="scss">

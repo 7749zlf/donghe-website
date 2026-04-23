@@ -162,175 +162,158 @@
 
 <script>
 export default {
-  name: 'HomePage',
-  data() {
-    return {
-      heroSlides: [
-        {
-          image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046846231245012992.jpg',
-          alt: '轮播图1-商业空间',
-          title: '匠心设计 · 品质生活',
-          subtitle: '专注于为您打造独具品味的空间美学'
-        },
-        {
-          image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2040007040967471104.jpg',
-          alt: '轮播图2-办公空间',
-          title: '重塑办公体验',
-          subtitle: '平衡效率、协作与品牌气质的空间解决方案'
-        },
-        {
-          image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046846251532861440.jpg',
-          alt: '轮播图3-居住空间',
-          title: '营造理想居所',
-          subtitle: '让家的每个角落都拥有温度与秩序'
-        }
-      ],
-      currentSlideIndex: 0,
-      autoTimer: null,
-      aboutImage:
-        'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2031359355234365440.jpg',
-      awards: [
-        { title: '2023年度设计大奖', desc: '中国室内设计协会颁发', year: '2023年12月' },
-        { title: '最佳商业空间设计', desc: '亚洲设计奖组委会颁发', year: '2022年9月' },
-        { title: '年度优秀设计机构', desc: '国际设计联盟颁发', year: '2021年11月' },
-        { title: '居住空间设计金奖', desc: '全国设计大赛组委会颁发', year: '2020年7月' }
-      ],
-      tags: ['全部', '商业空间', '办公空间', '居住空间'],
-      activeTag: '全部',
-      projects: [
-        {
-          name: '轻奢风商业展厅',
-          category: '商业空间',
-          type: '商业空间 / 上海',
-          year: '2023年',
-          image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849218981969920.jpg'
-        },
-        {
-          name: '极简风办公楼',
-          category: '办公空间',
-          type: '办公空间 / 北京',
-          year: '2022年',
-          image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849235197149184.jpg'
-        },
-        {
-          name: '北欧风别墅',
-          category: '居住空间',
-          type: '居住空间 / 深圳',
-          year: '2023年',
-          image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849245921984512.jpg'
-        },
-        {
-          name: '工业风主题餐厅',
-          category: '商业空间',
-          type: '商业空间 / 广州',
-          year: '2021年',
-          image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849257572986880.jpg'
-        },
-        {
-          name: '日式风公寓',
-          category: '居住空间',
-          type: '居住空间 / 杭州',
-          year: '2022年',
-          image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849270546743296.jpg'
-        },
-        {
-          name: 'Loft风联合办公',
-          category: '办公空间',
-          type: '办公空间 / 成都',
-          year: '2023年',
-          image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849281611317248.jpg'
-        }
-      ],
-      form: {
-        name: '',
-        phone: '',
-        type: '',
-        desc: ''
-      },
-      errors: {
-        name: '',
-        phone: '',
-        type: '',
-        desc: ''
-      },
-      isSubmitting: false,
-      submitMessage: ''
-    }
-  },
-  computed: {
-    currentSlide() {
-      return this.heroSlides[this.currentSlideIndex]
-    },
-    filteredProjects() {
-      if (this.activeTag === '全部') {
-        return this.projects
-      }
-      return this.projects.filter((item) => item.category === this.activeTag)
-    }
-  },
-  mounted() {
-    this.startAutoSlide()
-  },
-  beforeUnmount() {
-    this.stopAutoSlide()
-  },
-  methods: {
-    nextSlide() {
-      this.currentSlideIndex = (this.currentSlideIndex + 1) % this.heroSlides.length
-      this.restartAutoSlide()
-    },
-    prevSlide() {
-      this.currentSlideIndex = (this.currentSlideIndex - 1 + this.heroSlides.length) % this.heroSlides.length
-      this.restartAutoSlide()
-    },
-    setSlide(index) {
-      this.currentSlideIndex = index
-      this.restartAutoSlide()
-    },
-    startAutoSlide() {
-      this.autoTimer = setInterval(() => {
-        this.currentSlideIndex = (this.currentSlideIndex + 1) % this.heroSlides.length
-      }, 5000)
-    },
-    stopAutoSlide() {
-      if (this.autoTimer) {
-        clearInterval(this.autoTimer)
-        this.autoTimer = null
-      }
-    },
-    restartAutoSlide() {
-      this.stopAutoSlide()
-      this.startAutoSlide()
-    },
-    validateForm() {
-      const phoneReg = /^(1\d{10}|\d{3,4}-?\d{7,8})$/
-      this.errors = {
-        name: this.form.name ? '' : '请输入姓名',
-        phone: phoneReg.test(this.form.phone) ? '' : '请输入有效联系电话',
-        type: this.form.type ? '' : '请选择项目类型',
-        desc: this.form.desc.length >= 10 ? '' : '项目描述至少 10 个字'
-      }
-      return !Object.values(this.errors).some(Boolean)
-    },
-    async submitForm() {
-      this.submitMessage = ''
-      if (!this.validateForm()) {
-        return
-      }
+  name: 'HomePageView'
+}
+</script>
 
-      this.isSubmitting = true
-      await new Promise((resolve) => setTimeout(resolve, 800))
+<script setup>
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
-      this.isSubmitting = false
-      this.submitMessage = '提交成功，我们将在 1 个工作日内与您联系。'
-      this.form = { name: '', phone: '', type: '', desc: '' }
-      this.errors = { name: '', phone: '', type: '', desc: '' }
-    },
-    viewMoreCases() {
-      this.$router.push('/view-more')
-    },
+const router = useRouter()
+const route = useRoute()
+
+const heroSlides = [
+  {
+    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046846231245012992.jpg',
+    alt: '轮播图1-商业空间',
+    title: '匠心设计 · 品质生活',
+    subtitle: '专注于为您打造独具品味的空间美学'
+  },
+  {
+    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2040007040967471104.jpg',
+    alt: '轮播图2-办公空间',
+    title: '重塑办公体验',
+    subtitle: '平衡效率、协作与品牌气质的空间解决方案'
+  },
+  {
+    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046846251532861440.jpg',
+    alt: '轮播图3-居住空间',
+    title: '营造理想居所',
+    subtitle: '让家的每个角落都拥有温度与秩序'
+  }
+]
+
+const currentSlideIndex = ref(0)
+let autoTimer = null
+
+const aboutImage =
+  'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2031359355234365440.jpg'
+
+const awards = [
+  { title: '2023年度设计大奖', desc: '中国室内设计协会颁发', year: '2023年12月' },
+  { title: '最佳商业空间设计', desc: '亚洲设计奖组委会颁发', year: '2022年9月' },
+  { title: '年度优秀设计机构', desc: '国际设计联盟颁发', year: '2021年11月' },
+  { title: '居住空间设计金奖', desc: '全国设计大赛组委会颁发', year: '2020年7月' }
+]
+
+const tags = ['全部', '商业空间', '办公空间', '居住空间']
+const activeTag = ref('全部')
+
+const projects = [
+  {
+    name: '轻奢风商业展厅',
+    category: '商业空间',
+    type: '商业空间 / 上海',
+    year: '2023年',
+    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849218981969920.jpg'
+  },
+  {
+    name: '极简风办公楼',
+    category: '办公空间',
+    type: '办公空间 / 北京',
+    year: '2022年',
+    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849235197149184.jpg'
+  },
+  {
+    name: '北欧风别墅',
+    category: '居住空间',
+    type: '居住空间 / 深圳',
+    year: '2023年',
+    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849245921984512.jpg'
+  },
+  {
+    name: '工业风主题餐厅',
+    category: '商业空间',
+    type: '商业空间 / 广州',
+    year: '2021年',
+    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849257572986880.jpg'
+  },
+  {
+    name: '日式风公寓',
+    category: '居住空间',
+    type: '居住空间 / 杭州',
+    year: '2022年',
+    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849270546743296.jpg'
+  },
+  {
+    name: 'Loft风联合办公',
+    category: '办公空间',
+    type: '办公空间 / 成都',
+    year: '2023年',
+    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849281611317248.jpg'
+  }
+]
+
+const currentSlide = computed(() => heroSlides[currentSlideIndex.value])
+
+const filteredProjects = computed(() => {
+  if (activeTag.value === '全部') {
+    return projects
+  }
+  return projects.filter((item) => item.category === activeTag.value)
+})
+
+function nextSlide() {
+  currentSlideIndex.value = (currentSlideIndex.value + 1) % heroSlides.length
+  restartAutoSlide()
+}
+
+function prevSlide() {
+  currentSlideIndex.value = (currentSlideIndex.value - 1 + heroSlides.length) % heroSlides.length
+  restartAutoSlide()
+}
+
+function setSlide(index) {
+  currentSlideIndex.value = index
+  restartAutoSlide()
+}
+
+function startAutoSlide() {
+  autoTimer = setInterval(() => {
+    currentSlideIndex.value = (currentSlideIndex.value + 1) % heroSlides.length
+  }, 5000)
+}
+
+function stopAutoSlide() {
+  if (autoTimer) {
+    clearInterval(autoTimer)
+    autoTimer = null
   }
 }
+
+function restartAutoSlide() {
+  stopAutoSlide()
+  startAutoSlide()
+}
+
+async function viewMoreCases() {
+  if (route.name === 'ViewMore') return
+
+  try {
+    await router.push({ name: 'ViewMore' })
+  } catch (error) {
+    window.location.hash = '#/view-more'
+  }
+}
+
+onMounted(() => {
+  startAutoSlide()
+})
+
+onBeforeUnmount(() => {
+  stopAutoSlide()
+})
 </script>
 
 <style lang="scss" scoped>
@@ -922,5 +905,3 @@ body {
 }
 
 </style>
-
-
