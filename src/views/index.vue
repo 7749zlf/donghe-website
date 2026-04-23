@@ -139,7 +139,6 @@
             <li>关于我们</li>
             <li>服务项目</li>
             <li>设计案例</li>
-            <li>新闻动态</li>
             <li>联系我们</li>
           </ul>
         </div>
@@ -316,7 +315,7 @@ onBeforeUnmount(() => {
 })
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 :root {
   --text-primary: #1a1a1a;
   --text-secondary: #666;
@@ -324,7 +323,7 @@ onBeforeUnmount(() => {
   --border: #d1d5db;
   --border-light: #f3f4f6;
   --bg-light: #f9fafb;
-  --bg-footer: #1f2937;
+  --bg-footer: #181a1d;
   --radius-lg: 12px;
   --radius-sm: 8px;
 }
@@ -737,53 +736,6 @@ body {
   gap: 24px;
 }
 
-.contact-form {
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  padding: 32px;
-  display: grid;
-  gap: 24px;
-}
-
-.contact-form label {
-  display: grid;
-  gap: 8px;
-  color: #333;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.contact-form input,
-.contact-form select,
-.contact-form textarea {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 14px;
-  font-family: inherit;
-  padding: 12px 16px;
-}
-
-.contact-form textarea {
-  resize: vertical;
-}
-
-.submit-btn {
-  height: 48px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: #1f2937;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.submit-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
 
 .error {
   color: #dc2626;
@@ -819,12 +771,21 @@ body {
   color: #ccc;
   font-size: 14px;
   line-height: 1.7;
+  flex: 1 1 120px;
+  min-width: 120px;
 }
 
 .footer ul {
   margin: 20px 0 0;
   padding: 0;
   list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer li {
+  white-space: nowrap;
 }
 
 .copyright {
