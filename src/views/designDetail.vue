@@ -8,7 +8,7 @@
       <section class="thumb-block">
         <button
           v-for="(item, index) in galleryItems"
-          :key="item.seed"
+          :key="item.id"
           class="thumb-btn"
           :class="{ active: index === activeIndex }"
           @click="activeIndex = index"
@@ -19,34 +19,74 @@
       </section>
 
       <footer class="page-nav">
-        <a href="#" class="nav-link">&lt;&nbsp;&nbsp;NEXT: 太原罗马花园</a>
-        <a href="#" class="nav-link">&lt;&nbsp;&nbsp;PREVIOUS: F HOUSE</a>
+        <a href="#" class="nav-link" @click.prevent="goNext">
+          NEXT: {{ nextCase.name }} &gt;
+        </a>
+        <a href="#" class="nav-link" @click.prevent="goPrev">
+          &lt; PREVIOUS: {{ prevCase.name }}
+        </a>
       </footer>
     </main>
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { designCases, getDesignCaseById } from '@/mock/data'
 
-const seeds = [
-  'interior-01', 'interior-02', 'interior-03', 'interior-04', 'interior-05', 'interior-06',
-  'interior-07', 'interior-08', 'interior-09', 'interior-10', 'interior-11', 'interior-12',
-  'interior-13', 'interior-14', 'interior-15', 'interior-16', 'interior-17', 'interior-18',
-  'interior-19', 'interior-20', 'interior-21', 'interior-22', 'interior-23', 'interior-24',
-  'interior-25', 'interior-26', 'interior-27', 'interior-28', 'interior-29', 'interior-30',
-  'interior-31', 'interior-32', 'interior-33', 'interior-34'
-]
+const route = useRoute()
+const router = useRouter()
 
 const activeIndex = ref(0)
-const galleryItems = seeds.map((seed, index) => ({
-  seed,
-  alt: `Interior case ${index + 1}`,
-  full: `https://picsum.photos/seed/${seed}/1600/900`,
-  thumb: `https://picsum.photos/seed/${seed}/220/124`
-}))
 
-const activeItem = computed(() => galleryItems[activeIndex.value])
+const currentCase = computed(() => {
+  return getDesignCaseById(route.params.id) || designCases[0]
+})
+
+const currentCaseIndex = computed(() => {
+  return designCases.findIndex((item) => item.id === currentCase.value.id)
+})
+
+const prevCase = computed(() => {
+  const index = currentCaseIndex.value
+  const prevIndex = (index - 1 + designCases.length) % designCases.length
+  return designCases[prevIndex]
+})
+
+const nextCase = computed(() => {
+  const index = currentCaseIndex.value
+  const nextIndex = (index + 1) % designCases.length
+  return designCases[nextIndex]
+})
+
+const galleryItems = computed(() => {
+  return currentCase.value.list.map((url, index) => ({
+    id: `${currentCase.value.id}-${index}`,
+    alt: `${currentCase.value.name}-${index + 1}`,
+    full: url,
+    thumb: url
+  }))
+})
+
+const activeItem = computed(() => galleryItems.value[activeIndex.value] || galleryItems.value[0])
+
+function goPrev() {
+  activeIndex.value = 0
+  router.push({ name: 'designDetail', params: { id: prevCase.value.id } })
+}
+
+function goNext() {
+  activeIndex.value = 0
+  router.push({ name: 'designDetail', params: { id: nextCase.value.id } })
+}
+
+watch(
+  () => route.params.id,
+  () => {
+    activeIndex.value = 0
+  }
+)
 </script>
 
 <style scoped lang="scss">

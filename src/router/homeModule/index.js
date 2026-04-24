@@ -9,7 +9,7 @@ export default [
     meta: { keepAlive: true }
   },
   {
-    path: '/designDetail',
+    path: '/designDetail/:id',
     name: 'designDetail',
     component: () => import('@/views/designDetail.vue')
   }
