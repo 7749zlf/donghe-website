@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="view-more-page">
     <main class="gallery-shell">
       <section class="hero-block">

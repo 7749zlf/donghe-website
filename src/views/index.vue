@@ -167,10 +167,9 @@ export default {
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 
-const router = useRouter()
-const route = useRoute()
+const router =  useRouter()
 
 const heroSlides = [
   {
@@ -297,13 +296,7 @@ function restartAutoSlide() {
 }
 
 async function viewMoreCases() {
-  if (route.name === 'ViewMore') return
-
-  try {
-    await router.push({ name: 'ViewMore' })
-  } catch (error) {
-    window.location.hash = '#/view-more'
-  }
+  router.push({ name: 'designDetail',params: { id: 123 }  })
 }
 
 onMounted(() => {
