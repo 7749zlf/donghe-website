@@ -1,7 +1,7 @@
 ﻿<template>
   <nav class="sticky-navbar">
     <div class="navbar-inner">
-      <div class="brand">LUXE DESIGN</div>
+      <div class="brand" @click="toHome">LUXE DESIGN</div>
       <div class="nav-container">
         <ul class="nav-list" :class="{ collapsed: isCollapsed }">
           <li class="nav-item">
@@ -24,6 +24,7 @@
 </template>
 
 <script>
+
 export default {
   name: 'StickyNavbar',
   data() {
@@ -36,6 +37,9 @@ export default {
     toggleCollapse() {
       this.isCollapsed = !this.isCollapsed;
     },
+    toHome() {
+      this.$router.push('/');
+    }
   },
 };
 </script>
@@ -71,6 +75,7 @@ export default {
   font-size: 24px;
   font-weight: 700;
   flex-shrink: 0;
+  cursor: pointer;
 }
 
 .nav-list {
