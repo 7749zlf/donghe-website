@@ -19,7 +19,7 @@
       :projects="filteredProjects"
       @change-tag="handleTagChange"
       @view-detail="viewMoreCases"
-      @view-more="viewMoreCases"
+      @view-more="goWorksGallery"
     />
 
     <HomeContactSection />
@@ -105,6 +105,10 @@ function restartAutoSlide() {
 function viewMoreCases(id = currentSlide.value?.id) {
   if (!id) return
   router.push({ name: 'designDetail', params: { id } })
+}
+
+function goWorksGallery() {
+  router.push({ name: 'worksGallery' })
 }
 
 onMounted(() => {

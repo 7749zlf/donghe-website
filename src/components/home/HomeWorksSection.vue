@@ -17,7 +17,15 @@
     </div>
 
     <div class="container work-grid">
-      <article v-for="item in projects" :key="item.id" class="work-card">
+      <article
+        v-for="item in projects"
+        :key="item.id"
+        class="work-card"
+        role="button"
+        tabindex="0"
+        @click="$emit('view-detail', item.id)"
+        @keyup.enter="$emit('view-detail', item.id)"
+      >
         <div class="work-image-wrap">
           <img :src="item.image" :alt="item.name" />
           <div class="work-overlay">
@@ -29,7 +37,7 @@
           <p>{{ item.type }}</p>
           <div class="work-meta">
             <span>{{ item.year }}</span>
-            <button class="work-detail-btn" @click="$emit('view-detail', item.id)">查看详情 →</button>
+            <button class="work-detail-btn" @click.stop="$emit('view-detail', item.id)">查看详情 →</button>
           </div>
         </div>
       </article>
@@ -122,6 +130,12 @@ defineEmits(['change-tag', 'view-detail', 'view-more'])
   overflow: hidden;
   background: #fff;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+}
+
+.work-card:focus-visible {
+  outline: 2px solid #1f2937;
+  outline-offset: 2px;
 }
 
 .work-image-wrap {

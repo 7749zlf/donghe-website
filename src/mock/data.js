@@ -1,123 +1,84 @@
+﻿const IMG_1 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046846231245012992.jpg'
+const IMG_2 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2040007040967471104.jpg'
+const IMG_3 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046846251532861440.jpg'
+const IMG_4 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849218981969920.jpg'
+const IMG_5 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849235197149184.jpg'
+const IMG_6 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849245921984512.jpg'
+const IMG_7 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849257572986880.jpg'
+const IMG_8 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849270546743296.jpg'
+const IMG_9 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849281611317248.jpg'
+const IMG_10 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2031359355234365440.jpg'
+
 export const designCases = [
-  {
-    id: 101,
-    name: 'Crafted Quality Living',
-    list: [
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046846231245012992.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849218981969920.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849257572986880.jpg'
-    ]
-  },
-  {
-    id: 102,
-    name: 'Office Experience Rebuild',
-    list: [
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2040007040967471104.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849235197149184.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849281611317248.jpg'
-    ]
-  },
-  {
-    id: 103,
-    name: 'Ideal Home Creation',
-    list: [
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046846251532861440.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849245921984512.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849270546743296.jpg'
-    ]
-  },
-  {
-    id: 104,
-    name: 'Industrial Theme Restaurant',
-    list: [
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849257572986880.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046846231245012992.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849218981969920.jpg'
-    ]
-  },
-  {
-    id: 105,
-    name: 'Japanese Style Apartment',
-    list: [
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849270546743296.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046846251532861440.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849245921984512.jpg'
-    ]
-  },
-  {
-    id: 106,
-    name: 'Loft Co-working Office',
-    list: [
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849281611317248.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2040007040967471104.jpg',
-      'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849235197149184.jpg'
-    ]
-  }
+  { id: 101, name: '轻奢商业展厅', list: [IMG_4, IMG_1, IMG_7] },
+  { id: 102, name: '极简办公总部', list: [IMG_5, IMG_9, IMG_2] },
+  { id: 103, name: '北欧住宅样板间', list: [IMG_6, IMG_8, IMG_3] },
+  { id: 104, name: '中庭艺术展馆', list: [IMG_1, IMG_10, IMG_4] },
+  { id: 105, name: '工业风餐饮空间', list: [IMG_7, IMG_4, IMG_1] },
+  { id: 106, name: '日式静谧公寓', list: [IMG_8, IMG_6, IMG_3] },
+  { id: 107, name: 'Loft联合办公中心', list: [IMG_9, IMG_5, IMG_2] },
+  { id: 108, name: '山景度假酒店大堂', list: [IMG_3, IMG_10, IMG_6] },
+  { id: 109, name: '书香住宅空间', list: [IMG_6, IMG_10, IMG_8] },
+  { id: 110, name: '海岸咖啡馆室内', list: [IMG_7, IMG_3, IMG_4] },
+  { id: 111, name: '科技企业会客厅', list: [IMG_2, IMG_5, IMG_9] },
+  { id: 112, name: '光影美术馆', list: [IMG_1, IMG_3, IMG_10] },
+  { id: 113, name: '私享温泉会所', list: [IMG_3, IMG_8, IMG_10] },
+  { id: 114, name: '城市天际公寓', list: [IMG_6, IMG_3, IMG_8] },
+  { id: 115, name: '私宴餐叙会馆', list: [IMG_7, IMG_1, IMG_4] }
 ]
 
 export function getDesignCaseById(id) {
   return designCases.find((item) => String(item.id) === String(id))
 }
 
-export const aboutImage =
-  'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2031359355234365440.jpg'
+export const aboutImage = IMG_10
 
 export const awards = [
-  { title: '2023年度设计大奖', desc: '中国室内设计协会颁发', year: '2023年12月' },
-  { title: '最佳商业空间设计', desc: '亚洲设计奖组委会颁发', year: '2022年9月' },
-  { title: '年度优秀设计机构', desc: '国际设计联盟颁发', year: '2021年11月' },
-  { title: '居住空间设计金奖', desc: '全国设计大赛组委会颁发', year: '2020年7月' }
+  { title: '2023 Annual Design Award', desc: 'Presented by Interior Design Association', year: 'Dec 2023' },
+  { title: 'Best Commercial Space', desc: 'Presented by Asia Design Awards', year: 'Sep 2022' },
+  { title: 'Top Design Studio', desc: 'Presented by International Design Alliance', year: 'Nov 2021' },
+  { title: 'Residential Gold Award', desc: 'Presented by National Design Competition', year: 'Jul 2020' }
 ]
 
-export const tags = ['全部', '商业空间', '办公空间', '居住空间']
+export const tags = ['\u5168\u90e8', '\u5546\u4e1a\u7a7a\u95f4', '\u529e\u516c\u7a7a\u95f4', '\u5c45\u4f4f\u7a7a\u95f4']
 
 export const projects = [
-  {
-    id: 101,
-    name: '轻奢风商业展厅',
-    category: '商业空间',
-    type: '商业空间 / 上海',
-    year: '2023年',
-    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849218981969920.jpg'
-  },
-  {
-    id: 102,
-    name: '极简风办公楼',
-    category: '办公空间',
-    type: '办公空间 / 北京',
-    year: '2022年',
-    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849235197149184.jpg'
-  },
-  {
-    id: 103,
-    name: '北欧风别墅',
-    category: '居住空间',
-    type: '居住空间 / 深圳',
-    year: '2023年',
-    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849245921984512.jpg'
-  },
-  {
-    id: 104,
-    name: '工业风主题餐厅',
-    category: '商业空间',
-    type: '商业空间 / 广州',
-    year: '2021年',
-    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849257572986880.jpg'
-  },
-  {
-    id: 105,
-    name: '日式风公寓',
-    category: '居住空间',
-    type: '居住空间 / 杭州',
-    year: '2022年',
-    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849270546743296.jpg'
-  },
-  {
-    id: 106,
-    name: 'Loft风联合办公',
-    category: '办公空间',
-    type: '办公空间 / 成都',
-    year: '2023年',
-    image: 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849281611317248.jpg'
-  }
+  { id: 101, name: '轻奢商业展厅', category: tags[1], type: '商业空间 / 上海', year: '2023年', image: designCases[0].list[0] },
+  { id: 102, name: '极简办公总部', category: tags[2], type: '办公空间 / 北京', year: '2022年', image: designCases[1].list[0] },
+  { id: 103, name: '北欧住宅样板间', category: tags[3], type: '居住空间 / 深圳', year: '2023年', image: designCases[2].list[0] },
+  { id: 104, name: '中庭艺术展馆', category: tags[1], type: '商业空间 / 苏州', year: '2024年', image: designCases[3].list[0] },
+  { id: 105, name: '工业风餐饮空间', category: tags[1], type: '商业空间 / 广州', year: '2021年', image: designCases[4].list[0] },
+  { id: 106, name: '日式静谧公寓', category: tags[3], type: '居住空间 / 杭州', year: '2022年', image: designCases[5].list[0] },
+  { id: 107, name: 'Loft联合办公中心', category: tags[2], type: '办公空间 / 成都', year: '2023年', image: designCases[6].list[0] },
+  { id: 108, name: '山景度假酒店大堂', category: tags[1], type: '商业空间 / 丽江', year: '2024年', image: designCases[7].list[0] },
+  { id: 109, name: '书香住宅空间', category: tags[3], type: '居住空间 / 南京', year: '2025年', image: designCases[8].list[0] },
+  { id: 110, name: '海岸咖啡馆室内', category: tags[1], type: '商业空间 / 厦门', year: '2025年', image: designCases[9].list[0] },
+  { id: 111, name: '科技企业会客厅', category: tags[2], type: '办公空间 / 深圳', year: '2025年', image: designCases[10].list[0] },
+  { id: 112, name: '光影美术馆', category: tags[1], type: '商业空间 / 北京', year: '2026年', image: designCases[11].list[0] },
+  { id: 113, name: '私享温泉会所', category: tags[3], type: '居住空间 / 大理', year: '2024年', image: designCases[12].list[0] },
+  { id: 114, name: '城市天际公寓', category: tags[3], type: '居住空间 / 上海', year: '2026年', image: designCases[13].list[0] },
+  { id: 115, name: '私宴餐叙会馆', category: tags[1], type: '商业空间 / 成都', year: '2026年', image: designCases[14].list[0] }
 ]
+
+const caseMap = Object.fromEntries(designCases.map((item) => [item.id, item]))
+
+const curatorNotes = [
+  '以光影层次重塑动线秩序，强调空间叙事感。',
+  '通过材质碰撞塑造理性与温度并存的场域。',
+  '在比例与留白中，营造可呼吸的生活美学。',
+  '将结构力量与细节工艺融合为沉浸式体验。',
+  '借自然肌理与柔和色阶构成安静的情绪场。',
+  '让开放协作与独立专注在同一空间达成平衡。'
+]
+
+export const worksList = projects.map((project, index) => {
+  const matchedCase = caseMap[project.id]
+  const list = matchedCase?.list?.length ? matchedCase.list : [project.image]
+
+  return {
+    ...project,
+    cover: list[0],
+    list,
+    note: curatorNotes[index % curatorNotes.length]
+  }
+})

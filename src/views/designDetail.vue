@@ -20,10 +20,12 @@
 
       <footer class="page-nav">
         <a href="#" class="nav-link" @click.prevent="goNext">
-          NEXT: {{ nextCase.name }} &gt;
+          <span class="nav-caret">&lt;</span>
+          <span class="nav-label">NEXT</span>
         </a>
         <a href="#" class="nav-link" @click.prevent="goPrev">
-          &lt; PREVIOUS: {{ prevCase.name }}
+          <span class="nav-caret">&lt;</span>
+          <span class="nav-label">PREVIOUS</span>
         </a>
       </footer>
     </main>
@@ -32,32 +34,15 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { designCases, getDesignCaseById } from '@/mock/data'
 
 const route = useRoute()
-const router = useRouter()
 
 const activeIndex = ref(0)
 
 const currentCase = computed(() => {
   return getDesignCaseById(route.params.id) || designCases[0]
-})
-
-const currentCaseIndex = computed(() => {
-  return designCases.findIndex((item) => item.id === currentCase.value.id)
-})
-
-const prevCase = computed(() => {
-  const index = currentCaseIndex.value
-  const prevIndex = (index - 1 + designCases.length) % designCases.length
-  return designCases[prevIndex]
-})
-
-const nextCase = computed(() => {
-  const index = currentCaseIndex.value
-  const nextIndex = (index + 1) % designCases.length
-  return designCases[nextIndex]
 })
 
 const galleryItems = computed(() => {
@@ -70,15 +55,23 @@ const galleryItems = computed(() => {
 })
 
 const activeItem = computed(() => galleryItems.value[activeIndex.value] || galleryItems.value[0])
+const prevImageIndex = computed(() => {
+  if (!galleryItems.value.length) return 0
+  return (activeIndex.value - 1 + galleryItems.value.length) % galleryItems.value.length
+})
+const nextImageIndex = computed(() => {
+  if (!galleryItems.value.length) return 0
+  return (activeIndex.value + 1) % galleryItems.value.length
+})
 
 function goPrev() {
-  activeIndex.value = 0
-  router.push({ name: 'designDetail', params: { id: prevCase.value.id } })
+  if (!galleryItems.value.length) return
+  activeIndex.value = prevImageIndex.value
 }
 
 function goNext() {
-  activeIndex.value = 0
-  router.push({ name: 'designDetail', params: { id: nextCase.value.id } })
+  if (!galleryItems.value.length) return
+  activeIndex.value = nextImageIndex.value
 }
 
 watch(
@@ -171,6 +164,29 @@ watch(
   text-decoration: none;
   font-family: 'Times New Roman', serif;
   letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 160px;
+  padding: 2px 0;
+  transition: color 0.25s ease;
+}
+
+.nav-caret {
+  display: inline-block;
+  transition: transform 0.28s ease;
+}
+
+.nav-label {
+  text-align: right;
+}
+
+.nav-link:hover {
+  color: #6b7280;
+}
+
+.nav-link:hover .nav-caret {
+  transform: translateX(-1ch);
 }
 
 @media (max-width: 1100px) {
@@ -200,6 +216,7 @@ watch(
 
   .nav-link {
     font-size: 16px;
+    width: 200px;
   }
 }
 </style>
