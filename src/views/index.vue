@@ -6,10 +6,10 @@
       @prev="prevSlide"
       @next="nextSlide"
       @set-slide="setSlide"
-      @view-more="viewMoreCases"
+      @view-more="goWorksGallery"
     />
 
-    <HomeAboutSection :about-image="aboutImage" @view-more="viewMoreCases" />
+    <HomeAboutSection :about-image="aboutImage" @view-more="goWorksGallery" />
 
     <HomeAwardsSection :awards="awards" />
 
@@ -24,7 +24,7 @@
 
     <HomeContactSection />
 
-    <HomeSiteFooter />
+    <!-- <HomeSiteFooter /> -->
   </div>
 </template>
 
@@ -42,7 +42,7 @@ import HomeAboutSection from '@/components/home/HomeAboutSection.vue'
 import HomeAwardsSection from '@/components/home/HomeAwardsSection.vue'
 import HomeContactSection from '@/components/home/HomeContactSection.vue'
 import HomeHeroSection from '@/components/home/HomeHeroSection.vue'
-import HomeSiteFooter from '@/components/home/HomeSiteFooter.vue'
+// import HomeSiteFooter from '@/components/home/HomeSiteFooter.vue'
 import HomeWorksSection from '@/components/home/HomeWorksSection.vue'
 
 const router = useRouter()
