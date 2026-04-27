@@ -2,7 +2,9 @@
   <div class="view-more-page">
     <main class="gallery-shell">
       <section class="hero-block">
-        <img :src="activeItem.full" :alt="activeItem.alt" class="hero-image" />
+        <button class="hero-preview-btn" type="button" :aria-label="`放大查看 ${activeItem.alt}`" @click="openPreview">
+          <img :src="activeItem.full" :alt="activeItem.alt" class="hero-image" />
+        </button>
       </section>
 
       <section class="thumb-block">
@@ -29,6 +31,11 @@
         </a>
       </footer>
     </main>
+
+    <div v-if="isPreviewOpen" class="image-preview" role="dialog" aria-modal="true" @click.self="closePreview">
+      <button class="preview-close" type="button" aria-label="关闭预览" @click="closePreview">×</button>
+      <img :src="activeItem.full" :alt="activeItem.alt" class="preview-image" />
+    </div>
   </div>
 </template>
 
@@ -40,6 +47,7 @@ import { designCases, getDesignCaseById } from '@/mock/data'
 const route = useRoute()
 
 const activeIndex = ref(0)
+const isPreviewOpen = ref(false)
 
 const currentCase = computed(() => {
   return getDesignCaseById(route.params.id) || designCases[0]
@@ -74,10 +82,19 @@ function goNext() {
   activeIndex.value = nextImageIndex.value
 }
 
+function openPreview() {
+  isPreviewOpen.value = true
+}
+
+function closePreview() {
+  isPreviewOpen.value = false
+}
+
 watch(
   () => route.params.id,
   () => {
     activeIndex.value = 0
+    isPreviewOpen.value = false
   }
 )
 </script>
@@ -112,6 +129,15 @@ watch(
 .hero-block {
   width: min(1000px, 100%);
   margin: 0 auto;
+}
+
+.hero-preview-btn {
+  width: 100%;
+  border: none;
+  padding: 0;
+  background: transparent;
+  display: block;
+  cursor: zoom-in;
 }
 
 .hero-image {
@@ -189,6 +215,47 @@ watch(
   transform: translateX(-1ch);
 }
 
+.image-preview {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  padding: 48px;
+  background: rgba(12, 15, 20, 0.82);
+  backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  cursor: zoom-out;
+}
+
+.preview-image {
+  max-width: min(1200px, 100%);
+  max-height: calc(100vh - 96px);
+  object-fit: contain;
+  display: block;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.4);
+  cursor: default;
+}
+
+.preview-close {
+  position: fixed;
+  top: 24px;
+  right: 28px;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.preview-close:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
 @media (max-width: 1100px) {
   .thumb-block {
     grid-template-columns: repeat(8, 1fr);
@@ -217,6 +284,14 @@ watch(
   .nav-link {
     font-size: 16px;
     width: 200px;
+  }
+
+  .image-preview {
+    padding: 20px;
+  }
+
+  .preview-image {
+    max-height: calc(100vh - 40px);
   }
 }
 </style>

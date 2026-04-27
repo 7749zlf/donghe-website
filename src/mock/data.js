@@ -8,6 +8,10 @@ const IMG_7 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/cal
 const IMG_8 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849270546743296.jpg'
 const IMG_9 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2046849281611317248.jpg'
 const IMG_10 = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2031359355234365440.jpg'
+const AWARD_ARCHITECTURE_TROPHY = require('@/assets/awards/award-architecture-trophy.jpg')
+const AWARD_CERTIFICATE_TROPHY = require('@/assets/awards/award-certificate-trophy.jpg')
+const AWARD_COMMERCIAL_CERTIFICATE = require('@/assets/awards/award-commercial-certificate.jpg')
+const AWARD_RESIDENTIAL_MEDAL = require('@/assets/awards/award-residential-medal.jpg')
 
 export const designCases = [
   { id: 101, name: '轻奢商业展厅', list: [IMG_4, IMG_1, IMG_7] },
@@ -34,10 +38,38 @@ export function getDesignCaseById(id) {
 export const aboutImage = IMG_10
 
 export const awards = [
-  { title: '2023 Annual Design Award', desc: 'Presented by Interior Design Association', year: 'Dec 2023' },
-  { title: 'Best Commercial Space', desc: 'Presented by Asia Design Awards', year: 'Sep 2022' },
-  { title: 'Top Design Studio', desc: 'Presented by International Design Alliance', year: 'Nov 2021' },
-  { title: 'Residential Gold Award', desc: 'Presented by National Design Competition', year: 'Jul 2020' }
+  {
+    id: 'annual-design-award-2023',
+    title: '2023 Annual Design Award',
+    desc: 'Presented by Interior Design Association',
+    year: 'Dec 2023',
+    image: AWARD_CERTIFICATE_TROPHY,
+    imageAlt: '年度设计奖证书与奖杯'
+  },
+  {
+    id: 'best-commercial-space-2022',
+    title: 'Best Commercial Space',
+    desc: 'Presented by Asia Design Awards',
+    year: 'Sep 2022',
+    image: AWARD_COMMERCIAL_CERTIFICATE,
+    imageAlt: '商业空间设计奖证书'
+  },
+  {
+    id: 'top-design-studio-2021',
+    title: 'Top Design Studio',
+    desc: 'Presented by International Design Alliance',
+    year: 'Nov 2021',
+    image: AWARD_ARCHITECTURE_TROPHY,
+    imageAlt: '建筑空间设计奖杯'
+  },
+  {
+    id: 'residential-gold-award-2020',
+    title: 'Residential Gold Award',
+    desc: 'Presented by National Design Competition',
+    year: 'Jul 2020',
+    image: AWARD_RESIDENTIAL_MEDAL,
+    imageAlt: '住宅设计金奖奖章'
+  }
 ]
 
 export const tags = ['\u5168\u90e8', '\u5546\u4e1a\u7a7a\u95f4', '\u529e\u516c\u7a7a\u95f4', '\u5c45\u4f4f\u7a7a\u95f4']
