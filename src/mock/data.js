@@ -116,6 +116,8 @@ export const worksList = projects.map((project, index) => {
 })
 
 const CUSTOM_CASES_KEY = 'donghe-custom-design-cases'
+const CASE_OVERRIDES_KEY = 'donghe-design-case-overrides'
+const HIDDEN_CASES_KEY = 'donghe-hidden-design-cases'
 
 function hasStorage() {
   return typeof window !== 'undefined' && Boolean(window.localStorage)
@@ -152,6 +154,13 @@ function normalizeCustomCase(caseItem) {
     note: String(caseItem.note || '新增案例，等待补充更完整的空间说明。').trim(),
     createdAt: Number(caseItem.createdAt || Date.now())
   }
+}
+
+function normalizeManagedCase(caseItem) {
+  return normalizeCustomCase({
+    ...caseItem,
+    id: caseItem.id
+  })
 }
 
 function notifyCustomCasesChanged() {
@@ -205,6 +214,124 @@ export function deleteCustomCase(id) {
   writeCustomCases(readCustomCases().filter((item) => String(item.id) !== String(id)))
 }
 
+export function readCaseOverrides() {
+  if (!hasStorage()) {
+    return {}
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CASE_OVERRIDES_KEY)
+    const parsed = raw ? JSON.parse(raw) : {}
+    return Object.fromEntries(
+      Object.entries(parsed)
+        .map(([id, item]) => [String(id), normalizeManagedCase({ ...item, id })])
+        .filter(([, item]) => Boolean(item))
+    )
+  } catch (error) {
+    return {}
+  }
+}
+
+export function writeCaseOverrides(overrides) {
+  if (!hasStorage()) {
+    return
+  }
+
+  window.localStorage.setItem(CASE_OVERRIDES_KEY, JSON.stringify(overrides))
+  notifyCustomCasesChanged()
+}
+
+export function saveCaseOverride(caseItem) {
+  const nextCase = normalizeManagedCase(caseItem)
+
+  if (!nextCase) {
+    return null
+  }
+
+  writeCaseOverrides({
+    ...readCaseOverrides(),
+    [String(nextCase.id)]: nextCase
+  })
+
+  return nextCase
+}
+
+export function resetCaseOverride(id) {
+  const overrides = readCaseOverrides()
+  delete overrides[String(id)]
+  writeCaseOverrides(overrides)
+}
+
+export function readHiddenCaseIds() {
+  if (!hasStorage()) {
+    return []
+  }
+
+  try {
+    const raw = window.localStorage.getItem(HIDDEN_CASES_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed.map(String) : []
+  } catch (error) {
+    return []
+  }
+}
+
+export function writeHiddenCaseIds(ids) {
+  if (!hasStorage()) {
+    return
+  }
+
+  window.localStorage.setItem(HIDDEN_CASES_KEY, JSON.stringify([...new Set(ids.map(String))]))
+  notifyCustomCasesChanged()
+}
+
+export function hideBaseCase(id) {
+  writeHiddenCaseIds([...readHiddenCaseIds(), String(id)])
+}
+
+export function showBaseCase(id) {
+  writeHiddenCaseIds(readHiddenCaseIds().filter((item) => item !== String(id)))
+}
+
+function baseManagedCases() {
+  const projectsById = Object.fromEntries(projects.map((item) => [String(item.id), item]))
+  const hiddenIds = new Set(readHiddenCaseIds())
+  const overrides = readCaseOverrides()
+
+  return designCases
+    .map((caseItem, index) => {
+      const project = projectsById[String(caseItem.id)] || {}
+      const fallback = {
+        id: String(caseItem.id),
+        name: caseItem.name,
+        category: project.category || tags[1],
+        type: project.type || '商业空间 / 上海',
+        year: project.year || `${new Date().getFullYear()}年`,
+        url: caseItem.url || '',
+        list: caseItem.list,
+        image: project.image || caseItem.list[0],
+        note: curatorNotes[index % curatorNotes.length],
+        createdAt: 0,
+        source: 'base',
+        hidden: hiddenIds.has(String(caseItem.id))
+      }
+
+      return {
+        ...fallback,
+        ...(overrides[String(caseItem.id)] || {}),
+        source: 'base',
+        hidden: hiddenIds.has(String(caseItem.id))
+      }
+    })
+}
+
+export function getManagedCases() {
+  return [
+    ...readCustomCases().map((item) => ({ ...item, source: 'custom', hidden: false })),
+    ...baseManagedCases()
+  ]
+}
+
 function toDesignCase(caseItem) {
   return {
     id: caseItem.id,
@@ -236,21 +363,18 @@ function toWork(caseItem) {
 
 export function getDisplayDesignCases() {
   return [
-    ...readCustomCases().map(toDesignCase),
-    ...designCases
+    ...getManagedCases().filter((item) => !item.hidden).map(toDesignCase)
   ]
 }
 
 export function getDisplayProjects() {
   return [
-    ...readCustomCases().map(toProject),
-    ...projects
+    ...getManagedCases().filter((item) => !item.hidden).map(toProject)
   ]
 }
 
 export function getDisplayWorksList() {
   return [
-    ...readCustomCases().map(toWork),
-    ...worksList
+    ...getManagedCases().filter((item) => !item.hidden).map(toWork)
   ]
 }
