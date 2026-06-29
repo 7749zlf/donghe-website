@@ -37,7 +37,7 @@ export default {
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { aboutImage, awards, designCases, projects, tags } from '@/mock/data'
+import { aboutImage, awards, getDisplayDesignCases, getDisplayProjects, tags } from '@/mock/data'
 import HomeAboutSection from '@/components/home/HomeAboutSection.vue'
 import HomeAwardsSection from '@/components/home/HomeAwardsSection.vue'
 import HomeContactSection from '@/components/home/HomeContactSection.vue'
@@ -47,30 +47,32 @@ import HomeWorksSection from '@/components/home/HomeWorksSection.vue'
 
 const router = useRouter()
 
-const heroSlides = designCases.slice(0, 3)
+const displayDesignCases = ref(getDisplayDesignCases())
+const displayProjects = ref(getDisplayProjects())
+const heroSlides = computed(() => displayDesignCases.value.slice(0, 3))
 const currentSlideIndex = ref(0)
 const activeTag = ref('全部')
 
 let autoTimer = null
 
-const currentSlide = computed(() => heroSlides[currentSlideIndex.value] || null)
+const currentSlide = computed(() => heroSlides.value[currentSlideIndex.value] || null)
 
 const filteredProjects = computed(() => {
   if (activeTag.value === '全部') {
-    return projects
+    return displayProjects.value
   }
-  return projects.filter((item) => item.category === activeTag.value)
+  return displayProjects.value.filter((item) => item.category === activeTag.value)
 })
 
 function nextSlide() {
-  if (!heroSlides.length) return
-  currentSlideIndex.value = (currentSlideIndex.value + 1) % heroSlides.length
+  if (!heroSlides.value.length) return
+  currentSlideIndex.value = (currentSlideIndex.value + 1) % heroSlides.value.length
   restartAutoSlide()
 }
 
 function prevSlide() {
-  if (!heroSlides.length) return
-  currentSlideIndex.value = (currentSlideIndex.value - 1 + heroSlides.length) % heroSlides.length
+  if (!heroSlides.value.length) return
+  currentSlideIndex.value = (currentSlideIndex.value - 1 + heroSlides.value.length) % heroSlides.value.length
   restartAutoSlide()
 }
 
@@ -84,9 +86,9 @@ function handleTagChange(tag) {
 }
 
 function startAutoSlide() {
-  if (!heroSlides.length) return
+  if (!heroSlides.value.length) return
   autoTimer = setInterval(() => {
-    currentSlideIndex.value = (currentSlideIndex.value + 1) % heroSlides.length
+    currentSlideIndex.value = (currentSlideIndex.value + 1) % heroSlides.value.length
   }, 5000)
 }
 
@@ -111,11 +113,21 @@ function goWorksGallery() {
   router.push({ name: 'worksGallery' })
 }
 
+function refreshCustomCases() {
+  displayDesignCases.value = getDisplayDesignCases()
+  displayProjects.value = getDisplayProjects()
+  if (currentSlideIndex.value >= heroSlides.value.length) {
+    currentSlideIndex.value = 0
+  }
+}
+
 onMounted(() => {
+  window.addEventListener('donghe-custom-cases-updated', refreshCustomCases)
   startAutoSlide()
 })
 
 onBeforeUnmount(() => {
+  window.removeEventListener('donghe-custom-cases-updated', refreshCustomCases)
   stopAutoSlide()
 })
 </script>

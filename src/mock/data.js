@@ -32,7 +32,7 @@ export const designCases = [
 ]
 
 export function getDesignCaseById(id) {
-  return designCases.find((item) => String(item.id) === String(id))
+  return getDisplayDesignCases().find((item) => String(item.id) === String(id))
 }
 
 export const aboutImage = IMG_10
@@ -114,3 +114,143 @@ export const worksList = projects.map((project, index) => {
     note: curatorNotes[index % curatorNotes.length]
   }
 })
+
+const CUSTOM_CASES_KEY = 'donghe-custom-design-cases'
+
+function hasStorage() {
+  return typeof window !== 'undefined' && Boolean(window.localStorage)
+}
+
+function normalizeImages(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean)
+  }
+
+  return String(value || '')
+    .split(/\r?\n|，|,/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function normalizeCustomCase(caseItem) {
+  const list = normalizeImages(caseItem.list || caseItem.images)
+  const name = String(caseItem.name || '').trim()
+
+  if (!name || !list.length) {
+    return null
+  }
+
+  return {
+    id: String(caseItem.id || `custom-${Date.now()}`),
+    name,
+    category: String(caseItem.category || tags[1]),
+    type: String(caseItem.type || '商业空间 / 上饶'),
+    year: String(caseItem.year || `${new Date().getFullYear()}年`),
+    url: String(caseItem.url || '').trim(),
+    list,
+    image: String(caseItem.image || list[0]),
+    note: String(caseItem.note || '新增案例，等待补充更完整的空间说明。').trim(),
+    createdAt: Number(caseItem.createdAt || Date.now())
+  }
+}
+
+function notifyCustomCasesChanged() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('donghe-custom-cases-updated'))
+  }
+}
+
+export function readCustomCases() {
+  if (!hasStorage()) {
+    return []
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CUSTOM_CASES_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed)
+      ? parsed.map(normalizeCustomCase).filter(Boolean)
+      : []
+  } catch (error) {
+    return []
+  }
+}
+
+export function writeCustomCases(caseList) {
+  if (!hasStorage()) {
+    return
+  }
+
+  const normalized = caseList.map(normalizeCustomCase).filter(Boolean)
+  window.localStorage.setItem(CUSTOM_CASES_KEY, JSON.stringify(normalized))
+  notifyCustomCasesChanged()
+}
+
+export function saveCustomCase(caseItem) {
+  const nextCase = normalizeCustomCase({
+    ...caseItem,
+    id: caseItem.id || `custom-${Date.now()}`,
+    createdAt: caseItem.createdAt || Date.now()
+  })
+
+  if (!nextCase) {
+    return null
+  }
+
+  writeCustomCases([nextCase, ...readCustomCases()])
+  return nextCase
+}
+
+export function deleteCustomCase(id) {
+  writeCustomCases(readCustomCases().filter((item) => String(item.id) !== String(id)))
+}
+
+function toDesignCase(caseItem) {
+  return {
+    id: caseItem.id,
+    name: caseItem.name,
+    list: caseItem.list,
+    url: caseItem.url
+  }
+}
+
+function toProject(caseItem) {
+  return {
+    id: caseItem.id,
+    name: caseItem.name,
+    category: caseItem.category,
+    type: caseItem.type,
+    year: caseItem.year,
+    image: caseItem.image || caseItem.list[0]
+  }
+}
+
+function toWork(caseItem) {
+  return {
+    ...toProject(caseItem),
+    cover: caseItem.image || caseItem.list[0],
+    list: caseItem.list,
+    note: caseItem.note
+  }
+}
+
+export function getDisplayDesignCases() {
+  return [
+    ...readCustomCases().map(toDesignCase),
+    ...designCases
+  ]
+}
+
+export function getDisplayProjects() {
+  return [
+    ...readCustomCases().map(toProject),
+    ...projects
+  ]
+}
+
+export function getDisplayWorksList() {
+  return [
+    ...readCustomCases().map(toWork),
+    ...worksList
+  ]
+}

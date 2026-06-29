@@ -46,11 +46,12 @@ export default {
 </script>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { tags, worksList } from '@/mock/data'
+import { getDisplayWorksList, tags } from '@/mock/data'
 
 const router = useRouter()
+const displayWorks = ref(getDisplayWorksList())
 
 const filterOptions = [
   { label: '全部', value: tags[0] },
@@ -63,9 +64,9 @@ const activeCategory = ref(tags[0])
 
 const filteredWorks = computed(() => {
   if (activeCategory.value === tags[0]) {
-    return worksList
+    return displayWorks.value
   }
-  return worksList.filter((item) => item.category === activeCategory.value)
+  return displayWorks.value.filter((item) => item.category === activeCategory.value)
 })
 
 function setCategory(category) {
@@ -75,6 +76,18 @@ function setCategory(category) {
 function openDetail(id) {
   router.push({ name: 'designDetail', params: { id } })
 }
+
+function refreshWorks() {
+  displayWorks.value = getDisplayWorksList()
+}
+
+onMounted(() => {
+  window.addEventListener('donghe-custom-cases-updated', refreshWorks)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('donghe-custom-cases-updated', refreshWorks)
+})
 </script>
 
 <style scoped lang="scss">

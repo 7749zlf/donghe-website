@@ -13,6 +13,9 @@
           <li class="nav-item">
             <a href="#contact">联系</a>
           </li>
+          <li class="nav-item">
+            <button type="button" @click="toManager">管理</button>
+          </li>
         </ul>
         <button type="button" @click="toggleCollapse" class="toggle-btn">
           <span v-if="isCollapsed">☰</span>
@@ -39,6 +42,9 @@ export default {
     },
     toHome() {
       this.$router.push('/');
+    },
+    toManager() {
+      this.$router.push({ name: 'contentManager' });
     }
   },
 };
@@ -102,7 +108,8 @@ export default {
   margin-right: 0;
 }
 
-.nav-item>a {
+.nav-item>a,
+.nav-item>button {
   text-decoration: none;
   color: #333;
   font-size: 18px;
@@ -111,7 +118,14 @@ export default {
   transition: opacity 0.3s ease, transform 0.3s ease, color 0.2s;
 }
 
-.nav-item>a:hover {
+.nav-item>button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.nav-item>a:hover,
+.nav-item>button:hover {
   color: #0078ff;
 }
 
@@ -213,7 +227,8 @@ export default {
     margin: 0;
   }
 
-  .nav-list.collapsed .nav-item>a {
+  .nav-list.collapsed .nav-item>a,
+  .nav-list.collapsed .nav-item>button {
     padding: 12px 16px;
     width: 100%;
     box-sizing: border-box;

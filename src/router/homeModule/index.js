@@ -17,5 +17,10 @@ export default [
     path: '/designDetail/:id',
     name: 'designDetail',
     component: () => import('@/views/designDetail.vue')
+  },
+  {
+    path: '/manager',
+    name: 'contentManager',
+    component: () => import('@/views/contentManager.vue')
   }
 ]

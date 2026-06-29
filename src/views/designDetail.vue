@@ -39,9 +39,9 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { designCases, getDesignCaseById } from '@/mock/data'
+import { getDesignCaseById, getDisplayDesignCases } from '@/mock/data'
 
 const route = useRoute()
 
@@ -49,7 +49,7 @@ const activeIndex = ref(0)
 const isPreviewOpen = ref(false)
 
 const currentCase = computed(() => {
-  return getDesignCaseById(route.params.id) || designCases[0]
+  return getDesignCaseById(route.params.id) || getDisplayDesignCases()[0]
 })
 const URL = computed(() => {
   return currentCase.value.url 
@@ -85,7 +85,9 @@ function goNext() {
 }
 function go3D() {
   console.log('URL', URL.value)
-  window.open(URL.value, '_blank')
+  if (URL.value) {
+    window.open(URL.value, '_blank')
+  }
 }
 
 function openPreview() {
@@ -103,6 +105,18 @@ watch(
     isPreviewOpen.value = false
   }
 )
+
+function refreshDetail() {
+  activeIndex.value = 0
+}
+
+onMounted(() => {
+  window.addEventListener('donghe-custom-cases-updated', refreshDetail)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('donghe-custom-cases-updated', refreshDetail)
+})
 </script>
 
 <style scoped lang="scss">
