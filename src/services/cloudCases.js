@@ -90,7 +90,7 @@ export async function isManagerAdmin() {
   const { data, error } = await client
     .from('design_admins')
     .select('email')
-    .eq('email', email)
+    .ilike('email', email)
     .maybeSingle()
 
   if (error) {
