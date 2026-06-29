@@ -118,6 +118,7 @@ export const worksList = projects.map((project, index) => {
 const CUSTOM_CASES_KEY = 'donghe-custom-design-cases'
 const CASE_OVERRIDES_KEY = 'donghe-design-case-overrides'
 const HIDDEN_CASES_KEY = 'donghe-hidden-design-cases'
+let cloudCases = []
 
 function hasStorage() {
   return typeof window !== 'undefined' && Boolean(window.localStorage)
@@ -167,6 +168,11 @@ function notifyCustomCasesChanged() {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('donghe-custom-cases-updated'))
   }
+}
+
+export function setCloudCases(caseList) {
+  cloudCases = Array.isArray(caseList) ? caseList : []
+  notifyCustomCasesChanged()
 }
 
 export function readCustomCases() {
@@ -326,6 +332,10 @@ function baseManagedCases() {
 }
 
 export function getManagedCases() {
+  if (cloudCases.length) {
+    return cloudCases.map((item) => ({ ...item, source: 'cloud' }))
+  }
+
   return [
     ...readCustomCases().map((item) => ({ ...item, source: 'custom', hidden: false })),
     ...baseManagedCases()

@@ -9,8 +9,9 @@
       <div class="manager-layout">
         <form class="case-form" @submit.prevent="handleSubmit">
           <div class="form-title">
-            <h2>{{ isEditing ? '编辑作品' : '新增作品' }}</h2>
-            <button v-if="isEditing" type="button" class="plain-btn" @click="startCreate">新建</button>
+          <h2>{{ isEditing ? '编辑作品' : '新增作品' }}</h2>
+          <span class="mode-badge">{{ cloudEnabled ? '云端数据库' : '本地浏览器' }}</span>
+          <button v-if="isEditing" type="button" class="plain-btn" @click="startCreate">新建</button>
           </div>
 
           <label class="field">
@@ -99,7 +100,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import {
   deleteCustomCase,
   getManagedCases,
@@ -108,13 +109,21 @@ import {
   saveCaseOverride,
   saveCustomCase,
   showBaseCase,
+  setCloudCases,
   tags
 } from '@/mock/data'
+import {
+  deleteCloudCase,
+  fetchCloudCases,
+  isCloudCasesEnabled,
+  upsertCloudCase
+} from '@/services/cloudCases'
 
 const caseTags = tags.slice(1)
+const cloudEnabled = isCloudCasesEnabled()
 const managedCases = ref(getManagedCases())
 const editingCase = ref(null)
-const statusText = ref('信息会保存在当前浏览器中。')
+const statusText = ref(cloudEnabled ? '信息会保存到云端数据库。' : '信息会保存在当前浏览器中。')
 
 const form = reactive({
   name: '',
@@ -147,6 +156,17 @@ function refreshList() {
   managedCases.value = getManagedCases()
 }
 
+async function refreshCloudList() {
+  if (!cloudEnabled) {
+    refreshList()
+    return
+  }
+
+  const cases = await fetchCloudCases()
+  setCloudCases(cases)
+  refreshList()
+}
+
 function startCreate() {
   resetForm()
   statusText.value = '正在新增作品。'
@@ -167,7 +187,7 @@ function editCase(item) {
 
 function formPayload() {
   return {
-    id: editingCase.value?.id,
+    id: editingCase.value?.id || `case-${Date.now()}`,
     name: form.name,
     category: form.category,
     type: form.type,
@@ -175,14 +195,22 @@ function formPayload() {
     url: form.url,
     images: form.images,
     note: form.note,
-    createdAt: editingCase.value?.createdAt || Date.now()
+    createdAt: editingCase.value?.createdAt || Date.now(),
+    hidden: Boolean(editingCase.value?.hidden)
   }
 }
 
-function handleSubmit() {
-  const saved = isEditing.value
-    ? saveCaseOverride(formPayload())
-    : saveCustomCase(formPayload())
+async function handleSubmit() {
+  let saved = null
+
+  if (cloudEnabled) {
+    saved = await upsertCloudCase(formPayload())
+    await refreshCloudList()
+  } else {
+    saved = isEditing.value
+      ? saveCaseOverride(formPayload())
+      : saveCustomCase(formPayload())
+  }
 
   if (!saved) {
     statusText.value = '请至少填写作品名称和一张图片链接。'
@@ -194,19 +222,36 @@ function handleSubmit() {
   refreshList()
 }
 
-function hideCase(id) {
-  hideBaseCase(id)
-  refreshList()
+async function hideCase(id) {
+  const target = managedCases.value.find((item) => String(item.id) === String(id))
+  if (cloudEnabled && target) {
+    await upsertCloudCase({ ...target, hidden: true })
+    await refreshCloudList()
+  } else {
+    hideBaseCase(id)
+    refreshList()
+  }
   statusText.value = '已隐藏作品。'
 }
 
-function restoreCase(id) {
-  showBaseCase(id)
-  refreshList()
+async function restoreCase(id) {
+  const target = managedCases.value.find((item) => String(item.id) === String(id))
+  if (cloudEnabled && target) {
+    await upsertCloudCase({ ...target, hidden: false })
+    await refreshCloudList()
+  } else {
+    showBaseCase(id)
+    refreshList()
+  }
   statusText.value = '作品已恢复显示。'
 }
 
 function resetBase(id) {
+  if (cloudEnabled) {
+    statusText.value = '云端模式下没有本地默认内容可恢复。'
+    return
+  }
+
   resetCaseOverride(id)
   showBaseCase(id)
   refreshList()
@@ -214,12 +259,30 @@ function resetBase(id) {
   statusText.value = '已恢复默认内容。'
 }
 
-function removeCustom(id) {
-  deleteCustomCase(id)
-  refreshList()
+async function removeCustom(id) {
+  if (cloudEnabled) {
+    await deleteCloudCase(id)
+    await refreshCloudList()
+  } else {
+    deleteCustomCase(id)
+    refreshList()
+  }
   resetForm()
   statusText.value = '已删除新增作品。'
 }
+
+onMounted(async () => {
+  if (!cloudEnabled) {
+    return
+  }
+
+  try {
+    await refreshCloudList()
+    statusText.value = '已连接云端数据库。'
+  } catch (error) {
+    statusText.value = `云端数据库连接失败：${error.message}`
+  }
+})
 </script>
 
 <style scoped lang="scss">
@@ -300,6 +363,14 @@ function removeCustom(id) {
   color: #11161d;
   padding: 9px 14px;
   cursor: pointer;
+}
+
+.mode-badge {
+  margin-right: auto;
+  padding: 7px 10px;
+  background: #eef2f7;
+  color: #46515f;
+  font-size: 13px;
 }
 
 .form-grid {
