@@ -22,6 +22,84 @@ export function isCloudCasesEnabled() {
   return enabled
 }
 
+export async function getManagerSession() {
+  if (!client) {
+    return null
+  }
+
+  const { data, error } = await client.auth.getSession()
+  if (error) {
+    throw error
+  }
+
+  return data.session
+}
+
+export function onManagerAuthChange(callback) {
+  if (!client) {
+    return () => {}
+  }
+
+  const { data } = client.auth.onAuthStateChange((_event, session) => {
+    callback(session)
+  })
+
+  return () => data.subscription.unsubscribe()
+}
+
+export async function signInManager(email, password) {
+  if (!client) {
+    throw new Error('Supabase is not configured.')
+  }
+
+  const { data, error } = await client.auth.signInWithPassword({
+    email,
+    password
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data.session
+}
+
+export async function signOutManager() {
+  if (!client) {
+    return
+  }
+
+  const { error } = await client.auth.signOut()
+  if (error) {
+    throw error
+  }
+}
+
+export async function isManagerAdmin() {
+  if (!client) {
+    return false
+  }
+
+  const session = await getManagerSession()
+  const email = session?.user?.email
+
+  if (!email) {
+    return false
+  }
+
+  const { data, error } = await client
+    .from('design_admins')
+    .select('email')
+    .eq('email', email)
+    .maybeSingle()
+
+  if (error) {
+    throw error
+  }
+
+  return Boolean(data)
+}
+
 export function rowToCase(row) {
   const list = normalizeImages(row.images)
 

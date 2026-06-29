@@ -1,9 +1,57 @@
 <template>
   <main class="manager-page">
-    <section class="manager-shell">
-      <header class="manager-header">
+    <section v-if="cloudEnabled && !authReady" class="manager-shell compact-shell">
+      <div class="auth-panel">
         <p>内容管理</p>
-        <h1>管理官网作品</h1>
+        <h1>正在检查权限</h1>
+        <span>请稍候。</span>
+      </div>
+    </section>
+
+    <section v-else-if="cloudEnabled && !managerSession" class="manager-shell compact-shell">
+      <form class="auth-panel" @submit.prevent="handleLogin">
+        <p>内容管理</p>
+        <h1>管理员登录</h1>
+
+        <label class="field">
+          <span>邮箱</span>
+          <input v-model.trim="loginForm.email" type="email" autocomplete="username" required />
+        </label>
+
+        <label class="field">
+          <span>密码</span>
+          <input v-model="loginForm.password" type="password" autocomplete="current-password" required />
+        </label>
+
+        <div class="form-actions auth-actions">
+          <p>{{ loginStatus }}</p>
+          <button type="submit" :disabled="authLoading">{{ authLoading ? '登录中' : '登录' }}</button>
+        </div>
+      </form>
+    </section>
+
+    <section v-else-if="cloudEnabled && !managerIsAdmin" class="manager-shell compact-shell">
+      <div class="auth-panel">
+        <p>内容管理</p>
+        <h1>没有管理权限</h1>
+        <span>当前账号未加入管理员名单。</span>
+        <div class="form-actions auth-actions">
+          <p>{{ managerEmail }}</p>
+          <button type="button" @click="handleLogout">退出登录</button>
+        </div>
+      </div>
+    </section>
+
+    <section v-else class="manager-shell">
+      <header class="manager-header">
+        <div>
+          <p>内容管理</p>
+          <h1>管理官网作品</h1>
+        </div>
+        <div v-if="cloudEnabled" class="manager-account">
+          <span>{{ managerEmail }}</span>
+          <button type="button" @click="handleLogout">退出登录</button>
+        </div>
       </header>
 
       <div class="manager-layout">
@@ -55,7 +103,7 @@
 
           <div class="form-actions">
             <p>{{ statusText }}</p>
-            <button type="submit">{{ isEditing ? '保存修改' : '保存作品' }}</button>
+            <button type="submit" :disabled="saving">{{ saving ? '保存中' : (isEditing ? '保存修改' : '保存作品') }}</button>
           </div>
         </form>
 
@@ -79,16 +127,16 @@
               <div class="saved-copy">
                 <div class="item-head">
                   <h3>{{ item.name }}</h3>
-                  <span>{{ item.source === 'base' ? '原有作品' : '新增作品' }}</span>
+                  <span>{{ caseLabel(item) }}</span>
                 </div>
                 <p>{{ item.type }} · {{ item.year }}</p>
                 <p class="item-note">{{ item.hidden ? '已隐藏，不会在前台展示。' : item.note }}</p>
                 <div class="item-actions">
                   <button type="button" @click="editCase(item)">编辑</button>
-                  <button v-if="item.source === 'base' && !item.hidden" type="button" @click="hideCase(item.id)">隐藏</button>
-                  <button v-if="item.source === 'base' && item.hidden" type="button" @click="restoreCase(item.id)">显示</button>
-                  <button v-if="item.source === 'base'" type="button" @click="resetBase(item.id)">恢复默认</button>
-                  <button v-if="item.source === 'custom'" type="button" class="danger" @click="removeCustom(item.id)">删除</button>
+                  <button v-if="canToggleVisibility(item) && !item.hidden" type="button" @click="hideCase(item.id)">隐藏</button>
+                  <button v-if="canToggleVisibility(item) && item.hidden" type="button" @click="restoreCase(item.id)">显示</button>
+                  <button v-if="canReset(item)" type="button" @click="resetBase(item.id)">恢复默认</button>
+                  <button v-if="canDelete(item)" type="button" class="danger" @click="removeCustom(item.id)">删除</button>
                 </div>
               </div>
             </article>
@@ -100,7 +148,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
 import {
   deleteCustomCase,
   getManagedCases,
@@ -115,7 +163,12 @@ import {
 import {
   deleteCloudCase,
   fetchCloudCases,
+  getManagerSession,
+  isManagerAdmin,
   isCloudCasesEnabled,
+  onManagerAuthChange,
+  signInManager,
+  signOutManager,
   upsertCloudCase
 } from '@/services/cloudCases'
 
@@ -124,6 +177,18 @@ const cloudEnabled = isCloudCasesEnabled()
 const managedCases = ref(getManagedCases())
 const editingCase = ref(null)
 const statusText = ref(cloudEnabled ? '信息会保存到云端数据库。' : '信息会保存在当前浏览器中。')
+const authReady = ref(!cloudEnabled)
+const authLoading = ref(false)
+const managerSession = ref(null)
+const managerIsAdmin = ref(false)
+const loginStatus = ref('请输入管理员账号。')
+const saving = ref(false)
+let stopAuthListener = null
+
+const loginForm = reactive({
+  email: '',
+  password: ''
+})
 
 const form = reactive({
   name: '',
@@ -136,6 +201,7 @@ const form = reactive({
 })
 
 const isEditing = computed(() => Boolean(editingCase.value))
+const managerEmail = computed(() => managerSession.value?.user?.email || '')
 
 function imagesToText(list) {
   return Array.isArray(list) ? list.join('\n') : ''
@@ -167,6 +233,16 @@ async function refreshCloudList() {
   refreshList()
 }
 
+async function refreshAdminStatus() {
+  if (!cloudEnabled || !managerSession.value) {
+    managerIsAdmin.value = false
+    return false
+  }
+
+  managerIsAdmin.value = await isManagerAdmin()
+  return managerIsAdmin.value
+}
+
 function startCreate() {
   resetForm()
   statusText.value = '正在新增作品。'
@@ -183,6 +259,26 @@ function editCase(item) {
   form.note = item.note
   statusText.value = `正在编辑《${item.name}》。`
   window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function caseLabel(item) {
+  if (cloudEnabled) {
+    return '云端作品'
+  }
+
+  return item.source === 'base' ? '原有作品' : '新增作品'
+}
+
+function canToggleVisibility(item) {
+  return cloudEnabled || item.source === 'base'
+}
+
+function canReset(item) {
+  return !cloudEnabled && item.source === 'base'
+}
+
+function canDelete(item) {
+  return cloudEnabled || item.source === 'custom'
 }
 
 function formPayload() {
@@ -202,48 +298,63 @@ function formPayload() {
 
 async function handleSubmit() {
   let saved = null
+  saving.value = true
 
-  if (cloudEnabled) {
-    saved = await upsertCloudCase(formPayload())
-    await refreshCloudList()
-  } else {
-    saved = isEditing.value
-      ? saveCaseOverride(formPayload())
-      : saveCustomCase(formPayload())
+  try {
+    if (cloudEnabled) {
+      saved = await upsertCloudCase(formPayload())
+      await refreshCloudList()
+    } else {
+      saved = isEditing.value
+        ? saveCaseOverride(formPayload())
+        : saveCustomCase(formPayload())
+    }
+
+    if (!saved) {
+      statusText.value = '请至少填写作品名称和一张图片链接。'
+      return
+    }
+
+    statusText.value = `已保存《${saved.name}》。`
+    resetForm()
+    refreshList()
+  } catch (error) {
+    statusText.value = `保存失败：${error.message}`
+  } finally {
+    saving.value = false
   }
-
-  if (!saved) {
-    statusText.value = '请至少填写作品名称和一张图片链接。'
-    return
-  }
-
-  statusText.value = `已保存《${saved.name}》。`
-  resetForm()
-  refreshList()
 }
 
 async function hideCase(id) {
-  const target = managedCases.value.find((item) => String(item.id) === String(id))
-  if (cloudEnabled && target) {
-    await upsertCloudCase({ ...target, hidden: true })
-    await refreshCloudList()
-  } else {
-    hideBaseCase(id)
-    refreshList()
+  try {
+    const target = managedCases.value.find((item) => String(item.id) === String(id))
+    if (cloudEnabled && target) {
+      await upsertCloudCase({ ...target, hidden: true })
+      await refreshCloudList()
+    } else {
+      hideBaseCase(id)
+      refreshList()
+    }
+    statusText.value = '已隐藏作品。'
+  } catch (error) {
+    statusText.value = `隐藏失败：${error.message}`
   }
-  statusText.value = '已隐藏作品。'
 }
 
 async function restoreCase(id) {
-  const target = managedCases.value.find((item) => String(item.id) === String(id))
-  if (cloudEnabled && target) {
-    await upsertCloudCase({ ...target, hidden: false })
-    await refreshCloudList()
-  } else {
-    showBaseCase(id)
-    refreshList()
+  try {
+    const target = managedCases.value.find((item) => String(item.id) === String(id))
+    if (cloudEnabled && target) {
+      await upsertCloudCase({ ...target, hidden: false })
+      await refreshCloudList()
+    } else {
+      showBaseCase(id)
+      refreshList()
+    }
+    statusText.value = '作品已恢复显示。'
+  } catch (error) {
+    statusText.value = `恢复失败：${error.message}`
   }
-  statusText.value = '作品已恢复显示。'
 }
 
 function resetBase(id) {
@@ -260,15 +371,52 @@ function resetBase(id) {
 }
 
 async function removeCustom(id) {
-  if (cloudEnabled) {
-    await deleteCloudCase(id)
-    await refreshCloudList()
-  } else {
-    deleteCustomCase(id)
-    refreshList()
+  try {
+    if (cloudEnabled) {
+      await deleteCloudCase(id)
+      await refreshCloudList()
+    } else {
+      deleteCustomCase(id)
+      refreshList()
+    }
+    resetForm()
+    statusText.value = '已删除新增作品。'
+  } catch (error) {
+    statusText.value = `删除失败：${error.message}`
   }
-  resetForm()
-  statusText.value = '已删除新增作品。'
+}
+
+async function handleLogin() {
+  authLoading.value = true
+  loginStatus.value = '正在登录。'
+
+  try {
+    managerSession.value = await signInManager(loginForm.email, loginForm.password)
+    loginForm.password = ''
+    const hasAccess = await refreshAdminStatus()
+    if (!hasAccess) {
+      loginStatus.value = '当前账号没有管理权限。'
+      return
+    }
+    loginStatus.value = '登录成功。'
+    await refreshCloudList()
+  } catch (error) {
+    loginStatus.value = `登录失败：${error.message}`
+  } finally {
+    authLoading.value = false
+  }
+}
+
+async function handleLogout() {
+  try {
+    await signOutManager()
+    managerSession.value = null
+    managerIsAdmin.value = false
+    resetForm()
+    loginStatus.value = '已退出，请重新登录。'
+  } catch (error) {
+    statusText.value = `退出失败：${error.message}`
+  }
 }
 
 onMounted(async () => {
@@ -277,10 +425,38 @@ onMounted(async () => {
   }
 
   try {
+    managerSession.value = await getManagerSession()
+    stopAuthListener = onManagerAuthChange((session) => {
+      managerSession.value = session
+      if (!session) {
+        managerIsAdmin.value = false
+      }
+    })
+    authReady.value = true
+
+    if (!managerSession.value) {
+      loginStatus.value = '请输入管理员账号。'
+      return
+    }
+
+    const hasAccess = await refreshAdminStatus()
+    if (!hasAccess) {
+      loginStatus.value = '当前账号没有管理权限。'
+      return
+    }
+
     await refreshCloudList()
     statusText.value = '已连接云端数据库。'
   } catch (error) {
+    authReady.value = true
     statusText.value = `云端数据库连接失败：${error.message}`
+    loginStatus.value = `权限检查失败：${error.message}`
+  }
+})
+
+onUnmounted(() => {
+  if (stopAuthListener) {
+    stopAuthListener()
   }
 })
 </script>
@@ -297,7 +473,15 @@ onMounted(async () => {
   margin: 0 auto;
 }
 
+.compact-shell {
+  width: min(520px, calc(100% - 40px));
+}
+
 .manager-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
   margin-bottom: 28px;
 }
 
@@ -314,6 +498,21 @@ onMounted(async () => {
   color: #11161d;
 }
 
+.manager-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #69717d;
+}
+
+.manager-account button {
+  border: 1px solid #d8dde4;
+  background: #fff;
+  color: #11161d;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+
 .manager-layout {
   display: grid;
   grid-template-columns: minmax(360px, 0.84fr) minmax(0, 1.16fr);
@@ -321,10 +520,38 @@ onMounted(async () => {
   align-items: start;
 }
 
+.auth-panel,
 .case-form,
 .saved-panel {
   border: 1px solid rgba(17, 22, 29, 0.1);
   background: #fff;
+}
+
+.auth-panel {
+  display: grid;
+  gap: 18px;
+  padding: 34px;
+}
+
+.auth-panel p,
+.auth-panel h1,
+.auth-panel span {
+  margin: 0;
+}
+
+.auth-panel > p {
+  color: #69717d;
+  letter-spacing: 2px;
+}
+
+.auth-panel h1 {
+  color: #11161d;
+  font-size: 34px;
+  font-weight: 500;
+}
+
+.auth-actions {
+  margin-top: 4px;
 }
 
 .case-form {
@@ -434,6 +661,11 @@ onMounted(async () => {
   cursor: pointer;
 }
 
+.form-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .saved-panel {
   padding: 26px;
 }
@@ -530,6 +762,7 @@ onMounted(async () => {
   }
 
   .form-actions,
+  .manager-header,
   .saved-head,
   .item-head {
     align-items: stretch;
