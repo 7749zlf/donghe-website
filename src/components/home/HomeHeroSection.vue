@@ -17,11 +17,13 @@
         <span class="arrow-icon">‹</span>
       </button>
 
-      <div class="hero-center">
-        <h1>{{ currentSlide.name }}</h1>
-        <p>专注于为您打造独具品味的空间美学</p>
-        <button class="pill-btn" @click="$emit('view-more')">了解更多</button>
-      </div>
+      <Transition name="hero-copy" mode="out-in">
+        <div :key="currentSlide.id || currentSlideIndex" class="hero-center">
+          <h1>{{ currentSlide.name }}</h1>
+          <p>专注于为您打造独具品味的空间美学</p>
+          <button class="pill-btn" @click="$emit('view-more')">了解更多</button>
+        </div>
+      </Transition>
 
       <button class="hero-arrow" aria-label="下一张" @click="$emit('next')">
         <span class="arrow-icon">›</span>
@@ -181,6 +183,29 @@ watch(
 .hero-center {
   text-align: center;
   color: #fff;
+  will-change: opacity, transform, filter;
+}
+
+.hero-copy-enter-active,
+.hero-copy-leave-active {
+  transition:
+    opacity 0.56s ease,
+    transform 0.56s ease,
+    filter 0.56s ease;
+}
+
+.hero-copy-enter-from,
+.hero-copy-leave-to {
+  opacity: 0;
+  transform: translateY(16px);
+  filter: blur(5px);
+}
+
+.hero-copy-enter-to,
+.hero-copy-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0);
 }
 
 .hero-center h1 {
