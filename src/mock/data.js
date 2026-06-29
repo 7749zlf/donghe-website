@@ -14,21 +14,21 @@ const AWARD_COMMERCIAL_CERTIFICATE = require('@/assets/awards/award-commercial-c
 const AWARD_RESIDENTIAL_MEDAL = require('@/assets/awards/award-residential-medal.jpg')
 
 export const designCases = [
-  { id: 101, name: '轻奢商业展厅', list: [IMG_4, IMG_1, IMG_7] },
-  { id: 102, name: '极简办公总部', list: [IMG_5, IMG_9, IMG_2] },
-  { id: 103, name: '北欧住宅样板间', list: [IMG_6, IMG_8, IMG_3] },
-  { id: 104, name: '中庭艺术展馆', list: [IMG_1, IMG_10, IMG_4] },
-  { id: 105, name: '工业风餐饮空间', list: [IMG_7, IMG_4, IMG_1] },
-  { id: 106, name: '日式静谧公寓', list: [IMG_8, IMG_6, IMG_3] },
-  { id: 107, name: 'Loft联合办公中心', list: [IMG_9, IMG_5, IMG_2] },
-  { id: 108, name: '山景度假酒店大堂', list: [IMG_3, IMG_10, IMG_6] },
-  { id: 109, name: '书香住宅空间', list: [IMG_6, IMG_10, IMG_8] },
-  { id: 110, name: '海岸咖啡馆室内', list: [IMG_7, IMG_3, IMG_4] },
-  { id: 111, name: '科技企业会客厅', list: [IMG_2, IMG_5, IMG_9] },
-  { id: 112, name: '光影美术馆', list: [IMG_1, IMG_3, IMG_10] },
-  { id: 113, name: '私享温泉会所', list: [IMG_3, IMG_8, IMG_10] },
-  { id: 114, name: '城市天际公寓', list: [IMG_6, IMG_3, IMG_8] },
-  { id: 115, name: '私宴餐叙会馆', list: [IMG_7, IMG_1, IMG_4] }
+  { id: 101, name: '和锦园', list: [IMG_4, IMG_1, IMG_7], url: 'https://vr.justeasy.cn/view/177046cy3630q394-1776687415.html' },
+  { id: 102, name: '极简办公总部', list: [IMG_5, IMG_9, IMG_2], url: 'https://www.baidu.com' },
+  { id: 103, name: '北欧住宅样板间', list: [IMG_6, IMG_8, IMG_3], url: 'https://www.baidu.com' },
+  { id: 104, name: '中庭艺术展馆', list: [IMG_1, IMG_10, IMG_4], url: 'https://www.baidu.com' },
+  { id: 105, name: '工业风餐饮空间', list: [IMG_7, IMG_4, IMG_1], url: 'https://www.baidu.com' },
+  { id: 106, name: '日式静谧公寓', list: [IMG_8, IMG_6, IMG_3], url: 'https://www.baidu.com' },
+  { id: 107, name: 'Loft联合办公中心', list: [IMG_9, IMG_5, IMG_2], url: 'https://www.baidu.com' },
+  { id: 108, name: '山景度假酒店大堂', list: [IMG_3, IMG_10, IMG_6], url: 'https://www.baidu.com' },
+  { id: 109, name: '书香住宅空间', list: [IMG_6, IMG_10, IMG_8], url: 'https://www.baidu.com' },
+  { id: 110, name: '海岸咖啡馆室内', list: [IMG_7, IMG_3, IMG_4], url: 'https://www.baidu.com' },
+  { id: 111, name: '科技企业会客厅', list: [IMG_2, IMG_5, IMG_9], url: 'https://www.baidu.com' },
+  { id: 112, name: '光影美术馆', list: [IMG_1, IMG_3, IMG_10], url: 'https://www.baidu.com' },
+  { id: 113, name: '私享温泉会所', list: [IMG_3, IMG_8, IMG_10], url: 'https://www.baidu.com' },
+  { id: 114, name: '城市天际公寓', list: [IMG_6, IMG_3, IMG_8], url: 'https://www.baidu.com' },
+  { id: 115, name: '私宴餐叙会馆', list: [IMG_7, IMG_1, IMG_4], url: 'https://www.baidu.com' }
 ]
 
 export function getDesignCaseById(id) {
@@ -75,7 +75,7 @@ export const awards = [
 export const tags = ['\u5168\u90e8', '\u5546\u4e1a\u7a7a\u95f4', '\u529e\u516c\u7a7a\u95f4', '\u5c45\u4f4f\u7a7a\u95f4']
 
 export const projects = [
-  { id: 101, name: '轻奢商业展厅', category: tags[1], type: '商业空间 / 上海', year: '2023年', image: designCases[0].list[0] },
+  { id: 101, name: '和锦园', category: tags[1], type: '商业空间 / 上海', year: '2023年', image: designCases[0].list[0] },
   { id: 102, name: '极简办公总部', category: tags[2], type: '办公空间 / 北京', year: '2022年', image: designCases[1].list[0] },
   { id: 103, name: '北欧住宅样板间', category: tags[3], type: '居住空间 / 深圳', year: '2023年', image: designCases[2].list[0] },
   { id: 104, name: '中庭艺术展馆', category: tags[1], type: '商业空间 / 苏州', year: '2024年', image: designCases[3].list[0] },

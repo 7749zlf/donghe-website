@@ -199,7 +199,7 @@ export default {
   }
 
   .nav-list.collapsed {
-    opacity: 0;
+    display: none;
     transform: none;
     pointer-events: auto;
   }

@@ -8,14 +8,9 @@
       </section>
 
       <section class="thumb-block">
-        <button
-          v-for="(item, index) in galleryItems"
-          :key="item.id"
-          class="thumb-btn"
-          :class="{ active: index === activeIndex }"
-          @click="activeIndex = index"
-          :aria-label="`show image ${index + 1}`"
-        >
+        <button v-for="(item, index) in galleryItems" :key="item.id" class="thumb-btn"
+          :class="{ active: index === activeIndex }" @click="activeIndex = index"
+          :aria-label="`show image ${index + 1}`">
           <img :src="item.thumb" :alt="item.alt" class="thumb-image" />
         </button>
       </section>
@@ -23,11 +18,15 @@
       <footer class="page-nav">
         <a href="#" class="nav-link" @click.prevent="goNext">
           <span class="nav-caret">&lt;</span>
-          <span class="nav-label">NEXT</span>
+          <span class="nav-label">下一页</span>
         </a>
         <a href="#" class="nav-link" @click.prevent="goPrev">
           <span class="nav-caret">&lt;</span>
-          <span class="nav-label">PREVIOUS</span>
+          <span class="nav-label">上一页</span>
+        </a>
+        <a href="#" class="nav-link" @click.prevent="go3D">
+          <span class="nav-caret">&lt;</span>
+          <span class="nav-label">3D查看</span>
         </a>
       </footer>
     </main>
@@ -51,6 +50,9 @@ const isPreviewOpen = ref(false)
 
 const currentCase = computed(() => {
   return getDesignCaseById(route.params.id) || designCases[0]
+})
+const URL = computed(() => {
+  return currentCase.value.url 
 })
 
 const galleryItems = computed(() => {
@@ -81,6 +83,10 @@ function goNext() {
   if (!galleryItems.value.length) return
   activeIndex.value = nextImageIndex.value
 }
+function go3D() {
+  console.log('URL', URL.value)
+  window.open(URL.value, '_blank')
+}
 
 function openPreview() {
   isPreviewOpen.value = true
@@ -101,7 +107,8 @@ watch(
 
 <style scoped lang="scss">
 .view-more-page {
-  min-height: 100vh;
+  box-sizing:content-box;
+  min-height: calc(100vh - 60px);
   background: #e9e9e9;
 }
 
@@ -238,7 +245,7 @@ watch(
 
 .preview-close {
   position: fixed;
-  top: 24px;
+  top: 85px;
   right: 28px;
   width: 42px;
   height: 42px;

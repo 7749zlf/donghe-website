@@ -53,10 +53,10 @@ import { tags, worksList } from '@/mock/data'
 const router = useRouter()
 
 const filterOptions = [
-  { label: 'ALL', value: tags[0] },
-  { label: 'COMMERCIAL', value: tags[1] },
-  { label: 'OFFICE', value: tags[2] },
-  { label: 'RESIDENTIAL', value: tags[3] }
+  { label: '全部', value: tags[0] },
+  { label: '商业空间', value: tags[1] },
+  { label: '平层', value: tags[2] },
+  { label: '别墅', value: tags[3] }
 ]
 
 const activeCategory = ref(tags[0])
