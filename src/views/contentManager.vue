@@ -704,9 +704,29 @@ onUnmounted(() => {
 .case-form {
   position: sticky;
   top: 92px;
+  max-height: calc(100vh - 116px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
   display: grid;
   gap: 18px;
   padding: 28px;
+}
+
+.case-form::-webkit-scrollbar {
+  width: 8px;
+}
+
+.case-form::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.case-form::-webkit-scrollbar-thumb {
+  background: #c5ccd5;
+}
+
+.case-form::-webkit-scrollbar-thumb:hover {
+  background: #9da7b3;
 }
 
 .form-title,
@@ -1052,6 +1072,8 @@ onUnmounted(() => {
 
   .case-form {
     position: static;
+    max-height: none;
+    overflow: visible;
   }
 }
 
