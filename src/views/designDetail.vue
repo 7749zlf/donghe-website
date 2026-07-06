@@ -31,15 +31,43 @@
       </footer>
     </main>
 
-    <div v-if="isPreviewOpen" class="image-preview" role="dialog" aria-modal="true" @click.self="closePreview">
+    <div
+      v-if="isPreviewOpen"
+      class="image-preview"
+      role="dialog"
+      aria-modal="true"
+      @click.self="closePreview"
+      @wheel.prevent="handlePreviewWheel"
+    >
+      <div class="preview-toolbar" aria-label="图片缩放工具">
+        <button type="button" :disabled="previewZoom <= MIN_PREVIEW_ZOOM" @click="zoomOutPreview">缩小</button>
+        <span>{{ previewZoomLabel }}</span>
+        <button type="button" :disabled="previewZoom >= MAX_PREVIEW_ZOOM" @click="zoomInPreview">放大</button>
+        <button type="button" @click="resetPreviewTransform">重置</button>
+      </div>
       <button class="preview-close" type="button" aria-label="关闭预览" @click="closePreview">×</button>
-      <img :src="activeItem.full" :alt="activeItem.alt" class="preview-image" />
+      <div class="preview-stage">
+        <img
+          :src="activeItem.full"
+          :alt="activeItem.alt"
+          class="preview-image"
+          :class="{ draggable: previewZoom > MIN_PREVIEW_ZOOM, dragging: isPreviewDragging }"
+          :style="previewImageStyle"
+          draggable="false"
+          @dblclick="resetPreviewTransform"
+          @pointerdown="startPreviewDrag"
+          @pointermove="movePreviewDrag"
+          @pointerup="stopPreviewDrag"
+          @pointercancel="stopPreviewDrag"
+          @pointerleave="stopPreviewDrag"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getDesignCaseById, getDisplayDesignCases } from '@/mock/data'
 
@@ -47,6 +75,19 @@ const route = useRoute()
 
 const activeIndex = ref(0)
 const isPreviewOpen = ref(false)
+const MIN_PREVIEW_ZOOM = 1
+const MAX_PREVIEW_ZOOM = 4
+const PREVIEW_ZOOM_STEP = 0.25
+const previewZoom = ref(MIN_PREVIEW_ZOOM)
+const previewPan = reactive({ x: 0, y: 0 })
+const isPreviewDragging = ref(false)
+const previewDragStart = reactive({
+  pointerId: null,
+  x: 0,
+  y: 0,
+  panX: 0,
+  panY: 0
+})
 
 const currentCase = computed(() => {
   return getDesignCaseById(route.params.id) || getDisplayDesignCases()[0]
@@ -65,6 +106,10 @@ const galleryItems = computed(() => {
 })
 
 const activeItem = computed(() => galleryItems.value[activeIndex.value] || galleryItems.value[0])
+const previewZoomLabel = computed(() => `${Math.round(previewZoom.value * 100)}%`)
+const previewImageStyle = computed(() => ({
+  transform: `translate3d(${previewPan.x}px, ${previewPan.y}px, 0) scale(${previewZoom.value})`
+}))
 const prevImageIndex = computed(() => {
   if (!galleryItems.value.length) return 0
   return (activeIndex.value - 1 + galleryItems.value.length) % galleryItems.value.length
@@ -91,11 +136,82 @@ function go3D() {
 }
 
 function openPreview() {
+  resetPreviewTransform()
   isPreviewOpen.value = true
 }
 
 function closePreview() {
   isPreviewOpen.value = false
+  resetPreviewTransform()
+}
+
+function clampPreviewZoom(value) {
+  return Math.min(MAX_PREVIEW_ZOOM, Math.max(MIN_PREVIEW_ZOOM, Number(value.toFixed(2))))
+}
+
+function setPreviewZoom(value) {
+  previewZoom.value = clampPreviewZoom(value)
+  if (previewZoom.value === MIN_PREVIEW_ZOOM) {
+    previewPan.x = 0
+    previewPan.y = 0
+  }
+}
+
+function zoomInPreview() {
+  setPreviewZoom(previewZoom.value + PREVIEW_ZOOM_STEP)
+}
+
+function zoomOutPreview() {
+  setPreviewZoom(previewZoom.value - PREVIEW_ZOOM_STEP)
+}
+
+function resetPreviewTransform() {
+  previewZoom.value = MIN_PREVIEW_ZOOM
+  previewPan.x = 0
+  previewPan.y = 0
+  isPreviewDragging.value = false
+  previewDragStart.pointerId = null
+}
+
+function handlePreviewWheel(event) {
+  const direction = event.deltaY < 0 ? 1 : -1
+  setPreviewZoom(previewZoom.value + direction * PREVIEW_ZOOM_STEP)
+}
+
+function startPreviewDrag(event) {
+  if (previewZoom.value <= MIN_PREVIEW_ZOOM) {
+    return
+  }
+
+  isPreviewDragging.value = true
+  previewDragStart.pointerId = event.pointerId
+  previewDragStart.x = event.clientX
+  previewDragStart.y = event.clientY
+  previewDragStart.panX = previewPan.x
+  previewDragStart.panY = previewPan.y
+  event.currentTarget.setPointerCapture(event.pointerId)
+}
+
+function movePreviewDrag(event) {
+  if (!isPreviewDragging.value || previewDragStart.pointerId !== event.pointerId) {
+    return
+  }
+
+  previewPan.x = previewDragStart.panX + event.clientX - previewDragStart.x
+  previewPan.y = previewDragStart.panY + event.clientY - previewDragStart.y
+}
+
+function stopPreviewDrag(event) {
+  if (!isPreviewDragging.value || previewDragStart.pointerId !== event.pointerId) {
+    return
+  }
+
+  if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+    event.currentTarget.releasePointerCapture(event.pointerId)
+  }
+
+  isPreviewDragging.value = false
+  previewDragStart.pointerId = null
 }
 
 watch(
@@ -154,17 +270,20 @@ onBeforeUnmount(() => {
 
 .hero-preview-btn {
   width: 100%;
+  aspect-ratio: 1000 / 380;
   border: none;
   padding: 0;
-  background: transparent;
-  display: block;
+  background: #ddd;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
   cursor: zoom-in;
 }
 
 .hero-image {
   width: 100%;
-  aspect-ratio: 1000 / 380;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
   display: block;
 }
 
@@ -180,8 +299,11 @@ onBeforeUnmount(() => {
   border: none;
   padding: 0;
   line-height: 0;
+  aspect-ratio: 16 / 9;
+  background: #ddd;
   cursor: pointer;
   opacity: 0.9;
+  overflow: hidden;
   transition: opacity 0.2s ease;
 
   &:hover,
@@ -192,8 +314,8 @@ onBeforeUnmount(() => {
 
 .thumb-image {
   width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
+  height: 100%;
+  object-fit: contain;
   display: block;
 }
 
@@ -245,7 +367,52 @@ onBeforeUnmount(() => {
   backdrop-filter: blur(10px);
   display: grid;
   place-items: center;
-  cursor: zoom-out;
+  overflow: hidden;
+  cursor: default;
+}
+
+.preview-stage {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.preview-toolbar {
+  position: fixed;
+  top: 28px;
+  left: 50%;
+  z-index: 52;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(-50%);
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(12px);
+}
+
+.preview-toolbar button {
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #11161d;
+  min-width: 54px;
+  height: 34px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+.preview-toolbar button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+.preview-toolbar span {
+  min-width: 52px;
+  color: #fff;
+  text-align: center;
+  font-size: 14px;
 }
 
 .preview-image {
@@ -254,13 +421,27 @@ onBeforeUnmount(() => {
   object-fit: contain;
   display: block;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.4);
-  cursor: default;
+  transform-origin: center center;
+  transition: transform 0.16s ease;
+  user-select: none;
+  touch-action: none;
+  cursor: zoom-in;
+}
+
+.preview-image.draggable {
+  cursor: grab;
+}
+
+.preview-image.dragging {
+  cursor: grabbing;
+  transition: none;
 }
 
 .preview-close {
   position: fixed;
   top: 85px;
   right: 28px;
+  z-index: 52;
   width: 42px;
   height: 42px;
   border: none;
@@ -309,6 +490,18 @@ onBeforeUnmount(() => {
 
   .image-preview {
     padding: 20px;
+  }
+
+  .preview-toolbar {
+    top: 16px;
+    max-width: calc(100vw - 32px);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .preview-close {
+    top: 16px;
+    right: 16px;
   }
 
   .preview-image {
