@@ -2,7 +2,6 @@
   <main class="manager-page">
     <section v-if="cloudEnabled && !authReady" class="manager-shell compact-shell">
       <div class="auth-panel">
-        <p>内容管理</p>
         <h1>正在检查权限</h1>
         <span>请稍候。</span>
       </div>
@@ -10,7 +9,6 @@
 
     <section v-else-if="cloudEnabled && !managerSession" class="manager-shell compact-shell">
       <form class="auth-panel" @submit.prevent="handleLogin">
-        <p>内容管理</p>
         <h1>管理员登录</h1>
 
         <label class="field">
@@ -32,7 +30,6 @@
 
     <section v-else-if="cloudEnabled && !managerIsAdmin" class="manager-shell compact-shell">
       <div class="auth-panel">
-        <p>内容管理</p>
         <h1>没有管理权限</h1>
         <span>当前账号未加入管理员名单。</span>
         <div class="form-actions auth-actions">
@@ -45,7 +42,6 @@
     <section v-else class="manager-shell">
       <header class="manager-header">
         <div>
-          <p>内容管理</p>
           <h1>管理官网作品</h1>
         </div>
         <div v-if="cloudEnabled" class="manager-account">
