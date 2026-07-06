@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 const SUPABASE_URL = process.env.VUE_APP_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.VUE_APP_SUPABASE_ANON_KEY
 const CASES_TABLE = process.env.VUE_APP_SUPABASE_CASES_TABLE || 'design_cases'
+const CASE_IMAGES_BUCKET = process.env.VUE_APP_SUPABASE_CASE_IMAGES_BUCKET || 'case-images'
 
 const enabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
 const client = enabled ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
@@ -20,6 +21,37 @@ function normalizeImages(value) {
 
 export function isCloudCasesEnabled() {
   return enabled
+}
+
+function safePathPart(value) {
+  return String(value || 'case')
+    .normalize('NFKD')
+    .replace(/[^\w.-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'case'
+}
+
+export async function uploadCaseImage(file, caseId = 'case') {
+  if (!client) {
+    throw new Error('Supabase is not configured.')
+  }
+
+  const fileName = safePathPart(file.name || 'image')
+  const folder = safePathPart(caseId)
+  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${fileName}`
+  const { error } = await client.storage
+    .from(CASE_IMAGES_BUCKET)
+    .upload(path, file, {
+      cacheControl: '31536000',
+      contentType: file.type || 'application/octet-stream',
+      upsert: true
+    })
+
+  if (error) {
+    throw error
+  }
+
+  const { data } = client.storage.from(CASE_IMAGES_BUCKET).getPublicUrl(path)
+  return data.publicUrl
 }
 
 export async function getManagerSession() {

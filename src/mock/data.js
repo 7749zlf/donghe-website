@@ -12,9 +12,15 @@ const AWARD_ARCHITECTURE_TROPHY = require('@/assets/awards/award-architecture-tr
 const AWARD_CERTIFICATE_TROPHY = require('@/assets/awards/award-certificate-trophy.jpg')
 const AWARD_COMMERCIAL_CERTIFICATE = require('@/assets/awards/award-commercial-certificate.jpg')
 const AWARD_RESIDENTIAL_MEDAL = require('@/assets/awards/award-residential-medal.jpg')
+const HE_JIN_YUAN_1 = require('@/assets/cases/he-jin-yuan/he-jin-yuan-01.png')
+const HE_JIN_YUAN_2 = require('@/assets/cases/he-jin-yuan/he-jin-yuan-02.png')
+const HE_JIN_YUAN_3 = require('@/assets/cases/he-jin-yuan/he-jin-yuan-03.png')
+const HE_JIN_YUAN_4 = require('@/assets/cases/he-jin-yuan/he-jin-yuan-04.png')
+
+const HE_JIN_YUAN_IMAGES = [HE_JIN_YUAN_1, HE_JIN_YUAN_2, HE_JIN_YUAN_3, HE_JIN_YUAN_4]
 
 export const designCases = [
-  { id: 101, name: '和锦园', list: [IMG_4, IMG_1, IMG_7], url: 'https://vr.justeasy.cn/view/177046cy3630q394-1776687415.html' },
+  { id: 101, name: '和锦园', list: HE_JIN_YUAN_IMAGES, url: 'https://vr.justeasy.cn/view/177046cy3630q394-1776687415.html' },
   { id: 102, name: '极简办公总部', list: [IMG_5, IMG_9, IMG_2], url: 'https://www.baidu.com' },
   { id: 103, name: '北欧住宅样板间', list: [IMG_6, IMG_8, IMG_3], url: 'https://www.baidu.com' },
   { id: 104, name: '中庭艺术展馆', list: [IMG_1, IMG_10, IMG_4], url: 'https://www.baidu.com' },

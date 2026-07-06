@@ -14,6 +14,20 @@ create table if not exists public.design_cases (
 
 alter table public.design_cases enable row level security;
 
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'case-images',
+  'case-images',
+  true,
+  10485760,
+  array['image/jpeg', 'image/png', 'image/webp', 'image/gif']
+)
+on conflict (id) do update
+set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
 create table if not exists public.design_admins (
   email text primary key,
   created_at timestamptz not null default now()
@@ -80,3 +94,32 @@ on public.design_cases
 for delete
 to authenticated
 using (public.is_design_admin());
+
+drop policy if exists "Public can read case images" on storage.objects;
+create policy "Public can read case images"
+on storage.objects
+for select
+to anon, authenticated
+using (bucket_id = 'case-images');
+
+drop policy if exists "Admin can upload case images" on storage.objects;
+create policy "Admin can upload case images"
+on storage.objects
+for insert
+to authenticated
+with check (bucket_id = 'case-images' and public.is_design_admin());
+
+drop policy if exists "Admin can update case images" on storage.objects;
+create policy "Admin can update case images"
+on storage.objects
+for update
+to authenticated
+using (bucket_id = 'case-images' and public.is_design_admin())
+with check (bucket_id = 'case-images' and public.is_design_admin());
+
+drop policy if exists "Admin can delete case images" on storage.objects;
+create policy "Admin can delete case images"
+on storage.objects
+for delete
+to authenticated
+using (bucket_id = 'case-images' and public.is_design_admin());
