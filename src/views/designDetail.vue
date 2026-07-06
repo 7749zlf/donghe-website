@@ -389,7 +389,7 @@ onBeforeUnmount(() => {
 .image-preview {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 2000;
   padding: 48px;
   background: rgba(12, 15, 20, 0.82);
   backdrop-filter: blur(10px);
@@ -411,7 +411,7 @@ onBeforeUnmount(() => {
   position: fixed;
   top: 28px;
   left: 50%;
-  z-index: 52;
+  z-index: 2001;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -469,7 +469,7 @@ onBeforeUnmount(() => {
   position: fixed;
   top: 85px;
   right: 28px;
-  z-index: 52;
+  z-index: 2001;
   width: 42px;
   height: 42px;
   border: none;
@@ -489,7 +489,7 @@ onBeforeUnmount(() => {
 .preview-nav {
   position: fixed;
   top: 50%;
-  z-index: 52;
+  z-index: 2001;
   width: 54px;
   height: 78px;
   border: none;
