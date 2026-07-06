@@ -617,7 +617,8 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .manager-page {
-  min-height: calc(100vh - 73px);
+  min-height: calc(100vh - var(--nav-height));
+  min-height: calc(100svh - var(--nav-height));
   background: #f1f1f1;
   // padding: 44px 0 80px;
 }
@@ -627,9 +628,18 @@ onUnmounted(() => {
   margin: 0 auto;
 }
 
+.manager-page > .manager-shell:not(.compact-shell) {
+  height: calc(100vh - var(--nav-height));
+  height: calc(100svh - var(--nav-height));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .compact-shell {
   width: min(520px, calc(100% - 40px));
-  min-height: calc(100vh - 73px);
+  min-height: calc(100vh - var(--nav-height));
+  min-height: calc(100svh - var(--nav-height));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -640,6 +650,7 @@ onUnmounted(() => {
 }
 
 .manager-header {
+  flex: 0 0 auto;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -676,11 +687,12 @@ onUnmounted(() => {
 }
 
 .manager-layout {
-  --manager-panel-height: calc(100vh - 116px);
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
   grid-template-columns: minmax(360px, 0.84fr) minmax(0, 1.16fr);
   gap: 24px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .auth-panel,
@@ -718,10 +730,7 @@ onUnmounted(() => {
 }
 
 .case-form {
-  position: sticky;
-  top: 92px;
-  height: var(--manager-panel-height);
-  max-height: var(--manager-panel-height);
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -993,10 +1002,7 @@ onUnmounted(() => {
 }
 
 .saved-panel {
-  position: sticky;
-  top: 92px;
-  height: var(--manager-panel-height);
-  max-height: var(--manager-panel-height);
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1127,13 +1133,18 @@ onUnmounted(() => {
 }
 
 @media (max-width: 1080px) {
+  .manager-page > .manager-shell:not(.compact-shell) {
+    height: auto;
+    min-height: 0;
+    display: block;
+  }
+
   .manager-layout {
     grid-template-columns: 1fr;
   }
 
   .case-form,
   .saved-panel {
-    position: static;
     height: auto;
     max-height: none;
     overflow: visible;
@@ -1147,12 +1158,14 @@ onUnmounted(() => {
 
 @media (max-width: 760px) {
   .manager-page {
-    min-height: calc(100vh - 60px);
+    min-height: calc(100vh - var(--nav-height));
+    min-height: calc(100svh - var(--nav-height));
     padding-top: 28px;
   }
 
   .compact-shell {
-    min-height: calc(100vh - 88px);
+    min-height: calc(100vh - var(--nav-height) - 28px);
+    min-height: calc(100svh - var(--nav-height) - 28px);
   }
 
   .form-grid,

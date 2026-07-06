@@ -92,7 +92,8 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .works-page {
-  min-height: 100vh;
+  min-height: calc(100vh - var(--nav-height));
+  min-height: calc(100svh - var(--nav-height));
   background: #efefef;
   padding: 0 0 80px;
 }

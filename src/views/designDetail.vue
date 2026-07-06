@@ -264,8 +264,8 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .view-more-page {
-  box-sizing:content-box;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - var(--nav-height));
+  min-height: calc(100svh - var(--nav-height));
   background: #e9e9e9;
 }
 

@@ -22,6 +22,10 @@ export default {
   min-height: 100%;
 }
 
+:global(:root) {
+  --nav-height: 73px;
+}
+
 :global(html),
 :global(body) {
   margin: 0;
@@ -31,5 +35,11 @@ export default {
 
 :global(*) {
   box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  :global(:root) {
+    --nav-height: 60px;
+  }
 }
 </style>
