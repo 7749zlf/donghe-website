@@ -740,19 +740,23 @@ onUnmounted(() => {
   scrollbar-width: thin;
 }
 
-.case-form-scroll::-webkit-scrollbar {
+.case-form-scroll::-webkit-scrollbar,
+.saved-list::-webkit-scrollbar {
   width: 8px;
 }
 
-.case-form-scroll::-webkit-scrollbar-track {
+.case-form-scroll::-webkit-scrollbar-track,
+.saved-list::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.case-form-scroll::-webkit-scrollbar-thumb {
+.case-form-scroll::-webkit-scrollbar-thumb,
+.saved-list::-webkit-scrollbar-thumb {
   background: #c5ccd5;
 }
 
-.case-form-scroll::-webkit-scrollbar-thumb:hover {
+.case-form-scroll::-webkit-scrollbar-thumb:hover,
+.saved-list::-webkit-scrollbar-thumb:hover {
   background: #9da7b3;
 }
 
@@ -983,12 +987,20 @@ onUnmounted(() => {
 }
 
 .saved-panel {
-  padding: 26px;
+  position: sticky;
+  top: 92px;
+  max-height: calc(100vh - 116px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
 }
 
 .saved-head {
-  margin-bottom: 18px;
+  flex: 0 0 auto;
+  margin-bottom: 0;
   align-items: flex-start;
+  padding: 26px 26px 18px;
 }
 
 .saved-head span,
@@ -998,8 +1010,16 @@ onUnmounted(() => {
 }
 
 .saved-list {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
   gap: 14px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 0 26px 26px;
+  scrollbar-color: #c5ccd5 transparent;
+  scrollbar-width: thin;
 }
 
 .saved-item {
@@ -1104,13 +1124,15 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
   }
 
-  .case-form {
+  .case-form,
+  .saved-panel {
     position: static;
     max-height: none;
     overflow: visible;
   }
 
-  .case-form-scroll {
+  .case-form-scroll,
+  .saved-list {
     overflow: visible;
   }
 }
