@@ -16,14 +16,14 @@
       </section>
 
       <footer class="page-nav">
-        <a href="#" class="nav-link" @click.prevent="goNext">
+        <!-- <a href="#" class="nav-link" @click.prevent="goNext">
           <span class="nav-caret">&lt;</span>
           <span class="nav-label">下一页</span>
         </a>
         <a href="#" class="nav-link" @click.prevent="goPrev">
           <span class="nav-caret">&lt;</span>
           <span class="nav-label">上一页</span>
-        </a>
+        </a> -->
         <a href="#" class="nav-link" @click.prevent="go3D">
           <span class="nav-caret">&lt;</span>
           <span class="nav-label">3D查看</span>
