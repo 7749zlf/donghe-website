@@ -57,75 +57,77 @@
       <div class="manager-layout">
         <form class="case-form" @submit.prevent="handleSubmit">
           <div class="form-title">
-          <h2>{{ isEditing ? '编辑作品' : '新增作品' }}</h2>
-          <span class="mode-badge">{{ cloudEnabled ? '云端数据库' : '本地浏览器' }}</span>
-          <button v-if="isEditing" type="button" class="plain-btn" @click="startCreate">新建</button>
+            <h2>{{ isEditing ? '编辑作品' : '新增作品' }}</h2>
+            <span class="mode-badge">{{ cloudEnabled ? '云端数据库' : '本地浏览器' }}</span>
+            <button v-if="isEditing" type="button" class="plain-btn" @click="startCreate">新建</button>
           </div>
 
-          <label class="field">
-            <span>作品名称</span>
-            <input v-model.trim="form.name" type="text" required placeholder="例如：东禾新办公室" />
-          </label>
-
-          <div class="form-grid">
+          <div ref="caseFormScroll" class="case-form-scroll">
             <label class="field">
-              <span>分类</span>
-              <select v-model="form.category">
-                <option v-for="tag in caseTags" :key="tag" :value="tag">{{ tag }}</option>
-              </select>
+              <span>作品名称</span>
+              <input v-model.trim="form.name" type="text" required placeholder="例如：东禾新办公室" />
             </label>
 
-            <label class="field">
-              <span>空间信息</span>
-              <input v-model.trim="form.type" type="text" placeholder="例如：商业空间 / 上饶" />
-            </label>
+            <div class="form-grid">
+              <label class="field">
+                <span>分类</span>
+                <select v-model="form.category">
+                  <option v-for="tag in caseTags" :key="tag" :value="tag">{{ tag }}</option>
+                </select>
+              </label>
 
-            <label class="field">
-              <span>年份</span>
-              <input v-model.trim="form.year" type="text" placeholder="例如：2026年" />
-            </label>
-          </div>
+              <label class="field">
+                <span>空间信息</span>
+                <input v-model.trim="form.type" type="text" placeholder="例如：商业空间 / 上饶" />
+              </label>
 
-          <label class="field">
-            <span>3D 链接</span>
-            <input v-model.trim="form.url" type="url" placeholder="https://..." />
-          </label>
-
-          <div class="field upload-field">
-            <span>作品图片</span>
-            <label class="upload-box">
-              <input type="file" accept="image/*" multiple @change="handleImageUpload" />
-              <strong>{{ uploading ? '正在上传图片' : '选择图片上传' }}</strong>
-              <small>{{ cloudEnabled ? '图片会上传到云端图库，第一张作为封面' : '本地模式会保存到当前浏览器，第一张作为封面' }}</small>
-            </label>
-
-            <div v-if="form.images.length" class="upload-preview-grid">
-              <article
-                v-for="(image, index) in form.images"
-                :key="`${image}-${index}`"
-                class="upload-preview"
-              >
-                <button
-                  class="preview-image-button"
-                  type="button"
-                  @click="openImagePreview(image, `作品图片 ${index + 1}`)"
-                >
-                  <img :src="image" :alt="`作品图片 ${index + 1}`" />
-                  <span>放大</span>
-                </button>
-                <div class="preview-actions">
-                  <span>{{ index === 0 ? '封面' : `第 ${index + 1} 张` }}</span>
-                  <button v-if="index > 0" type="button" @click="setCoverImage(index)">设为封面</button>
-                  <button type="button" @click="removeImage(index)">删除</button>
-                </div>
-              </article>
+              <label class="field">
+                <span>年份</span>
+                <input v-model.trim="form.year" type="text" placeholder="例如：2026年" />
+              </label>
             </div>
-          </div>
 
-          <label class="field">
-            <span>作品说明</span>
-            <textarea v-model.trim="form.note" rows="3" placeholder="简单写一句这个案例的空间特点"></textarea>
-          </label>
+            <label class="field">
+              <span>3D 链接</span>
+              <input v-model.trim="form.url" type="url" placeholder="https://..." />
+            </label>
+
+            <div class="field upload-field">
+              <span>作品图片</span>
+              <label class="upload-box">
+                <input type="file" accept="image/*" multiple @change="handleImageUpload" />
+                <strong>{{ uploading ? '正在上传图片' : '选择图片上传' }}</strong>
+                <small>{{ cloudEnabled ? '图片会上传到云端图库，第一张作为封面' : '本地模式会保存到当前浏览器，第一张作为封面' }}</small>
+              </label>
+
+              <div v-if="form.images.length" class="upload-preview-grid">
+                <article
+                  v-for="(image, index) in form.images"
+                  :key="`${image}-${index}`"
+                  class="upload-preview"
+                >
+                  <button
+                    class="preview-image-button"
+                    type="button"
+                    @click="openImagePreview(image, `作品图片 ${index + 1}`)"
+                  >
+                    <img :src="image" :alt="`作品图片 ${index + 1}`" />
+                    <span>放大</span>
+                  </button>
+                  <div class="preview-actions">
+                    <span>{{ index === 0 ? '封面' : `第 ${index + 1} 张` }}</span>
+                    <button v-if="index > 0" type="button" @click="setCoverImage(index)">设为封面</button>
+                    <button type="button" @click="removeImage(index)">删除</button>
+                  </div>
+                </article>
+              </div>
+            </div>
+
+            <label class="field">
+              <span>作品说明</span>
+              <textarea v-model.trim="form.note" rows="3" placeholder="简单写一句这个案例的空间特点"></textarea>
+            </label>
+          </div>
 
           <div class="form-actions">
             <p>{{ statusText }}</p>
@@ -195,7 +197,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import {
   deleteCustomCase,
   getManagedCases,
@@ -234,6 +236,7 @@ const saving = ref(false)
 const uploading = ref(false)
 const draftCaseId = ref(createCaseId())
 const imagePreview = ref(null)
+const caseFormScroll = ref(null)
 let stopAuthListener = null
 
 const loginForm = reactive({
@@ -289,6 +292,12 @@ function refreshList() {
   managedCases.value = getManagedCases()
 }
 
+function resetCaseFormScroll() {
+  nextTick(() => {
+    caseFormScroll.value?.scrollTo({ top: 0, behavior: 'smooth' })
+  })
+}
+
 async function refreshCloudList() {
   if (!cloudEnabled) {
     refreshList()
@@ -313,6 +322,7 @@ async function refreshAdminStatus() {
 function startCreate() {
   resetForm()
   statusText.value = '正在新增作品。'
+  resetCaseFormScroll()
 }
 
 function editCase(item) {
@@ -325,6 +335,7 @@ function editCase(item) {
   form.images = imagesToList(item.list)
   form.note = item.note
   statusText.value = `正在编辑《${item.name}》。`
+  resetCaseFormScroll()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
@@ -705,27 +716,43 @@ onUnmounted(() => {
   position: sticky;
   top: 92px;
   max-height: calc(100vh - 116px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.case-form > .form-title {
+  flex: 0 0 auto;
+  padding: 28px 28px 18px;
+}
+
+.case-form-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  gap: 18px;
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  display: grid;
-  gap: 18px;
-  padding: 28px;
+  padding: 0 28px 20px;
+  scrollbar-color: #c5ccd5 transparent;
+  scrollbar-width: thin;
 }
 
-.case-form::-webkit-scrollbar {
+.case-form-scroll::-webkit-scrollbar {
   width: 8px;
 }
 
-.case-form::-webkit-scrollbar-track {
+.case-form-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.case-form::-webkit-scrollbar-thumb {
+.case-form-scroll::-webkit-scrollbar-thumb {
   background: #c5ccd5;
 }
 
-.case-form::-webkit-scrollbar-thumb:hover {
+.case-form-scroll::-webkit-scrollbar-thumb:hover {
   background: #9da7b3;
 }
 
@@ -948,6 +975,13 @@ onUnmounted(() => {
   cursor: not-allowed;
 }
 
+.case-form > .form-actions {
+  flex: 0 0 auto;
+  padding: 18px 28px 28px;
+  border-top: 1px solid #eef0f3;
+  background: #fff;
+}
+
 .saved-panel {
   padding: 26px;
 }
@@ -1073,6 +1107,10 @@ onUnmounted(() => {
   .case-form {
     position: static;
     max-height: none;
+    overflow: visible;
+  }
+
+  .case-form-scroll {
     overflow: visible;
   }
 }
