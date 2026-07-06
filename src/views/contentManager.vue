@@ -629,6 +629,14 @@ onUnmounted(() => {
 
 .compact-shell {
   width: min(520px, calc(100% - 40px));
+  min-height: calc(100vh - 73px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compact-shell > .auth-panel {
+  width: 100%;
 }
 
 .manager-header {
@@ -1141,6 +1149,10 @@ onUnmounted(() => {
   .manager-page {
     min-height: calc(100vh - 60px);
     padding-top: 28px;
+  }
+
+  .compact-shell {
+    min-height: calc(100vh - 88px);
   }
 
   .form-grid,
