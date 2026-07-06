@@ -623,7 +623,7 @@ onUnmounted(() => {
 .manager-page {
   min-height: calc(100vh - 73px);
   background: #f1f1f1;
-  padding: 44px 0 80px;
+  // padding: 44px 0 80px;
 }
 
 .manager-shell {
@@ -672,6 +672,7 @@ onUnmounted(() => {
 }
 
 .manager-layout {
+  --manager-panel-height: calc(100vh - 116px);
   display: grid;
   grid-template-columns: minmax(360px, 0.84fr) minmax(0, 1.16fr);
   gap: 24px;
@@ -715,7 +716,8 @@ onUnmounted(() => {
 .case-form {
   position: sticky;
   top: 92px;
-  max-height: calc(100vh - 116px);
+  height: var(--manager-panel-height);
+  max-height: var(--manager-panel-height);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -989,7 +991,8 @@ onUnmounted(() => {
 .saved-panel {
   position: sticky;
   top: 92px;
-  max-height: calc(100vh - 116px);
+  height: var(--manager-panel-height);
+  max-height: var(--manager-panel-height);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -1127,6 +1130,7 @@ onUnmounted(() => {
   .case-form,
   .saved-panel {
     position: static;
+    height: auto;
     max-height: none;
     overflow: visible;
   }
