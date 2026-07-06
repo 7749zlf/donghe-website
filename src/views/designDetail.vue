@@ -46,6 +46,22 @@
         <button type="button" @click="resetPreviewTransform">重置</button>
       </div>
       <button class="preview-close" type="button" aria-label="关闭预览" @click="closePreview">×</button>
+      <button
+        class="preview-nav preview-nav-prev"
+        type="button"
+        aria-label="查看上一张图片"
+        @click="goPreviewPrev"
+      >
+        ‹
+      </button>
+      <button
+        class="preview-nav preview-nav-next"
+        type="button"
+        aria-label="查看下一张图片"
+        @click="goPreviewNext"
+      >
+        ›
+      </button>
       <div class="preview-stage">
         <img
           :src="activeItem.full"
@@ -128,6 +144,7 @@ function goNext() {
   if (!galleryItems.value.length) return
   activeIndex.value = nextImageIndex.value
 }
+
 function go3D() {
   console.log('URL', URL.value)
   if (URL.value) {
@@ -163,6 +180,16 @@ function zoomInPreview() {
 
 function zoomOutPreview() {
   setPreviewZoom(previewZoom.value - PREVIEW_ZOOM_STEP)
+}
+
+function goPreviewPrev() {
+  goPrev()
+  resetPreviewTransform()
+}
+
+function goPreviewNext() {
+  goNext()
+  resetPreviewTransform()
 }
 
 function resetPreviewTransform() {
@@ -264,26 +291,27 @@ onBeforeUnmount(() => {
 }
 
 .hero-block {
-  width: min(1000px, 100%);
+  width: fit-content;
+  max-width: min(1000px, 100%);
   margin: 0 auto;
+  text-align: center;
 }
 
 .hero-preview-btn {
-  width: 100%;
-  aspect-ratio: 1000 / 380;
+  width: fit-content;
+  max-width: 100%;
   border: none;
   padding: 0;
-  background: #ddd;
-  display: grid;
-  place-items: center;
+  background: transparent;
+  display: inline-block;
+  line-height: 0;
   overflow: hidden;
   cursor: zoom-in;
 }
 
 .hero-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  max-width: 100%;
+  height: auto;
   display: block;
 }
 
@@ -458,6 +486,34 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.28);
 }
 
+.preview-nav {
+  position: fixed;
+  top: 50%;
+  z-index: 52;
+  width: 54px;
+  height: 78px;
+  border: none;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 52px;
+  line-height: 1;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.preview-nav:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.preview-nav-prev {
+  left: 28px;
+}
+
+.preview-nav-next {
+  right: 28px;
+}
+
 @media (max-width: 1100px) {
   .thumb-block {
     grid-template-columns: repeat(8, 1fr);
@@ -502,6 +558,20 @@ onBeforeUnmount(() => {
   .preview-close {
     top: 16px;
     right: 16px;
+  }
+
+  .preview-nav {
+    width: 44px;
+    height: 62px;
+    font-size: 42px;
+  }
+
+  .preview-nav-prev {
+    left: 12px;
+  }
+
+  .preview-nav-next {
+    right: 12px;
   }
 
   .preview-image {
