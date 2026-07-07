@@ -390,33 +390,37 @@ onBeforeUnmount(() => {
   position: fixed;
   inset: 0;
   z-index: 2000;
-  padding: 48px;
+  padding: clamp(20px, 4vw, 48px);
   background: rgba(12, 15, 20, 0.82);
   backdrop-filter: blur(10px);
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(10px, 2vw, 18px);
   overflow: hidden;
   cursor: default;
 }
 
 .preview-stage {
   width: 100%;
-  height: 100%;
+  height: auto;
+  max-height: calc(100svh - clamp(120px, 18vw, 168px));
+  order: 1;
   display: grid;
   place-items: center;
   overflow: hidden;
 }
 
 .preview-toolbar {
-  position: fixed;
-  top: 28px;
-  left: 50%;
+  order: 2;
   z-index: 2001;
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(48px, 5vw, 64px) minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
-  transform: translateX(-50%);
-  padding: 8px;
+  gap: clamp(5px, 1vw, 8px);
+  width: min(100%, clamp(320px, 42vw, 460px));
+  padding: clamp(5px, 0.8vw, 8px);
   background: rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(12px);
 }
@@ -425,9 +429,11 @@ onBeforeUnmount(() => {
   border: none;
   background: rgba(255, 255, 255, 0.9);
   color: #11161d;
-  min-width: 54px;
-  height: 34px;
-  padding: 0 12px;
+  min-width: 0;
+  height: clamp(32px, 3vw, 38px);
+  padding: 0 clamp(8px, 1.5vw, 12px);
+  font-size: clamp(12px, 1.4vw, 14px);
+  white-space: nowrap;
   cursor: pointer;
 }
 
@@ -437,15 +443,17 @@ onBeforeUnmount(() => {
 }
 
 .preview-toolbar span {
-  min-width: 52px;
+  min-width: 0;
   color: #fff;
   text-align: center;
-  font-size: 14px;
+  font-size: clamp(12px, 1.4vw, 14px);
+  line-height: clamp(32px, 3vw, 38px);
+  white-space: nowrap;
 }
 
 .preview-image {
   max-width: min(1200px, 100%);
-  max-height: calc(100vh - 96px);
+  max-height: calc(100svh - clamp(120px, 18vw, 168px));
   object-fit: contain;
   display: block;
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.4);
@@ -545,14 +553,34 @@ onBeforeUnmount(() => {
   }
 
   .image-preview {
-    padding: 20px;
+    gap: clamp(10px, 3.2vw, 16px);
+    padding: clamp(14px, 4vw, 20px);
+  }
+
+  .preview-stage {
+    max-height: calc(100svh - clamp(118px, 30vw, 156px));
   }
 
   .preview-toolbar {
-    top: 16px;
-    max-width: calc(100vw - 32px);
-    flex-wrap: wrap;
-    justify-content: center;
+    grid-template-columns: minmax(0, 1fr) clamp(44px, 14vw, 58px) minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(4px, 1.5vw, 8px);
+    width: min(100%, clamp(292px, 92vw, 430px));
+    padding: clamp(5px, 1.6vw, 8px);
+  }
+
+  .preview-toolbar button {
+    min-width: 0;
+    height: clamp(30px, 8vw, 38px);
+    padding: 0 clamp(6px, 2.2vw, 12px);
+    font-size: clamp(12px, 3.4vw, 14px);
+    white-space: nowrap;
+  }
+
+  .preview-toolbar span {
+    min-width: 0;
+    font-size: clamp(12px, 3.4vw, 14px);
+    line-height: clamp(30px, 8vw, 38px);
+    white-space: nowrap;
   }
 
   .preview-close {
@@ -575,7 +603,8 @@ onBeforeUnmount(() => {
   }
 
   .preview-image {
-    max-height: calc(100vh - 40px);
+    max-width: calc(100vw - clamp(28px, 8vw, 40px));
+    max-height: calc(100svh - clamp(118px, 30vw, 156px));
   }
 }
 </style>
