@@ -53,7 +53,10 @@ create policy "Admins can read own access"
 on public.design_admins
 for select
 to authenticated
-using (lower(email) = lower(auth.jwt() ->> 'email'));
+using (
+  lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  or email = coalesce(auth.jwt() ->> 'phone', '')
+);
 
 create or replace function public.is_design_admin()
 returns boolean
@@ -65,13 +68,15 @@ as $$
   select exists (
     select 1
     from public.design_admins
-    where lower(email) = lower(auth.jwt() ->> 'email')
+    where lower(email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+       or email = coalesce(auth.jwt() ->> 'phone', '')
   );
 $$;
 
 grant execute on function public.is_design_admin() to authenticated;
 
--- 把下面的邮箱换成你的 Supabase 登录邮箱，然后运行一次即可授权。
+-- 把下面的邮箱或手机号换成你的 Supabase 登录账号，然后运行一次即可授权。
+-- 手机号请使用 Supabase Auth 中的 E.164 格式，例如 +8613812345678。
 insert into public.design_admins (email)
 values ('2231913537@qq.com')
 on conflict (email) do nothing;

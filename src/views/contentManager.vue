@@ -12,8 +12,8 @@
         <h1>管理员登录</h1>
 
         <label class="field">
-          <span>邮箱</span>
-          <input v-model.trim="loginForm.email" type="email" autocomplete="username" required />
+          <span>邮箱或手机号</span>
+          <input v-model.trim="loginForm.account" type="text" autocomplete="username" placeholder="邮箱或 +86 手机号" required />
         </label>
 
         <label class="field">
@@ -381,7 +381,7 @@ const awardFormScroll = ref(null)
 let stopAuthListener = null
 
 const loginForm = reactive({
-  email: '',
+  account: '',
   password: ''
 })
 
@@ -404,7 +404,7 @@ const awardForm = reactive({
 })
 
 const isEditing = computed(() => Boolean(editingCase.value))
-const managerEmail = computed(() => managerSession.value?.user?.email || '')
+const managerEmail = computed(() => managerSession.value?.user?.email || managerSession.value?.user?.phone || '')
 
 function createCaseId() {
   return `case-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -914,7 +914,7 @@ async function handleLogin() {
   loginStatus.value = '正在登录。'
 
   try {
-    managerSession.value = await signInManager(loginForm.email, loginForm.password)
+    managerSession.value = await signInManager(loginForm.account, loginForm.password)
     loginForm.password = ''
     const hasAccess = await refreshAdminStatus()
     if (!hasAccess) {
