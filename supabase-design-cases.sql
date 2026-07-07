@@ -14,6 +14,19 @@ create table if not exists public.design_cases (
 
 alter table public.design_cases enable row level security;
 
+create table if not exists public.design_awards (
+  id text primary key,
+  title text not null default '',
+  "desc" text not null default '',
+  year text not null default '',
+  image text not null default '',
+  image_alt text not null default '',
+  hidden boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+alter table public.design_awards enable row level security;
+
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (
   'case-images',
@@ -91,6 +104,35 @@ drop policy if exists "Public can delete design cases" on public.design_cases;
 drop policy if exists "Admin can delete design cases" on public.design_cases;
 create policy "Admin can delete design cases"
 on public.design_cases
+for delete
+to authenticated
+using (public.is_design_admin());
+
+drop policy if exists "Public can read design awards" on public.design_awards;
+create policy "Public can read design awards"
+on public.design_awards
+for select
+to anon, authenticated
+using (true);
+
+drop policy if exists "Admin can insert design awards" on public.design_awards;
+create policy "Admin can insert design awards"
+on public.design_awards
+for insert
+to authenticated
+with check (public.is_design_admin());
+
+drop policy if exists "Admin can update design awards" on public.design_awards;
+create policy "Admin can update design awards"
+on public.design_awards
+for update
+to authenticated
+using (public.is_design_admin())
+with check (public.is_design_admin());
+
+drop policy if exists "Admin can delete design awards" on public.design_awards;
+create policy "Admin can delete design awards"
+on public.design_awards
 for delete
 to authenticated
 using (public.is_design_admin());

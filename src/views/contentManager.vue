@@ -42,7 +42,23 @@
     <section v-else class="manager-shell">
       <header class="manager-header">
         <div>
-          <h1>管理官网作品</h1>
+          <h1>{{ managerMode === 'cases' ? '管理官网作品' : '管理荣誉奖项' }}</h1>
+          <div class="manager-tabs" role="tablist" aria-label="管理内容切换">
+            <button
+              type="button"
+              :class="{ active: managerMode === 'cases' }"
+              @click="managerMode = 'cases'"
+            >
+              作品管理
+            </button>
+            <button
+              type="button"
+              :class="{ active: managerMode === 'awards' }"
+              @click="managerMode = 'awards'"
+            >
+              荣誉奖项
+            </button>
+          </div>
         </div>
         <div v-if="cloudEnabled" class="manager-account">
           <span>{{ managerEmail }}</span>
@@ -50,7 +66,7 @@
         </div>
       </header>
 
-      <div class="manager-layout">
+      <div v-if="managerMode === 'cases'" class="manager-layout">
         <form class="case-form" @submit.prevent="handleSubmit">
           <div class="form-title">
             <h2>{{ isEditing ? '编辑作品' : '新增作品' }}</h2>
@@ -175,6 +191,115 @@
           </div>
         </section>
       </div>
+
+      <div v-else class="manager-layout">
+        <form class="case-form" @submit.prevent="handleAwardSubmit">
+          <div class="form-title">
+            <h2>{{ editingAward ? '编辑奖项' : '新增奖项' }}</h2>
+            <span class="mode-badge">{{ cloudEnabled ? '云端数据库' : '本地浏览器' }}</span>
+            <button v-if="editingAward" type="button" class="plain-btn" @click="startCreateAward">新建</button>
+          </div>
+
+          <div ref="awardFormScroll" class="case-form-scroll">
+            <label class="field">
+              <span>奖项名称</span>
+              <input v-model.trim="awardForm.title" type="text" required placeholder="例如：年度设计奖" />
+            </label>
+
+            <div class="form-grid award-form-grid">
+              <label class="field">
+                <span>年份 / 时间</span>
+                <input v-model.trim="awardForm.year" type="text" placeholder="例如：2026年" />
+              </label>
+
+              <label class="field wide-field">
+                <span>图片说明</span>
+                <input v-model.trim="awardForm.imageAlt" type="text" placeholder="例如：年度设计奖证书" />
+              </label>
+            </div>
+
+            <label class="field">
+              <span>奖项说明</span>
+              <textarea v-model.trim="awardForm.desc" rows="3" placeholder="例如：由某某设计协会颁发"></textarea>
+            </label>
+
+            <div class="field upload-field">
+              <span>奖项图片</span>
+              <label class="upload-box">
+                <input type="file" accept="image/*" @change="handleAwardImageUpload" />
+                <strong>{{ awardUploading ? '正在上传图片' : '选择奖项图片' }}</strong>
+                <small>{{ cloudEnabled ? '图片会上传到云端图库' : '本地模式会保存到当前浏览器' }}</small>
+              </label>
+
+              <div v-if="awardForm.image" class="upload-preview-grid award-preview-grid">
+                <article class="upload-preview">
+                  <button
+                    class="preview-image-button"
+                    type="button"
+                    @click="openImagePreview(awardForm.image, awardForm.imageAlt || awardForm.title)"
+                  >
+                    <img :src="awardForm.image" :alt="awardForm.imageAlt || awardForm.title || '奖项图片'" />
+                    <span>放大</span>
+                  </button>
+                  <div class="preview-actions">
+                    <span>当前图片</span>
+                    <button type="button" @click="removeAwardImage">删除</button>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <p>{{ awardStatusText }}</p>
+            <button type="submit" :disabled="awardSaving || awardUploading">
+              {{ awardUploading ? '上传图片中' : (awardSaving ? '保存中' : (editingAward ? '保存修改' : '保存奖项')) }}
+            </button>
+          </div>
+        </form>
+
+        <section class="saved-panel">
+          <div class="saved-head">
+            <div>
+              <h2>全部奖项</h2>
+              <p>现有奖项可编辑、隐藏或恢复默认；新增奖项可编辑或删除。</p>
+            </div>
+            <span>{{ managedAwards.length }} 个</span>
+          </div>
+
+          <div class="saved-list">
+            <article
+              v-for="item in managedAwards"
+              :key="item.id"
+              class="saved-item"
+              :class="{ muted: item.hidden }"
+            >
+              <button
+                class="saved-image-button"
+                type="button"
+                @click="openImagePreview(item.image, item.imageAlt || item.title)"
+              >
+                <img :src="item.image" :alt="item.imageAlt || item.title" />
+              </button>
+              <div class="saved-copy">
+                <div class="item-head">
+                  <h3>{{ item.title }}</h3>
+                  <span>{{ awardLabel(item) }}</span>
+                </div>
+                <p>{{ item.year }}</p>
+                <p class="item-note">{{ item.hidden ? '已隐藏，不会在前台展示。' : item.desc }}</p>
+                <div class="item-actions">
+                  <button type="button" @click="editAward(item)">编辑</button>
+                  <button v-if="canToggleAwardVisibility(item) && !item.hidden" type="button" @click="hideAward(item.id)">隐藏</button>
+                  <button v-if="canToggleAwardVisibility(item) && item.hidden" type="button" @click="restoreAward(item.id)">显示</button>
+                  <button v-if="canResetAward(item)" type="button" @click="resetAward(item.id)">恢复默认</button>
+                  <button v-if="canDeleteAward(item)" type="button" class="danger" @click="removeAward(item.id)">删除</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
     </section>
 
     <div
@@ -195,18 +320,28 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
 import {
+  deleteCustomAward,
   deleteCustomCase,
+  getManagedAwards,
   getManagedCases,
+  hideBaseAward,
   hideBaseCase,
+  resetAwardOverride,
   resetCaseOverride,
+  saveAwardOverride,
   saveCaseOverride,
+  saveCustomAward,
   saveCustomCase,
+  showBaseAward,
   showBaseCase,
+  setCloudAwards,
   setCloudCases,
   tags
 } from '@/mock/data'
 import {
+  deleteCloudAward,
   deleteCloudCase,
+  fetchCloudAwards,
   fetchCloudCases,
   getManagerSession,
   isManagerAdmin,
@@ -214,15 +349,21 @@ import {
   onManagerAuthChange,
   signInManager,
   signOutManager,
+  uploadAwardImage,
   uploadCaseImage,
+  upsertCloudAward,
   upsertCloudCase
 } from '@/services/cloudCases'
 
 const caseTags = tags.slice(1)
 const cloudEnabled = isCloudCasesEnabled()
+const managerMode = ref('cases')
 const managedCases = ref(getManagedCases())
+const managedAwards = ref(getManagedAwards())
 const editingCase = ref(null)
+const editingAward = ref(null)
 const statusText = ref(cloudEnabled ? '信息会保存到云端数据库。' : '信息会保存在当前浏览器中。')
+const awardStatusText = ref(cloudEnabled ? '奖项信息会保存到云端数据库。' : '奖项信息会保存在当前浏览器中。')
 const authReady = ref(!cloudEnabled)
 const authLoading = ref(false)
 const managerSession = ref(null)
@@ -230,9 +371,13 @@ const managerIsAdmin = ref(false)
 const loginStatus = ref('请输入管理员账号。')
 const saving = ref(false)
 const uploading = ref(false)
+const awardSaving = ref(false)
+const awardUploading = ref(false)
 const draftCaseId = ref(createCaseId())
+const draftAwardId = ref(createAwardId())
 const imagePreview = ref(null)
 const caseFormScroll = ref(null)
+const awardFormScroll = ref(null)
 let stopAuthListener = null
 
 const loginForm = reactive({
@@ -250,6 +395,14 @@ const form = reactive({
   note: ''
 })
 
+const awardForm = reactive({
+  title: '',
+  desc: '',
+  year: `${new Date().getFullYear()}年`,
+  image: '',
+  imageAlt: ''
+})
+
 const isEditing = computed(() => Boolean(editingCase.value))
 const managerEmail = computed(() => managerSession.value?.user?.email || '')
 
@@ -257,8 +410,16 @@ function createCaseId() {
   return `case-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+function createAwardId() {
+  return `award-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
 function currentCaseId() {
   return editingCase.value?.id || draftCaseId.value
+}
+
+function currentAwardId() {
+  return editingAward.value?.id || draftAwardId.value
 }
 
 function imagesToList(list) {
@@ -284,8 +445,22 @@ function resetForm() {
   form.note = ''
 }
 
+function resetAwardForm() {
+  editingAward.value = null
+  draftAwardId.value = createAwardId()
+  awardForm.title = ''
+  awardForm.desc = ''
+  awardForm.year = `${new Date().getFullYear()}年`
+  awardForm.image = ''
+  awardForm.imageAlt = ''
+}
+
 function refreshList() {
   managedCases.value = getManagedCases()
+}
+
+function refreshAwardsList() {
+  managedAwards.value = getManagedAwards()
 }
 
 function resetCaseFormScroll() {
@@ -294,15 +469,29 @@ function resetCaseFormScroll() {
   })
 }
 
+function resetAwardFormScroll() {
+  nextTick(() => {
+    awardFormScroll.value?.scrollTo({ top: 0, behavior: 'smooth' })
+  })
+}
+
 async function refreshCloudList() {
   if (!cloudEnabled) {
     refreshList()
+    refreshAwardsList()
     return
   }
 
   const cases = await fetchCloudCases()
   setCloudCases(cases)
+  try {
+    const awards = await fetchCloudAwards()
+    setCloudAwards(awards)
+  } catch (error) {
+    awardStatusText.value = `奖项云端数据连接失败：${error.message}`
+  }
   refreshList()
+  refreshAwardsList()
 }
 
 async function refreshAdminStatus() {
@@ -332,6 +521,24 @@ function editCase(item) {
   form.note = item.note
   statusText.value = `正在编辑《${item.name}》。`
   resetCaseFormScroll()
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function startCreateAward() {
+  resetAwardForm()
+  awardStatusText.value = '正在新增奖项。'
+  resetAwardFormScroll()
+}
+
+function editAward(item) {
+  editingAward.value = item
+  awardForm.title = item.title
+  awardForm.desc = item.desc
+  awardForm.year = item.year
+  awardForm.image = item.image
+  awardForm.imageAlt = item.imageAlt || item.title
+  awardStatusText.value = `正在编辑《${item.title}》。`
+  resetAwardFormScroll()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
@@ -371,6 +578,34 @@ async function handleImageUpload(event) {
   }
 }
 
+async function handleAwardImageUpload(event) {
+  const input = event.target
+  const file = Array.from(input.files || []).find((item) => item.type.startsWith('image/'))
+
+  if (!file) {
+    awardStatusText.value = '请选择图片文件。'
+    return
+  }
+
+  awardUploading.value = true
+  awardStatusText.value = '正在上传奖项图片。'
+
+  try {
+    awardForm.image = cloudEnabled
+      ? await uploadAwardImage(file, currentAwardId())
+      : await readImageAsDataUrl(file)
+    if (!awardForm.imageAlt) {
+      awardForm.imageAlt = awardForm.title || '奖项图片'
+    }
+    awardStatusText.value = '奖项图片已添加。'
+  } catch (error) {
+    awardStatusText.value = `奖项图片上传失败：${error.message}`
+  } finally {
+    awardUploading.value = false
+    input.value = ''
+  }
+}
+
 function setCoverImage(index) {
   const images = [...form.images]
   const [cover] = images.splice(index, 1)
@@ -379,6 +614,10 @@ function setCoverImage(index) {
 
 function removeImage(index) {
   form.images = form.images.filter((_, imageIndex) => imageIndex !== index)
+}
+
+function removeAwardImage() {
+  awardForm.image = ''
 }
 
 function openImagePreview(src, alt = '作品图片') {
@@ -419,6 +658,26 @@ function canDelete(item) {
   return cloudEnabled || item.source === 'custom'
 }
 
+function awardLabel(item) {
+  if (cloudEnabled) {
+    return '云端奖项'
+  }
+
+  return item.source === 'base' ? '原有奖项' : '新增奖项'
+}
+
+function canToggleAwardVisibility(item) {
+  return cloudEnabled || item.source === 'base'
+}
+
+function canResetAward(item) {
+  return !cloudEnabled && item.source === 'base'
+}
+
+function canDeleteAward(item) {
+  return cloudEnabled || item.source === 'custom'
+}
+
 function formPayload() {
   return {
     id: currentCaseId(),
@@ -432,6 +691,19 @@ function formPayload() {
     note: form.note,
     createdAt: editingCase.value?.createdAt || Date.now(),
     hidden: Boolean(editingCase.value?.hidden)
+  }
+}
+
+function awardPayload() {
+  return {
+    id: currentAwardId(),
+    title: awardForm.title,
+    desc: awardForm.desc,
+    year: awardForm.year,
+    image: awardForm.image,
+    imageAlt: awardForm.imageAlt || awardForm.title,
+    createdAt: editingAward.value?.createdAt || Date.now(),
+    hidden: Boolean(editingAward.value?.hidden)
   }
 }
 
@@ -475,6 +747,46 @@ async function handleSubmit() {
   }
 }
 
+async function handleAwardSubmit() {
+  let saved = null
+
+  if (awardUploading.value) {
+    awardStatusText.value = '奖项图片还在上传，请稍等。'
+    return
+  }
+
+  if (!awardForm.image) {
+    awardStatusText.value = '请上传一张奖项图片。'
+    return
+  }
+
+  awardSaving.value = true
+
+  try {
+    if (cloudEnabled) {
+      saved = await upsertCloudAward(awardPayload())
+      await refreshCloudList()
+    } else {
+      saved = editingAward.value
+        ? saveAwardOverride(awardPayload())
+        : saveCustomAward(awardPayload())
+    }
+
+    if (!saved) {
+      awardStatusText.value = '请至少填写奖项标题和上传一张图片。'
+      return
+    }
+
+    awardStatusText.value = `已保存《${saved.title}》。`
+    resetAwardForm()
+    refreshAwardsList()
+  } catch (error) {
+    awardStatusText.value = `奖项保存失败：${error.message}`
+  } finally {
+    awardSaving.value = false
+  }
+}
+
 async function hideCase(id) {
   try {
     const target = managedCases.value.find((item) => String(item.id) === String(id))
@@ -507,6 +819,38 @@ async function restoreCase(id) {
   }
 }
 
+async function hideAward(id) {
+  try {
+    const target = managedAwards.value.find((item) => String(item.id) === String(id))
+    if (cloudEnabled && target) {
+      await upsertCloudAward({ ...target, hidden: true })
+      await refreshCloudList()
+    } else {
+      hideBaseAward(id)
+      refreshAwardsList()
+    }
+    awardStatusText.value = '已隐藏奖项。'
+  } catch (error) {
+    awardStatusText.value = `隐藏奖项失败：${error.message}`
+  }
+}
+
+async function restoreAward(id) {
+  try {
+    const target = managedAwards.value.find((item) => String(item.id) === String(id))
+    if (cloudEnabled && target) {
+      await upsertCloudAward({ ...target, hidden: false })
+      await refreshCloudList()
+    } else {
+      showBaseAward(id)
+      refreshAwardsList()
+    }
+    awardStatusText.value = '奖项已恢复显示。'
+  } catch (error) {
+    awardStatusText.value = `恢复奖项失败：${error.message}`
+  }
+}
+
 function resetBase(id) {
   if (cloudEnabled) {
     statusText.value = '云端模式下没有本地默认内容可恢复。'
@@ -518,6 +862,19 @@ function resetBase(id) {
   refreshList()
   resetForm()
   statusText.value = '已恢复默认内容。'
+}
+
+function resetAward(id) {
+  if (cloudEnabled) {
+    awardStatusText.value = '云端模式下没有本地默认内容可恢复。'
+    return
+  }
+
+  resetAwardOverride(id)
+  showBaseAward(id)
+  refreshAwardsList()
+  resetAwardForm()
+  awardStatusText.value = '已恢复默认奖项。'
 }
 
 async function removeCustom(id) {
@@ -533,6 +890,22 @@ async function removeCustom(id) {
     statusText.value = '已删除新增作品。'
   } catch (error) {
     statusText.value = `删除失败：${error.message}`
+  }
+}
+
+async function removeAward(id) {
+  try {
+    if (cloudEnabled) {
+      await deleteCloudAward(id)
+      await refreshCloudList()
+    } else {
+      deleteCustomAward(id)
+      refreshAwardsList()
+    }
+    resetAwardForm()
+    awardStatusText.value = '已删除奖项。'
+  } catch (error) {
+    awardStatusText.value = `删除奖项失败：${error.message}`
   }
 }
 
@@ -563,6 +936,7 @@ async function handleLogout() {
     managerSession.value = null
     managerIsAdmin.value = false
     resetForm()
+    resetAwardForm()
     loginStatus.value = '已退出，请重新登录。'
   } catch (error) {
     statusText.value = `退出失败：${error.message}`
@@ -669,6 +1043,27 @@ onUnmounted(() => {
   font-size: 38px;
   font-weight: 500;
   color: #11161d;
+}
+
+.manager-tabs {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 5px;
+  background: #e7ebf0;
+}
+
+.manager-tabs button {
+  border: 0;
+  background: transparent;
+  color: #46515f;
+  padding: 9px 16px;
+  cursor: pointer;
+}
+
+.manager-tabs button.active {
+  background: #11161d;
+  color: #fff;
 }
 
 .manager-account {
@@ -819,6 +1214,10 @@ onUnmounted(() => {
   gap: 16px;
 }
 
+.award-form-grid {
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+}
+
 .field {
   display: grid;
   gap: 8px;
@@ -881,6 +1280,10 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.award-preview-grid {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .upload-preview {
@@ -1169,6 +1572,7 @@ onUnmounted(() => {
   }
 
   .form-grid,
+  .award-form-grid,
   .upload-preview-grid,
   .saved-item {
     grid-template-columns: 1fr;

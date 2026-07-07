@@ -11,7 +11,7 @@
 
     <HomeAboutSection :about-image="aboutImage" @view-more="goWorksGallery" />
 
-    <HomeAwardsSection :awards="awards" />
+    <HomeAwardsSection :awards="displayAwards" />
 
     <HomeWorksSection
       :tags="tags"
@@ -37,18 +37,20 @@ export default {
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { aboutImage, awards, getDisplayDesignCases, getDisplayProjects, tags } from '@/mock/data'
+import { aboutImage, getDisplayAwards, getDisplayDesignCases, getDisplayProjects, setCloudAwards, tags } from '@/mock/data'
 import HomeAboutSection from '@/components/home/HomeAboutSection.vue'
 import HomeAwardsSection from '@/components/home/HomeAwardsSection.vue'
 import HomeContactSection from '@/components/home/HomeContactSection.vue'
 import HomeHeroSection from '@/components/home/HomeHeroSection.vue'
 // import HomeSiteFooter from '@/components/home/HomeSiteFooter.vue'
 import HomeWorksSection from '@/components/home/HomeWorksSection.vue'
+import { fetchCloudAwards, isCloudCasesEnabled } from '@/services/cloudCases'
 
 const router = useRouter()
 
 const displayDesignCases = ref(getDisplayDesignCases())
 const displayProjects = ref(getDisplayProjects())
+const displayAwards = ref(getDisplayAwards())
 const heroSlides = computed(() => displayDesignCases.value.slice(0, 3))
 const currentSlideIndex = ref(0)
 const activeTag = ref('全部')
@@ -116,13 +118,28 @@ function goWorksGallery() {
 function refreshCustomCases() {
   displayDesignCases.value = getDisplayDesignCases()
   displayProjects.value = getDisplayProjects()
+  displayAwards.value = getDisplayAwards()
   if (currentSlideIndex.value >= heroSlides.value.length) {
     currentSlideIndex.value = 0
   }
 }
 
+async function refreshCloudAwards() {
+  if (!isCloudCasesEnabled()) {
+    return
+  }
+
+  try {
+    setCloudAwards(await fetchCloudAwards())
+    refreshCustomCases()
+  } catch (error) {
+    console.warn('Failed to load awards:', error)
+  }
+}
+
 onMounted(() => {
   window.addEventListener('donghe-custom-cases-updated', refreshCustomCases)
+  refreshCloudAwards()
   startAutoSlide()
 })
 

@@ -124,7 +124,11 @@ export const worksList = projects.map((project, index) => {
 const CUSTOM_CASES_KEY = 'donghe-custom-design-cases'
 const CASE_OVERRIDES_KEY = 'donghe-design-case-overrides'
 const HIDDEN_CASES_KEY = 'donghe-hidden-design-cases'
+const CUSTOM_AWARDS_KEY = 'donghe-custom-awards'
+const AWARD_OVERRIDES_KEY = 'donghe-award-overrides'
+const HIDDEN_AWARDS_KEY = 'donghe-hidden-awards'
 let cloudCases = []
+let cloudAwards = []
 
 function hasStorage() {
   return typeof window !== 'undefined' && Boolean(window.localStorage)
@@ -181,6 +185,11 @@ export function setCloudCases(caseList) {
   notifyCustomCasesChanged()
 }
 
+export function setCloudAwards(awardList) {
+  cloudAwards = Array.isArray(awardList) ? awardList : []
+  notifyCustomCasesChanged()
+}
+
 export function readCustomCases() {
   if (!hasStorage()) {
     return []
@@ -224,6 +233,78 @@ export function saveCustomCase(caseItem) {
 
 export function deleteCustomCase(id) {
   writeCustomCases(readCustomCases().filter((item) => String(item.id) !== String(id)))
+}
+
+function normalizeAward(awardItem) {
+  const title = String(awardItem.title || awardItem.name || '').trim()
+  const image = String(awardItem.image || '').trim()
+
+  if (!title || !image) {
+    return null
+  }
+
+  return {
+    id: String(awardItem.id || `award-${Date.now()}`),
+    title,
+    desc: String(awardItem.desc || '').trim(),
+    year: String(awardItem.year || `${new Date().getFullYear()}年`).trim(),
+    image,
+    imageAlt: String(awardItem.imageAlt || awardItem.image_alt || title).trim(),
+    hidden: Boolean(awardItem.hidden),
+    createdAt: Number(awardItem.createdAt || awardItem.created_at || Date.now())
+  }
+}
+
+function normalizeManagedAward(awardItem) {
+  return normalizeAward({
+    ...awardItem,
+    id: awardItem.id
+  })
+}
+
+export function readCustomAwards() {
+  if (!hasStorage()) {
+    return []
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CUSTOM_AWARDS_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed)
+      ? parsed.map(normalizeAward).filter(Boolean)
+      : []
+  } catch (error) {
+    return []
+  }
+}
+
+export function writeCustomAwards(awardList) {
+  if (!hasStorage()) {
+    return
+  }
+
+  const normalized = awardList.map(normalizeAward).filter(Boolean)
+  window.localStorage.setItem(CUSTOM_AWARDS_KEY, JSON.stringify(normalized))
+  notifyCustomCasesChanged()
+}
+
+export function saveCustomAward(awardItem) {
+  const nextAward = normalizeAward({
+    ...awardItem,
+    id: awardItem.id || `award-${Date.now()}`,
+    createdAt: awardItem.createdAt || Date.now()
+  })
+
+  if (!nextAward) {
+    return null
+  }
+
+  writeCustomAwards([nextAward, ...readCustomAwards()])
+  return nextAward
+}
+
+export function deleteCustomAward(id) {
+  writeCustomAwards(readCustomAwards().filter((item) => String(item.id) !== String(id)))
 }
 
 export function readCaseOverrides() {
@@ -274,6 +355,54 @@ export function resetCaseOverride(id) {
   writeCaseOverrides(overrides)
 }
 
+export function readAwardOverrides() {
+  if (!hasStorage()) {
+    return {}
+  }
+
+  try {
+    const raw = window.localStorage.getItem(AWARD_OVERRIDES_KEY)
+    const parsed = raw ? JSON.parse(raw) : {}
+    return Object.fromEntries(
+      Object.entries(parsed)
+        .map(([id, item]) => [String(id), normalizeManagedAward({ ...item, id })])
+        .filter(([, item]) => Boolean(item))
+    )
+  } catch (error) {
+    return {}
+  }
+}
+
+export function writeAwardOverrides(overrides) {
+  if (!hasStorage()) {
+    return
+  }
+
+  window.localStorage.setItem(AWARD_OVERRIDES_KEY, JSON.stringify(overrides))
+  notifyCustomCasesChanged()
+}
+
+export function saveAwardOverride(awardItem) {
+  const nextAward = normalizeManagedAward(awardItem)
+
+  if (!nextAward) {
+    return null
+  }
+
+  writeAwardOverrides({
+    ...readAwardOverrides(),
+    [String(nextAward.id)]: nextAward
+  })
+
+  return nextAward
+}
+
+export function resetAwardOverride(id) {
+  const overrides = readAwardOverrides()
+  delete overrides[String(id)]
+  writeAwardOverrides(overrides)
+}
+
 export function readHiddenCaseIds() {
   if (!hasStorage()) {
     return []
@@ -303,6 +432,37 @@ export function hideBaseCase(id) {
 
 export function showBaseCase(id) {
   writeHiddenCaseIds(readHiddenCaseIds().filter((item) => item !== String(id)))
+}
+
+export function readHiddenAwardIds() {
+  if (!hasStorage()) {
+    return []
+  }
+
+  try {
+    const raw = window.localStorage.getItem(HIDDEN_AWARDS_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? parsed.map(String) : []
+  } catch (error) {
+    return []
+  }
+}
+
+export function writeHiddenAwardIds(ids) {
+  if (!hasStorage()) {
+    return
+  }
+
+  window.localStorage.setItem(HIDDEN_AWARDS_KEY, JSON.stringify([...new Set(ids.map(String))]))
+  notifyCustomCasesChanged()
+}
+
+export function hideBaseAward(id) {
+  writeHiddenAwardIds([...readHiddenAwardIds(), String(id)])
+}
+
+export function showBaseAward(id) {
+  writeHiddenAwardIds(readHiddenAwardIds().filter((item) => item !== String(id)))
 }
 
 function baseManagedCases() {
@@ -337,6 +497,32 @@ function baseManagedCases() {
     })
 }
 
+function baseManagedAwards() {
+  const hiddenIds = new Set(readHiddenAwardIds())
+  const overrides = readAwardOverrides()
+
+  return awards.map((awardItem) => {
+    const fallback = {
+      id: String(awardItem.id),
+      title: awardItem.title,
+      desc: awardItem.desc,
+      year: awardItem.year,
+      image: awardItem.image,
+      imageAlt: awardItem.imageAlt || awardItem.title,
+      createdAt: 0,
+      source: 'base',
+      hidden: hiddenIds.has(String(awardItem.id))
+    }
+
+    return {
+      ...fallback,
+      ...(overrides[String(awardItem.id)] || {}),
+      source: 'base',
+      hidden: hiddenIds.has(String(awardItem.id))
+    }
+  })
+}
+
 export function getManagedCases() {
   if (cloudCases.length) {
     return cloudCases.map((item) => ({ ...item, source: 'cloud' }))
@@ -345,6 +531,33 @@ export function getManagedCases() {
   return [
     ...readCustomCases().map((item) => ({ ...item, source: 'custom', hidden: false })),
     ...baseManagedCases()
+  ]
+}
+
+export function getManagedAwards() {
+  const localAwards = [
+    ...readCustomAwards().map((item) => ({ ...item, source: 'custom', hidden: false })),
+    ...baseManagedAwards()
+  ]
+
+  if (!cloudAwards.length) {
+    return localAwards
+  }
+
+  const baseIds = new Set(awards.map((item) => String(item.id)))
+  const cloudById = Object.fromEntries(cloudAwards.map((item) => [String(item.id), item]))
+  const cloudCustomAwards = cloudAwards
+    .filter((item) => !baseIds.has(String(item.id)))
+    .map((item) => ({ ...item, source: 'cloud' }))
+  const mergedBaseAwards = baseManagedAwards().map((item) => ({
+    ...item,
+    ...(cloudById[String(item.id)] || {}),
+    source: cloudById[String(item.id)] ? 'cloud' : item.source
+  }))
+
+  return [
+    ...cloudCustomAwards,
+    ...mergedBaseAwards
   ]
 }
 
@@ -392,5 +605,22 @@ export function getDisplayProjects() {
 export function getDisplayWorksList() {
   return [
     ...getManagedCases().filter((item) => !item.hidden).map(toWork)
+  ]
+}
+
+function toAward(awardItem) {
+  return {
+    id: awardItem.id,
+    title: awardItem.title,
+    desc: awardItem.desc,
+    year: awardItem.year,
+    image: awardItem.image,
+    imageAlt: awardItem.imageAlt || awardItem.title
+  }
+}
+
+export function getDisplayAwards() {
+  return [
+    ...getManagedAwards().filter((item) => !item.hidden).map(toAward)
   ]
 }

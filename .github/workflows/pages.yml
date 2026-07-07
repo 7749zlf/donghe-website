@@ -41,6 +41,7 @@ jobs:
           VUE_APP_SUPABASE_URL: ${{ secrets.VUE_APP_SUPABASE_URL }}
           VUE_APP_SUPABASE_ANON_KEY: ${{ secrets.VUE_APP_SUPABASE_ANON_KEY }}
           VUE_APP_SUPABASE_CASES_TABLE: design_cases
+          VUE_APP_SUPABASE_AWARDS_TABLE: design_awards
           VUE_APP_SUPABASE_CASE_IMAGES_BUCKET: case-images
 
       - name: Configure Pages

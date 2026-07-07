@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 const SUPABASE_URL = process.env.VUE_APP_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.VUE_APP_SUPABASE_ANON_KEY
 const CASES_TABLE = process.env.VUE_APP_SUPABASE_CASES_TABLE || 'design_cases'
+const AWARDS_TABLE = process.env.VUE_APP_SUPABASE_AWARDS_TABLE || 'design_awards'
 const CASE_IMAGES_BUCKET = process.env.VUE_APP_SUPABASE_CASE_IMAGES_BUCKET || 'case-images'
 
 const enabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
@@ -52,6 +53,10 @@ export async function uploadCaseImage(file, caseId = 'case') {
 
   const { data } = client.storage.from(CASE_IMAGES_BUCKET).getPublicUrl(path)
   return data.publicUrl
+}
+
+export function uploadAwardImage(file, awardId = 'award') {
+  return uploadCaseImage(file, `awards-${awardId}`)
 }
 
 export async function getManagerSession() {
@@ -168,6 +173,32 @@ function caseToRow(caseItem) {
   }
 }
 
+export function rowToAward(row) {
+  return {
+    id: String(row.id),
+    title: row.title || '',
+    desc: row.desc || '',
+    year: row.year || '',
+    image: row.image || '',
+    imageAlt: row.image_alt || row.title || '',
+    source: 'cloud',
+    hidden: Boolean(row.hidden),
+    createdAt: row.created_at ? new Date(row.created_at).getTime() : Date.now()
+  }
+}
+
+function awardToRow(awardItem) {
+  return {
+    id: String(awardItem.id || `award-${Date.now()}`),
+    title: String(awardItem.title || '').trim(),
+    desc: String(awardItem.desc || ''),
+    year: String(awardItem.year || ''),
+    image: String(awardItem.image || ''),
+    image_alt: String(awardItem.imageAlt || awardItem.image_alt || awardItem.title || ''),
+    hidden: Boolean(awardItem.hidden)
+  }
+}
+
 export async function fetchCloudCases() {
   if (!client) {
     return []
@@ -183,6 +214,23 @@ export async function fetchCloudCases() {
   }
 
   return (data || []).map(rowToCase)
+}
+
+export async function fetchCloudAwards() {
+  if (!client) {
+    return []
+  }
+
+  const { data, error } = await client
+    .from(AWARDS_TABLE)
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    throw error
+  }
+
+  return (data || []).map(rowToAward)
 }
 
 export async function upsertCloudCase(caseItem) {
@@ -204,6 +252,25 @@ export async function upsertCloudCase(caseItem) {
   return rowToCase(data)
 }
 
+export async function upsertCloudAward(awardItem) {
+  if (!client) {
+    throw new Error('Supabase is not configured.')
+  }
+
+  const row = awardToRow(awardItem)
+  const { data, error } = await client
+    .from(AWARDS_TABLE)
+    .upsert(row, { onConflict: 'id' })
+    .select()
+    .single()
+
+  if (error) {
+    throw error
+  }
+
+  return rowToAward(data)
+}
+
 export async function deleteCloudCase(id) {
   if (!client) {
     throw new Error('Supabase is not configured.')
@@ -211,6 +278,21 @@ export async function deleteCloudCase(id) {
 
   const { error } = await client
     .from(CASES_TABLE)
+    .delete()
+    .eq('id', String(id))
+
+  if (error) {
+    throw error
+  }
+}
+
+export async function deleteCloudAward(id) {
+  if (!client) {
+    throw new Error('Supabase is not configured.')
+  }
+
+  const { error } = await client
+    .from(AWARDS_TABLE)
     .delete()
     .eq('id', String(id))
 
