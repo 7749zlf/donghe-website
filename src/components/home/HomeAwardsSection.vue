@@ -18,7 +18,7 @@
 
     <div v-if="previewAward" class="award-preview" role="dialog" aria-modal="true" @click.self="closePreview">
       <div class="preview-panel">
-        <button class="preview-close" type="button" aria-label="关闭预览" @click="closePreview">×</button>
+        <!-- <button class="preview-close" type="button" aria-label="关闭预览" @click="closePreview">×</button> -->
         <img :src="previewAward.image" :alt="previewAward.imageAlt || previewAward.title" />
         <div class="preview-info">
           <h3>{{ previewAward.title }}</h3>
