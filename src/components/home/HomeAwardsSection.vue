@@ -158,17 +158,20 @@ function closePreview() {
   position: relative;
   width: min(820px, 100%);
   max-height: calc(100vh - 96px);
+  padding: 34px 32px 28px;
   overflow: auto;
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32);
+  text-align: center;
 }
 
 .preview-panel img {
   display: block;
   width: 100%;
-  max-height: 72vh;
+  max-height: 66vh;
   object-fit: contain;
+  border-radius: 8px;
   background: #f5f5f5;
 }
 
@@ -188,7 +191,10 @@ function closePreview() {
 }
 
 .preview-info {
-  padding: 22px 26px 26px;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 22px 0 0;
+  text-align: center;
 }
 
 .preview-info h3 {
@@ -201,6 +207,7 @@ function closePreview() {
   margin: 8px 0 0;
   color: var(--text-secondary);
   font-size: 15px;
+  line-height: 1.7;
 }
 
 @media (max-width: 1440px) {
@@ -236,6 +243,20 @@ function closePreview() {
 
   .preview-panel {
     max-height: calc(100vh - 48px);
+    padding: 50px 14px 20px;
+  }
+
+  .preview-panel img {
+    max-height: 58vh;
+    border-radius: 6px;
+  }
+
+  .preview-info {
+    padding-top: 18px;
+  }
+
+  .preview-info h3 {
+    font-size: 20px;
   }
 }
 </style>
