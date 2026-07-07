@@ -84,31 +84,15 @@ export function onManagerAuthChange(callback) {
   return () => data.subscription.unsubscribe()
 }
 
-function normalizeManagerPhone(value) {
-  const text = String(value || '').trim()
-  if (text.startsWith('+')) {
-    return text.replace(/\s+/g, '')
-  }
-
-  const digits = text.replace(/\D/g, '')
-  if (/^1\d{10}$/.test(digits)) {
-    return `+86${digits}`
-  }
-
-  return text
-}
-
-export async function signInManager(account, password) {
+export async function signInManager(email, password) {
   if (!client) {
     throw new Error('Supabase is not configured.')
   }
 
-  const trimmedAccount = String(account || '').trim()
-  const credentials = trimmedAccount.includes('@')
-    ? { email: trimmedAccount, password }
-    : { phone: normalizeManagerPhone(trimmedAccount), password }
-
-  const { data, error } = await client.auth.signInWithPassword(credentials)
+  const { data, error } = await client.auth.signInWithPassword({
+    email,
+    password
+  })
 
   if (error) {
     throw error
@@ -133,7 +117,18 @@ export async function isManagerAdmin() {
     return false
   }
 
-  const { data, error } = await client.rpc('is_design_admin')
+  const session = await getManagerSession()
+  const email = session?.user?.email
+
+  if (!email) {
+    return false
+  }
+
+  const { data, error } = await client
+    .from('design_admins')
+    .select('email')
+    .ilike('email', email)
+    .maybeSingle()
 
   if (error) {
     throw error
