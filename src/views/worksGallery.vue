@@ -46,11 +46,12 @@ export default {
 </script>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { getDisplayWorksList, tags } from '@/mock/data'
 
 const router = useRouter()
+const route = useRoute()
 const displayWorks = ref(getDisplayWorksList())
 
 const filterOptions = [
@@ -60,7 +61,12 @@ const filterOptions = [
   { label: '别墅', value: tags[3] }
 ]
 
-const activeCategory = ref(tags[0])
+function normalizeCategory(category) {
+  const value = String(category || tags[0])
+  return filterOptions.some((option) => option.value === value) ? value : tags[0]
+}
+
+const activeCategory = ref(normalizeCategory(route.query.category))
 
 const filteredWorks = computed(() => {
   if (activeCategory.value === tags[0]) {
@@ -70,7 +76,12 @@ const filteredWorks = computed(() => {
 })
 
 function setCategory(category) {
-  activeCategory.value = category
+  const nextCategory = normalizeCategory(category)
+  activeCategory.value = nextCategory
+  router.replace({
+    name: 'worksGallery',
+    query: nextCategory === tags[0] ? {} : { category: nextCategory }
+  })
 }
 
 function openDetail(id) {
@@ -84,6 +95,13 @@ function refreshWorks() {
 onMounted(() => {
   window.addEventListener('donghe-custom-cases-updated', refreshWorks)
 })
+
+watch(
+  () => route.query.category,
+  (category) => {
+    activeCategory.value = normalizeCategory(category)
+  }
+)
 
 onBeforeUnmount(() => {
   window.removeEventListener('donghe-custom-cases-updated', refreshWorks)

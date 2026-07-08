@@ -175,7 +175,7 @@ const displayFilterOptions = computed(() => {
 .work-tags {
   margin-bottom: 48px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 

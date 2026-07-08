@@ -16,10 +16,9 @@
     <HomeWorksSection
       :tags="tags"
       :filter-options="workFilterOptions"
-      :active-tag="activeTag"
       :search-query="workSearchQuery"
       :projects="filteredProjects"
-      @change-tag="handleTagChange"
+      @change-tag="goWorksGallery"
       @update-search="handleWorkSearch"
       @view-detail="viewMoreCases"
       @view-more="goWorksGallery"
@@ -57,10 +56,8 @@ const displayProjects = ref(cloudEnabled ? [] : getDisplayProjects())
 const displayAwards = ref(cloudEnabled ? [] : getDisplayAwards())
 const heroSlides = computed(() => displayDesignCases.value.slice(0, 3))
 const currentSlideIndex = ref(0)
-const activeTag = ref('全部')
 const workSearchQuery = ref('')
 const workFilterOptions = [
-  { label: '全部', value: tags[0] },
   { label: '商业空间', value: tags[1] },
   { label: '平层', value: tags[2] },
   { label: '别墅', value: tags[3] }
@@ -70,17 +67,20 @@ let autoTimer = null
 
 const currentSlide = computed(() => heroSlides.value[currentSlideIndex.value] || null)
 
+const representativeProjects = computed(() => {
+  return workFilterOptions
+    .map((option) => displayProjects.value.find((item) => item.category === option.value))
+    .filter(Boolean)
+})
+
 const filteredProjects = computed(() => {
   const query = workSearchQuery.value.trim().toLowerCase()
-  const taggedProjects = activeTag.value === '全部'
-    ? displayProjects.value
-    : displayProjects.value.filter((item) => item.category === activeTag.value)
 
   if (!query) {
-    return taggedProjects
+    return representativeProjects.value
   }
 
-  return taggedProjects.filter((item) => {
+  return representativeProjects.value.filter((item) => {
     return [item.name, item.category, item.type, item.year]
       .some((value) => String(value || '').toLowerCase().includes(query))
   })
@@ -101,10 +101,6 @@ function prevSlide() {
 function setSlide(index) {
   currentSlideIndex.value = index
   restartAutoSlide()
-}
-
-function handleTagChange(tag) {
-  activeTag.value = tag
 }
 
 function handleWorkSearch(value) {
@@ -135,8 +131,9 @@ function viewMoreCases(id = currentSlide.value?.id) {
   router.push({ name: 'designDetail', params: { id } })
 }
 
-function goWorksGallery() {
-  router.push({ name: 'worksGallery' })
+function goWorksGallery(category = tags[0]) {
+  const query = category && category !== tags[0] ? { category } : {}
+  router.push({ name: 'worksGallery', query })
 }
 
 function refreshCustomCases() {
