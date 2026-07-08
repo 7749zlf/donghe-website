@@ -37,14 +37,14 @@ export default {
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { aboutImage, getDisplayAwards, getDisplayDesignCases, getDisplayProjects, setCloudAwards, tags } from '@/mock/data'
+import { aboutImage, getDisplayAwards, getDisplayDesignCases, getDisplayProjects, setCloudAwards, setCloudCases, tags } from '@/mock/data'
 import HomeAboutSection from '@/components/home/HomeAboutSection.vue'
 import HomeAwardsSection from '@/components/home/HomeAwardsSection.vue'
 import HomeContactSection from '@/components/home/HomeContactSection.vue'
 import HomeHeroSection from '@/components/home/HomeHeroSection.vue'
 // import HomeSiteFooter from '@/components/home/HomeSiteFooter.vue'
 import HomeWorksSection from '@/components/home/HomeWorksSection.vue'
-import { fetchCloudAwards, isCloudCasesEnabled } from '@/services/cloudCases'
+import { fetchCloudAwards, fetchCloudCases, isCloudCasesEnabled } from '@/services/cloudCases'
 
 const router = useRouter()
 
@@ -124,22 +124,29 @@ function refreshCustomCases() {
   }
 }
 
-async function refreshCloudAwards() {
+async function refreshCloudContent() {
   if (!isCloudCasesEnabled()) {
     return
   }
 
   try {
+    setCloudCases(await fetchCloudCases())
+  } catch (error) {
+    console.warn('Failed to load cases:', error)
+  }
+
+  try {
     setCloudAwards(await fetchCloudAwards())
-    refreshCustomCases()
   } catch (error) {
     console.warn('Failed to load awards:', error)
   }
+
+  refreshCustomCases()
 }
 
 onMounted(() => {
   window.addEventListener('donghe-custom-cases-updated', refreshCustomCases)
-  refreshCloudAwards()
+  refreshCloudContent()
   startAutoSlide()
 })
 
