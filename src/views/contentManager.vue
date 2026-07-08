@@ -123,7 +123,7 @@
                     type="button"
                     @click="openImagePreview(image, `作品图片 ${index + 1}`)"
                   >
-                    <img :src="image" :alt="`作品图片 ${index + 1}`" />
+                    <img :src="image" :alt="`作品图片 ${index + 1}`" loading="lazy" decoding="async" />
                     <span>放大</span>
                   </button>
                   <div class="preview-actions">
@@ -170,7 +170,7 @@
                 type="button"
                 @click="openImagePreview(item.image, item.name)"
               >
-                <img :src="item.image" :alt="item.name" />
+                <img :src="item.image" :alt="item.name" loading="lazy" decoding="async" />
               </button>
               <div class="saved-copy">
                 <div class="item-head">
@@ -238,7 +238,7 @@
                     type="button"
                     @click="openImagePreview(awardForm.image, awardForm.imageAlt || awardForm.title)"
                   >
-                    <img :src="awardForm.image" :alt="awardForm.imageAlt || awardForm.title || '奖项图片'" />
+                    <img :src="awardForm.image" :alt="awardForm.imageAlt || awardForm.title || '奖项图片'" loading="lazy" decoding="async" />
                     <span>放大</span>
                   </button>
                   <div class="preview-actions">
@@ -279,7 +279,7 @@
                 type="button"
                 @click="openImagePreview(item.image, item.imageAlt || item.title)"
               >
-                <img :src="item.image" :alt="item.imageAlt || item.title" />
+                <img :src="item.image" :alt="item.imageAlt || item.title" loading="lazy" decoding="async" />
               </button>
               <div class="saved-copy">
                 <div class="item-head">
@@ -311,7 +311,7 @@
     >
       <div class="lightbox-panel">
         <button class="lightbox-close" type="button" @click="closeImagePreview">关闭</button>
-        <img :src="imagePreview.src" :alt="imagePreview.alt" />
+        <img :src="imagePreview.src" :alt="imagePreview.alt" loading="lazy" decoding="async" />
       </div>
     </div>
   </main>

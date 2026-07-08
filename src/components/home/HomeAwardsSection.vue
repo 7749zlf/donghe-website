@@ -8,7 +8,7 @@
     <div class="container award-list">
       <article v-for="item in awards" :key="item.id || item.title" class="award-card">
         <button class="award-image-btn" type="button" :aria-label="`放大查看 ${item.title}`" @click="openPreview(item)">
-          <img class="award-image" :src="item.image" :alt="item.imageAlt || item.title" />
+          <img class="award-image" :src="item.image" :alt="item.imageAlt || item.title" loading="lazy" decoding="async" />
         </button>
         <h4>{{ item.title }}</h4>
         <p>{{ item.desc }}</p>
@@ -19,7 +19,7 @@
     <div v-if="previewAward" class="award-preview" role="dialog" aria-modal="true" @click.self="closePreview">
       <div class="preview-panel">
         <!-- <button class="preview-close" type="button" aria-label="关闭预览" @click="closePreview">×</button> -->
-        <img :src="previewAward.image" :alt="previewAward.imageAlt || previewAward.title" />
+        <img :src="previewAward.image" :alt="previewAward.imageAlt || previewAward.title" loading="lazy" decoding="async" />
         <div class="preview-info">
           <h3>{{ previewAward.title }}</h3>
           <p>{{ previewAward.desc }}</p>

@@ -27,7 +27,7 @@
         @keyup.enter="$emit('view-detail', item.id)"
       >
         <div class="work-image-wrap">
-          <img :src="item.image" :alt="item.name" />
+          <img :src="item.image" :alt="item.name" loading="lazy" decoding="async" />
           <div class="work-overlay">
             <span>{{ item.name }}</span>
           </div>

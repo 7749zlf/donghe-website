@@ -6,7 +6,7 @@
     </div>
 
     <div class="container about-grid">
-      <img :src="aboutImage" alt="关于我们" class="about-image" />
+      <img :src="aboutImage" alt="关于我们" class="about-image" loading="lazy" decoding="async" />
       <div class="about-copy">
         <h3>打造理想空间，传递生活美学</h3>
         <p>

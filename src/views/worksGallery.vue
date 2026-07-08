@@ -27,7 +27,7 @@
         >
           <div class="card-media">
             <div class="media-track">
-              <img :src="item.cover" :alt="item.name" />
+              <img :src="item.cover" :alt="item.name" loading="lazy" decoding="async" />
               <div class="card-caption">
                 <h3>{{ item.name }}</h3>
               </div>

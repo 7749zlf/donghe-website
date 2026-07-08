@@ -3,7 +3,7 @@
     <main class="gallery-shell">
       <section class="hero-block">
         <button class="hero-preview-btn" type="button" :aria-label="`放大查看 ${activeItem.alt}`" @click="openPreview">
-          <img :src="activeItem.full" :alt="activeItem.alt" class="hero-image" />
+          <img :src="activeItem.full" :alt="activeItem.alt" class="hero-image" loading="lazy" decoding="async" />
         </button>
       </section>
 
@@ -11,7 +11,7 @@
         <button v-for="(item, index) in galleryItems" :key="item.id" class="thumb-btn"
           :class="{ active: index === activeIndex }" @click="activeIndex = index"
           :aria-label="`show image ${index + 1}`">
-          <img :src="item.thumb" :alt="item.alt" class="thumb-image" />
+          <img :src="item.thumb" :alt="item.alt" class="thumb-image" loading="lazy" decoding="async" />
         </button>
       </section>
 
@@ -67,6 +67,8 @@
           :src="activeItem.full"
           :alt="activeItem.alt"
           class="preview-image"
+          loading="lazy"
+          decoding="async"
           :class="{ draggable: previewZoom > MIN_PREVIEW_ZOOM, dragging: isPreviewDragging }"
           :style="previewImageStyle"
           draggable="false"

@@ -8,7 +8,14 @@
       @transitionend="handleTransitionEnd"
     >
       <div v-for="(slide, index) in displaySlides" :key="`${slide.id}-${index}`" class="hero-slide">
-        <img :src="slide.list?.[0] || ''" :alt="slide.name || '轮播图'" class="hero-image" />
+        <img
+          :src="slide.list?.[0] || ''"
+          :alt="slide.name || '轮播图'"
+          class="hero-image"
+          :loading="index === trackIndex ? 'eager' : 'lazy'"
+          decoding="async"
+          :fetchpriority="index === trackIndex ? 'high' : 'auto'"
+        />
       </div>
     </div>
 
