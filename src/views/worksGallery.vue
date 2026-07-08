@@ -13,9 +13,18 @@
             {{ option.label }}
           </button>
         </div>
+        <label class="works-search">
+          <span>搜索</span>
+          <input
+            v-model.trim="searchQuery"
+            type="search"
+            placeholder="作品名称、空间、年份"
+            aria-label="搜索作品"
+          />
+        </label>
       </header>
 
-      <section class="works-grid">
+      <section v-if="filteredWorks.length" class="works-grid">
         <article
           v-for="item in filteredWorks"
           :key="item.id"
@@ -35,6 +44,8 @@
           </div>
         </article>
       </section>
+
+      <p v-else class="works-empty">暂无匹配作品</p>
     </div>
   </div>
 </template>
@@ -53,6 +64,7 @@ import { getDisplayWorksList, tags } from '@/mock/data'
 const router = useRouter()
 const route = useRoute()
 const displayWorks = ref(getDisplayWorksList())
+const searchQuery = ref('')
 
 const filterOptions = [
   { label: '全部', value: tags[0] },
@@ -69,10 +81,19 @@ function normalizeCategory(category) {
 const activeCategory = ref(normalizeCategory(route.query.category))
 
 const filteredWorks = computed(() => {
-  if (activeCategory.value === tags[0]) {
-    return displayWorks.value
+  const query = searchQuery.value.trim().toLowerCase()
+  const categoryWorks = activeCategory.value === tags[0]
+    ? displayWorks.value
+    : displayWorks.value.filter((item) => item.category === activeCategory.value)
+
+  if (!query) {
+    return categoryWorks
   }
-  return displayWorks.value.filter((item) => item.category === activeCategory.value)
+
+  return categoryWorks.filter((item) => {
+    return [item.name, item.category, item.type, item.year]
+      .some((value) => String(value || '').toLowerCase().includes(query))
+  })
 })
 
 function setCategory(category) {
@@ -156,11 +177,52 @@ onBeforeUnmount(() => {
   color: #11161d;
 }
 
+.works-search {
+  width: min(520px, 100%);
+  height: 48px;
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 999px;
+  background: #fff;
+  padding: 0 18px;
+}
+
+.works-search span {
+  color: #11161d;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.works-search input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #11161d;
+  font: inherit;
+  font-size: 15px;
+}
+
+.works-search input::placeholder {
+  color: #9ca3af;
+}
+
 .works-grid {
   margin-top: 56px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 30px 26px;
+}
+
+.works-empty {
+  margin: 56px 0 0;
+  color: #6d7682;
+  font-size: 15px;
 }
 
 .work-card {

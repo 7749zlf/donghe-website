@@ -16,10 +16,8 @@
     <HomeWorksSection
       :tags="tags"
       :filter-options="workFilterOptions"
-      :search-query="workSearchQuery"
       :projects="filteredProjects"
       @change-tag="goWorksGallery"
-      @update-search="handleWorkSearch"
       @view-detail="viewMoreCases"
       @view-more="goWorksGallery"
     />
@@ -56,7 +54,6 @@ const displayProjects = ref(cloudEnabled ? [] : getDisplayProjects())
 const displayAwards = ref(cloudEnabled ? [] : getDisplayAwards())
 const heroSlides = computed(() => displayDesignCases.value.slice(0, 3))
 const currentSlideIndex = ref(0)
-const workSearchQuery = ref('')
 const workFilterOptions = [
   { label: '商业空间', value: tags[1] },
   { label: '平层', value: tags[2] },
@@ -73,18 +70,7 @@ const representativeProjects = computed(() => {
     .filter(Boolean)
 })
 
-const filteredProjects = computed(() => {
-  const query = workSearchQuery.value.trim().toLowerCase()
-
-  if (!query) {
-    return representativeProjects.value
-  }
-
-  return representativeProjects.value.filter((item) => {
-    return [item.name, item.category, item.type, item.year]
-      .some((value) => String(value || '').toLowerCase().includes(query))
-  })
-})
+const filteredProjects = computed(() => representativeProjects.value)
 
 function nextSlide() {
   if (!heroSlides.value.length) return
@@ -101,10 +87,6 @@ function prevSlide() {
 function setSlide(index) {
   currentSlideIndex.value = index
   restartAutoSlide()
-}
-
-function handleWorkSearch(value) {
-  workSearchQuery.value = value
 }
 
 function startAutoSlide() {
