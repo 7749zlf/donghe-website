@@ -15,6 +15,7 @@
 
     <HomeWorksSection
       :tags="tags"
+      :filter-options="workFilterOptions"
       :active-tag="activeTag"
       :search-query="workSearchQuery"
       :projects="filteredProjects"
@@ -58,6 +59,12 @@ const heroSlides = computed(() => displayDesignCases.value.slice(0, 3))
 const currentSlideIndex = ref(0)
 const activeTag = ref('全部')
 const workSearchQuery = ref('')
+const workFilterOptions = [
+  { label: '全部', value: tags[0] },
+  { label: '商业空间', value: tags[1] },
+  { label: '平层', value: tags[2] },
+  { label: '别墅', value: tags[3] }
+]
 
 let autoTimer = null
 

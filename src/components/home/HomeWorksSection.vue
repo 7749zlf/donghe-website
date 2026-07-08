@@ -20,12 +20,12 @@
 
     <div class="container work-tags">
       <button
-        v-for="tag in tags"
-        :key="tag"
-        :class="['tag', { active: tag === activeTag }]"
-        @click="$emit('change-tag', tag)"
+        v-for="option in displayFilterOptions"
+        :key="option.value"
+        :class="['tag', { active: option.value === activeTag }]"
+        @click="$emit('change-tag', option.value)"
       >
-        {{ tag }}
+        {{ option.label }}
       </button>
     </div>
 
@@ -63,8 +63,14 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   tags: {
+    type: Array,
+    default: () => []
+  },
+  filterOptions: {
     type: Array,
     default: () => []
   },
@@ -83,6 +89,17 @@ defineProps({
 })
 
 defineEmits(['change-tag', 'update-search', 'view-detail', 'view-more'])
+
+const displayFilterOptions = computed(() => {
+  if (props.filterOptions.length) {
+    return props.filterOptions
+  }
+
+  return props.tags.map((tag) => ({
+    label: tag,
+    value: tag
+  }))
+})
 </script>
 
 <style scoped lang="scss">
