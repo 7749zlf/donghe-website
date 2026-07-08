@@ -47,10 +47,11 @@ import HomeWorksSection from '@/components/home/HomeWorksSection.vue'
 import { fetchCloudAwards, fetchCloudCases, isCloudCasesEnabled } from '@/services/cloudCases'
 
 const router = useRouter()
+const cloudEnabled = isCloudCasesEnabled()
 
-const displayDesignCases = ref(getDisplayDesignCases())
-const displayProjects = ref(getDisplayProjects())
-const displayAwards = ref(getDisplayAwards())
+const displayDesignCases = ref(cloudEnabled ? [] : getDisplayDesignCases())
+const displayProjects = ref(cloudEnabled ? [] : getDisplayProjects())
+const displayAwards = ref(cloudEnabled ? [] : getDisplayAwards())
 const heroSlides = computed(() => displayDesignCases.value.slice(0, 3))
 const currentSlideIndex = ref(0)
 const activeTag = ref('全部')
@@ -125,7 +126,7 @@ function refreshCustomCases() {
 }
 
 async function refreshCloudContent() {
-  if (!isCloudCasesEnabled()) {
+  if (!cloudEnabled) {
     return
   }
 
@@ -133,6 +134,7 @@ async function refreshCloudContent() {
     setCloudCases(await fetchCloudCases())
   } catch (error) {
     console.warn('Failed to load cases:', error)
+    setCloudCases([])
   }
 
   try {
@@ -146,8 +148,11 @@ async function refreshCloudContent() {
 
 onMounted(() => {
   window.addEventListener('donghe-custom-cases-updated', refreshCustomCases)
-  refreshCloudContent()
-  startAutoSlide()
+  if (cloudEnabled) {
+    refreshCloudContent().finally(startAutoSlide)
+  } else {
+    startAutoSlide()
+  }
 })
 
 onBeforeUnmount(() => {
