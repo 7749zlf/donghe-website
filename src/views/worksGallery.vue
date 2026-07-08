@@ -2,7 +2,6 @@
   <div class="works-page">
     <div class="works-shell">
       <header class="works-header">
-        <h1>WORKS</h1>
         <div class="filter-row">
           <button
             v-for="option in filterOptions"
