@@ -77,19 +77,19 @@ export const tags = ['\u5168\u90e8', '\u5546\u4e1a\u7a7a\u95f4', '\u529e\u516c\u
 
 export const projects = [
   { id: 101, name: '和锦园', category: tags[1], type: '商业空间 / 上海', year: '2023年', image: designCases[0].list[0] },
-  { id: 102, name: '极简办公总部', category: tags[2], type: '办公空间 / 北京', year: '2022年', image: designCases[1].list[0] },
-  { id: 103, name: '北欧住宅样板间', category: tags[3], type: '居住空间 / 深圳', year: '2023年', image: designCases[2].list[0] },
+  { id: 102, name: '极简办公总部', category: tags[2], type: '平层 / 北京', year: '2022年', image: designCases[1].list[0] },
+  { id: 103, name: '北欧住宅样板间', category: tags[3], type: '别墅 / 深圳', year: '2023年', image: designCases[2].list[0] },
   { id: 104, name: '中庭艺术展馆', category: tags[1], type: '商业空间 / 苏州', year: '2024年', image: designCases[3].list[0] },
   { id: 105, name: '工业风餐饮空间', category: tags[1], type: '商业空间 / 广州', year: '2021年', image: designCases[4].list[0] },
-  { id: 106, name: '日式静谧公寓', category: tags[3], type: '居住空间 / 杭州', year: '2022年', image: designCases[5].list[0] },
-  { id: 107, name: 'Loft联合办公中心', category: tags[2], type: '办公空间 / 成都', year: '2023年', image: designCases[6].list[0] },
+  { id: 106, name: '日式静谧公寓', category: tags[3], type: '别墅 / 杭州', year: '2022年', image: designCases[5].list[0] },
+  { id: 107, name: 'Loft联合办公中心', category: tags[2], type: '平层 / 成都', year: '2023年', image: designCases[6].list[0] },
   { id: 108, name: '山景度假酒店大堂', category: tags[1], type: '商业空间 / 丽江', year: '2024年', image: designCases[7].list[0] },
-  { id: 109, name: '书香住宅空间', category: tags[3], type: '居住空间 / 南京', year: '2025年', image: designCases[8].list[0] },
+  { id: 109, name: '书香住宅空间', category: tags[3], type: '别墅 / 南京', year: '2025年', image: designCases[8].list[0] },
   { id: 110, name: '海岸咖啡馆室内', category: tags[1], type: '商业空间 / 厦门', year: '2025年', image: designCases[9].list[0] },
-  { id: 111, name: '科技企业会客厅', category: tags[2], type: '办公空间 / 深圳', year: '2025年', image: designCases[10].list[0] },
+  { id: 111, name: '科技企业会客厅', category: tags[2], type: '平层 / 深圳', year: '2025年', image: designCases[10].list[0] },
   { id: 112, name: '光影美术馆', category: tags[1], type: '商业空间 / 北京', year: '2026年', image: designCases[11].list[0] },
-  { id: 113, name: '私享温泉会所', category: tags[3], type: '居住空间 / 大理', year: '2024年', image: designCases[12].list[0] },
-  { id: 114, name: '城市天际公寓', category: tags[3], type: '居住空间 / 上海', year: '2026年', image: designCases[13].list[0] },
+  { id: 113, name: '私享温泉会所', category: tags[3], type: '别墅 / 大理', year: '2024年', image: designCases[12].list[0] },
+  { id: 114, name: '城市天际公寓', category: tags[3], type: '别墅 / 上海', year: '2026年', image: designCases[13].list[0] },
   { id: 115, name: '私宴餐叙会馆', category: tags[1], type: '商业空间 / 成都', year: '2026年', image: designCases[14].list[0] }
 ]
 
