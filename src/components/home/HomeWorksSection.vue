@@ -5,6 +5,19 @@
       <span class="title-line"></span>
     </div>
 
+    <div class="container work-controls">
+      <label class="work-search">
+        <span>搜索</span>
+        <input
+          :value="searchQuery"
+          type="search"
+          placeholder="作品名称、空间、年份"
+          aria-label="搜索设计作品"
+          @input="$emit('update-search', $event.target.value)"
+        />
+      </label>
+    </div>
+
     <div class="container work-tags">
       <button
         v-for="tag in tags"
@@ -16,7 +29,7 @@
       </button>
     </div>
 
-    <div class="container work-grid">
+    <div v-if="projects.length" class="container work-grid">
       <article
         v-for="item in projects"
         :key="item.id"
@@ -43,6 +56,8 @@
       </article>
     </div>
 
+    <p v-else class="container work-empty">暂无匹配作品</p>
+
     <button class="more-btn" @click="$emit('view-more')">查看更多作品</button>
   </section>
 </template>
@@ -57,13 +72,17 @@ defineProps({
     type: String,
     default: ''
   },
+  searchQuery: {
+    type: String,
+    default: ''
+  },
   projects: {
     type: Array,
     default: () => []
   }
 })
 
-defineEmits(['change-tag', 'view-detail', 'view-more'])
+defineEmits(['change-tag', 'update-search', 'view-detail', 'view-more'])
 </script>
 
 <style scoped lang="scss">
@@ -94,6 +113,46 @@ defineEmits(['change-tag', 'view-detail', 'view-more'])
   height: 4px;
   margin-top: 12px;
   background: var(--border);
+}
+
+.work-controls {
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.work-search {
+  width: min(520px, 100%);
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  padding: 0 18px;
+}
+
+.work-search span {
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.work-search input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 15px;
+}
+
+.work-search input::placeholder {
+  color: var(--text-muted);
 }
 
 .work-tags {
@@ -222,6 +281,14 @@ defineEmits(['change-tag', 'view-detail', 'view-more'])
   border-radius: 4px;
 }
 
+.work-empty {
+  margin: 0 auto;
+  padding: 48px 0 24px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+
 .more-btn {
   display: block;
   margin: 48px auto 0;
@@ -264,6 +331,11 @@ defineEmits(['change-tag', 'view-detail', 'view-more'])
 
   .work-tags {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .work-search {
+    height: 46px;
+    padding: 0 14px;
   }
 }
 </style>

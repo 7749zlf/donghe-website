@@ -16,8 +16,10 @@
     <HomeWorksSection
       :tags="tags"
       :active-tag="activeTag"
+      :search-query="workSearchQuery"
       :projects="filteredProjects"
       @change-tag="handleTagChange"
+      @update-search="handleWorkSearch"
       @view-detail="viewMoreCases"
       @view-more="goWorksGallery"
     />
@@ -55,16 +57,26 @@ const displayAwards = ref(cloudEnabled ? [] : getDisplayAwards())
 const heroSlides = computed(() => displayDesignCases.value.slice(0, 3))
 const currentSlideIndex = ref(0)
 const activeTag = ref('全部')
+const workSearchQuery = ref('')
 
 let autoTimer = null
 
 const currentSlide = computed(() => heroSlides.value[currentSlideIndex.value] || null)
 
 const filteredProjects = computed(() => {
-  if (activeTag.value === '全部') {
-    return displayProjects.value
+  const query = workSearchQuery.value.trim().toLowerCase()
+  const taggedProjects = activeTag.value === '全部'
+    ? displayProjects.value
+    : displayProjects.value.filter((item) => item.category === activeTag.value)
+
+  if (!query) {
+    return taggedProjects
   }
-  return displayProjects.value.filter((item) => item.category === activeTag.value)
+
+  return taggedProjects.filter((item) => {
+    return [item.name, item.category, item.type, item.year]
+      .some((value) => String(value || '').toLowerCase().includes(query))
+  })
 })
 
 function nextSlide() {
@@ -86,6 +98,10 @@ function setSlide(index) {
 
 function handleTagChange(tag) {
   activeTag.value = tag
+}
+
+function handleWorkSearch(value) {
+  workSearchQuery.value = value
 }
 
 function startAutoSlide() {
