@@ -87,10 +87,11 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { getDesignCaseById, getDisplayDesignCases } from '@/mock/data'
+import { getDisplayDesignCases } from '@/mock/data'
 
 const route = useRoute()
 
+const displayCases = ref(getDisplayDesignCases())
 const activeIndex = ref(0)
 const isPreviewOpen = ref(false)
 const MIN_PREVIEW_ZOOM = 1
@@ -108,7 +109,12 @@ const previewDragStart = reactive({
 })
 
 const currentCase = computed(() => {
-  return getDesignCaseById(route.params.id) || getDisplayDesignCases()[0]
+  return displayCases.value.find((item) => String(item.id) === String(route.params.id)) || displayCases.value[0] || {
+    id: '',
+    name: '',
+    list: [],
+    url: ''
+  }
 })
 const URL = computed(() => {
   return currentCase.value.url 
@@ -123,7 +129,12 @@ const galleryItems = computed(() => {
   }))
 })
 
-const activeItem = computed(() => galleryItems.value[activeIndex.value] || galleryItems.value[0])
+const activeItem = computed(() => galleryItems.value[activeIndex.value] || galleryItems.value[0] || {
+  id: '',
+  alt: '',
+  full: '',
+  thumb: ''
+})
 const previewZoomLabel = computed(() => `${Math.round(previewZoom.value * 100)}%`)
 const previewImageStyle = computed(() => ({
   transform: `translate3d(${previewPan.x}px, ${previewPan.y}px, 0) scale(${previewZoom.value})`
@@ -148,7 +159,6 @@ function goNext() {
 }
 
 function go3D() {
-  console.log('URL', URL.value)
   if (URL.value) {
     window.open(URL.value, '_blank')
   }
@@ -246,12 +256,14 @@ function stopPreviewDrag(event) {
 watch(
   () => route.params.id,
   () => {
+    displayCases.value = getDisplayDesignCases()
     activeIndex.value = 0
     isPreviewOpen.value = false
   }
 )
 
 function refreshDetail() {
+  displayCases.value = getDisplayDesignCases()
   activeIndex.value = 0
 }
 

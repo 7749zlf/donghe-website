@@ -32,10 +32,6 @@ export const designCases = [
   { id: 115, name: '私宴餐叙会馆', list: [IMG_7, IMG_1, IMG_4], url: 'https://www.baidu.com' }
 ]
 
-export function getDesignCaseById(id) {
-  return getDisplayDesignCases().find((item) => String(item.id) === String(id))
-}
-
 export const aboutImage = IMG_10
 
 export const awards = [
@@ -93,8 +89,6 @@ export const projects = [
   { id: 115, name: '私宴餐叙会馆', category: tags[1], type: '商业空间 / 成都', year: '2026年', image: designCases[14].list[0] }
 ]
 
-const caseMap = Object.fromEntries(designCases.map((item) => [item.id, item]))
-
 const curatorNotes = [
   '以光影层次重塑动线秩序，强调空间叙事感。',
   '通过材质碰撞塑造理性与温度并存的场域。',
@@ -104,18 +98,6 @@ const curatorNotes = [
   '让开放协作与独立专注在同一空间达成平衡。'
 ]
 
-export const worksList = projects.map((project, index) => {
-  const matchedCase = caseMap[project.id]
-  const list = matchedCase?.list?.length ? matchedCase.list : [project.image]
-
-  return {
-    ...project,
-    cover: list[0],
-    list,
-    note: curatorNotes[index % curatorNotes.length]
-  }
-})
-
 const CUSTOM_CASES_KEY = 'donghe-custom-design-cases'
 const CASE_OVERRIDES_KEY = 'donghe-design-case-overrides'
 const HIDDEN_CASES_KEY = 'donghe-hidden-design-cases'
@@ -124,6 +106,8 @@ const AWARD_OVERRIDES_KEY = 'donghe-award-overrides'
 const HIDDEN_AWARDS_KEY = 'donghe-hidden-awards'
 let cloudCases = []
 let cloudAwards = []
+let cloudCasesLoaded = false
+let cloudAwardsLoaded = false
 
 function hasStorage() {
   return typeof window !== 'undefined' && Boolean(window.localStorage)
@@ -177,11 +161,13 @@ function notifyCustomCasesChanged() {
 
 export function setCloudCases(caseList) {
   cloudCases = Array.isArray(caseList) ? caseList : []
+  cloudCasesLoaded = true
   notifyCustomCasesChanged()
 }
 
 export function setCloudAwards(awardList) {
   cloudAwards = Array.isArray(awardList) ? awardList : []
+  cloudAwardsLoaded = true
   notifyCustomCasesChanged()
 }
 
@@ -519,7 +505,7 @@ function baseManagedAwards() {
 }
 
 export function getManagedCases() {
-  if (cloudCases.length) {
+  if (cloudCasesLoaded) {
     return cloudCases.map((item) => ({ ...item, source: 'cloud' }))
   }
 
@@ -530,29 +516,13 @@ export function getManagedCases() {
 }
 
 export function getManagedAwards() {
-  const localAwards = [
-    ...readCustomAwards().map((item) => ({ ...item, source: 'custom', hidden: false })),
-    ...baseManagedAwards()
-  ]
-
-  if (!cloudAwards.length) {
-    return localAwards
+  if (cloudAwardsLoaded) {
+    return cloudAwards.map((item) => ({ ...item, source: 'cloud' }))
   }
 
-  const baseIds = new Set(awards.map((item) => String(item.id)))
-  const cloudById = Object.fromEntries(cloudAwards.map((item) => [String(item.id), item]))
-  const cloudCustomAwards = cloudAwards
-    .filter((item) => !baseIds.has(String(item.id)))
-    .map((item) => ({ ...item, source: 'cloud' }))
-  const mergedBaseAwards = baseManagedAwards().map((item) => ({
-    ...item,
-    ...(cloudById[String(item.id)] || {}),
-    source: cloudById[String(item.id)] ? 'cloud' : item.source
-  }))
-
   return [
-    ...cloudCustomAwards,
-    ...mergedBaseAwards
+    ...readCustomAwards().map((item) => ({ ...item, source: 'custom', hidden: false })),
+    ...baseManagedAwards()
   ]
 }
 

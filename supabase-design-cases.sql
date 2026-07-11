@@ -113,7 +113,7 @@ create policy "Public can read design awards"
 on public.design_awards
 for select
 to anon, authenticated
-using (true);
+using (hidden = false or public.is_design_admin());
 
 drop policy if exists "Admin can insert design awards" on public.design_awards;
 create policy "Admin can insert design awards"
