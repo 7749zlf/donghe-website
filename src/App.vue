@@ -27,13 +27,18 @@ export default {
   --color-ink: #171714;
   --color-ink-soft: #3f4239;
   --color-muted: #78766c;
-  --color-paper: #f7f4ed;
+  --color-paper: #f5f1e8;
+  --color-porcelain: #f8f7f2;
   --color-warm: #ede6d8;
-  --color-stone: #d8d1c2;
+  --color-stone: #d5d0c3;
+  --color-sage: #dfe5d9;
+  --color-ash: #e7e9e4;
+  --color-graphite: #20231f;
   --color-line: rgba(42, 39, 31, 0.16);
   --color-olive: #5d6549;
   --color-brass: #a98247;
   --color-clay: #9a5f47;
+  --color-rust: #7c4f3f;
   --shadow-soft: 0 26px 80px rgba(30, 27, 20, 0.12);
   --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
   --text-primary: var(--color-ink);
@@ -63,8 +68,9 @@ export default {
   color: var(--color-ink);
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.26) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(93, 101, 73, 0.045), transparent 340px),
     var(--color-paper);
-  background-size: 96px 96px;
+  background-size: 96px 96px, 100% 100%;
   font-family: 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 

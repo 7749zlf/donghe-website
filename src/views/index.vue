@@ -11,7 +11,7 @@
 
     <HomeAboutSection :about-image="aboutImage" @view-more="goWorksGallery" />
 
-    <HomeAwardsSection :awards="displayAwards" />
+    <HomeMaterialsSection />
 
     <HomeWorksSection
       :tags="tags"
@@ -21,6 +21,8 @@
       @view-detail="viewMoreCases"
       @view-more="goWorksGallery"
     />
+
+    <HomeAwardsSection :awards="displayAwards" />
 
     <HomeContactSection />
 
@@ -42,6 +44,7 @@ import HomeAboutSection from '@/components/home/HomeAboutSection.vue'
 import HomeAwardsSection from '@/components/home/HomeAwardsSection.vue'
 import HomeContactSection from '@/components/home/HomeContactSection.vue'
 import HomeHeroSection from '@/components/home/HomeHeroSection.vue'
+import HomeMaterialsSection from '@/components/home/HomeMaterialsSection.vue'
 // import HomeSiteFooter from '@/components/home/HomeSiteFooter.vue'
 import HomeWorksSection from '@/components/home/HomeWorksSection.vue'
 import { fetchCloudAwards, fetchCloudCases, isCloudCasesEnabled } from '@/services/cloudCases'

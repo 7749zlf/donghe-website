@@ -95,7 +95,10 @@ const displayFilterOptions = computed(() => {
 }
 
 .works {
-  background: #efeadf;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+    var(--color-sage);
+  background-size: 88px 88px;
 }
 
 .section-head {
@@ -150,8 +153,8 @@ const displayFilterOptions = computed(() => {
 
 .tag.active,
 .tag:hover {
-  border-color: var(--color-olive);
-  background: var(--color-olive);
+  border-color: var(--color-graphite);
+  background: var(--color-graphite);
   color: #fff;
 }
 
@@ -274,7 +277,7 @@ const displayFilterOptions = computed(() => {
 }
 
 .more-btn:hover {
-  background: var(--color-ink);
+  background: var(--color-graphite);
   color: #fff;
   transform: translateY(-2px);
 }

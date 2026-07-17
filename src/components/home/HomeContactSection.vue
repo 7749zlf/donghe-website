@@ -39,7 +39,7 @@
 }
 
 .contact {
-  background: var(--color-paper);
+  background: var(--color-rust);
 }
 
 .contact-layout {
@@ -47,14 +47,14 @@
   grid-template-columns: minmax(0, 0.92fr) minmax(420px, 0.78fr);
   gap: 72px;
   align-items: start;
-  padding-top: 42px;
-  border-top: 1px solid var(--color-line);
+  padding: 42px 0 0 42px;
+  border-top: 1px solid rgba(255, 255, 255, 0.42);
 }
 
 .section-kicker {
   display: inline-block;
   margin-bottom: 18px;
-  color: var(--color-olive);
+  color: var(--color-brass);
   font-size: 12px;
   letter-spacing: 3.4px;
 }
@@ -62,7 +62,7 @@
 .contact-copy h2 {
   max-width: 760px;
   margin: 0;
-  color: var(--color-ink);
+  color: var(--color-porcelain);
   font-size: clamp(34px, 5vw, 66px);
   font-weight: 500;
   line-height: 1.08;
@@ -75,6 +75,8 @@
   padding: 0;
   font-style: normal;
   border-top: 1px solid var(--color-line);
+  background: rgba(248, 247, 242, 0.86);
+  padding: 0 28px;
 }
 
 .contact-info div {
@@ -101,6 +103,7 @@
   .contact-layout {
     grid-template-columns: 1fr;
     gap: 42px;
+    padding-left: 0;
   }
 }
 

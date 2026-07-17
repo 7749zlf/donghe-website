@@ -37,6 +37,12 @@
       </Transition>
     </div>
 
+    <aside class="hero-atelier" aria-label="设计语言">
+      <span>01 / LIGHT</span>
+      <span>02 / MATERIAL</span>
+      <span>03 / ORDER</span>
+    </aside>
+
     <div class="hero-controls">
       <button class="hero-arrow" aria-label="上一张" @click="$emit('prev')">
         <span class="arrow-icon">‹</span>
@@ -207,6 +213,41 @@ watch(
   pointer-events: none;
 }
 
+.hero-atelier {
+  position: absolute;
+  top: 34px;
+  right: clamp(28px, 5vw, 74px);
+  display: grid;
+  grid-template-columns: repeat(3, 78px);
+  align-items: end;
+  gap: 1px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.hero-atelier span {
+  min-height: 128px;
+  display: flex;
+  align-items: flex-end;
+  padding: 12px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(18, 18, 14, 0.2);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11px;
+  letter-spacing: 1.8px;
+  backdrop-filter: blur(8px);
+}
+
+.hero-atelier span:nth-child(2) {
+  min-height: 168px;
+  background: rgba(93, 101, 73, 0.28);
+}
+
+.hero-atelier span:nth-child(3) {
+  min-height: 108px;
+  background: rgba(154, 95, 71, 0.26);
+}
+
 .hero-copy {
   max-width: 720px;
   color: #fff;
@@ -370,6 +411,10 @@ watch(
     align-items: flex-start;
     flex-direction: column;
     gap: 14px;
+  }
+
+  .hero-atelier {
+    display: none;
   }
 
   .hero-controls {
