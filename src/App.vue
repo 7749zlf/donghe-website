@@ -89,6 +89,71 @@ export default {
   max-width: 100%;
 }
 
+:global(.dh-action) {
+  --dh-action-fg: var(--color-ink);
+  --dh-action-bg: transparent;
+  --dh-action-hover-bg: var(--color-ink);
+  --dh-action-hover-fg: #fff;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid currentColor;
+  background: var(--dh-action-bg);
+  color: var(--dh-action-fg);
+  padding: 0;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.32s var(--ease-smooth),
+    color 0.32s var(--ease-smooth),
+    transform 0.32s var(--ease-smooth);
+}
+
+:global(.dh-action:hover),
+:global(.dh-action:focus-visible) {
+  background: var(--dh-action-hover-bg);
+  color: var(--dh-action-hover-fg);
+  transform: translateY(-2px);
+}
+
+:global(.dh-action__label) {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 18px;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+:global(.dh-action__mark) {
+  width: 46px;
+  min-height: 44px;
+  display: inline-grid;
+  place-items: center;
+  border-left: 1px solid currentColor;
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 0.32s var(--ease-smooth);
+}
+
+:global(.dh-action:hover .dh-action__mark),
+:global(.dh-action:focus-visible .dh-action__mark) {
+  transform: translateX(2px);
+}
+
+:global(.dh-action--light) {
+  --dh-action-fg: #fff;
+  --dh-action-hover-bg: #fff;
+  --dh-action-hover-fg: var(--color-ink);
+}
+
+:global(.dh-action--solid) {
+  --dh-action-bg: var(--color-ink);
+  --dh-action-fg: #fff;
+  --dh-action-hover-bg: transparent;
+  --dh-action-hover-fg: var(--color-ink);
+}
+
 @media (max-width: 768px) {
   :global(:root) {
     --nav-height: 60px;

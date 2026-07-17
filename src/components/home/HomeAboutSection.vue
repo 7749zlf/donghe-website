@@ -3,15 +3,18 @@
     <div class="container about-layout">
       <div class="about-copy">
         <span class="section-kicker">ABOUT DONGHE</span>
-        <h2>把空间从“好看”推进到“好用、耐看、可落地”。</h2>
+        <h2>先校准生活方式，再讨论风格。</h2>
         <p>
-          东禾专注商业、办公与居住空间的室内设计。我们从动线、尺度、材质、灯光与施工细节进入项目，让视觉表达和真实使用保持一致。
+          东禾专注商业、办公与居住空间的室内设计。我们先看现场条件、人的行为路径和预算边界，再把材质、灯光、收纳与施工细节放进同一个系统里。
         </p>
         <p>
-          每一个项目都以现场条件和客户需求为起点，经过概念梳理、深化设计、材料选择与落地跟进，形成具有秩序感和温度的空间结果。
+          好的空间不靠堆满元素取胜，而是让功能、尺度和情绪各自站稳。最终留下来的，是每天使用时依然舒服的秩序。
         </p>
         <div class="about-actions">
-          <button class="ghost-btn" @click="$emit('view-more')">浏览案例</button>
+          <button class="dh-action" @click="$emit('view-more')">
+            <span class="dh-action__label">看项目现场</span>
+            <span class="dh-action__mark">→</span>
+          </button>
         </div>
       </div>
 
@@ -100,22 +103,6 @@ defineEmits(['view-more'])
 
 .about-actions {
   margin-top: 34px;
-}
-
-.ghost-btn {
-  height: 46px;
-  border: 1px solid var(--color-ink);
-  background: transparent;
-  color: var(--color-ink);
-  padding: 0 24px;
-  cursor: pointer;
-  transition: background 0.28s ease, color 0.28s ease, transform 0.28s ease;
-}
-
-.ghost-btn:hover {
-  background: var(--color-ink);
-  color: #fff;
-  transform: translateY(-2px);
 }
 
 .about-figure {

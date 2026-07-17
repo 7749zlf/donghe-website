@@ -3,7 +3,7 @@
     <div class="navbar-inner">
       <button class="brand" type="button" @click="toHome">
         <span>东禾</span>
-        <small>SPACE DESIGN</small>
+        <small>INTERIOR STUDIO</small>
       </button>
 
       <div class="nav-container">
@@ -12,13 +12,16 @@
             <button type="button" @click="scrollToSection('about')">关于</button>
           </li>
           <li class="nav-item">
-            <button type="button" @click="toWorks">作品</button>
+            <button type="button" @click="scrollToSection('approach')">方法</button>
           </li>
           <li class="nav-item">
-            <button type="button" @click="scrollToSection('contact')">联系</button>
+            <button type="button" @click="toWorks">项目</button>
           </li>
           <li class="nav-item">
-            <button type="button" class="manager-link" @click="toManager">管理</button>
+            <button type="button" @click="scrollToSection('contact')">沟通</button>
+          </li>
+          <li class="nav-item">
+            <button type="button" class="manager-link" @click="toManager">后台</button>
           </li>
         </ul>
 

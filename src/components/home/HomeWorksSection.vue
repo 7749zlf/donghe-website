@@ -3,9 +3,9 @@
     <div class="container section-head">
       <div>
         <span class="section-kicker">SELECTED WORKS</span>
-        <h2>精选空间作品</h2>
+        <h2>被现场验证过的空间。</h2>
       </div>
-      <p>用少量代表案例建立第一印象，更多项目进入完整作品页查看。</p>
+      <p>不按热闹排序，只保留能说明尺度、材质和落地能力的项目。</p>
     </div>
 
     <div class="container work-tags">
@@ -37,14 +37,20 @@
           <span>{{ item.category }}</span>
           <h3>{{ item.name }}</h3>
           <p>{{ item.type }} / {{ item.year }}</p>
-          <button class="work-detail-btn" @click.stop="$emit('view-detail', item.id)">查看项目</button>
+          <button class="work-detail-btn" @click.stop="$emit('view-detail', item.id)">
+            阅读项目
+            <span>↗</span>
+          </button>
         </div>
       </article>
     </div>
 
     <p v-else class="container work-empty">暂无匹配作品</p>
 
-    <button class="more-btn" @click="$emit('view-more')">进入作品集</button>
+    <button class="dh-action more-btn" @click="$emit('view-more')">
+      <span class="dh-action__label">打开完整项目索引</span>
+      <span class="dh-action__mark">→</span>
+    </button>
   </section>
 </template>
 
@@ -141,7 +147,7 @@ const displayFilterOptions = computed(() => {
 }
 
 .tag {
-  height: 38px;
+  min-height: 38px;
   border: 1px solid var(--color-line);
   background: transparent;
   color: var(--color-ink-soft);
@@ -255,6 +261,20 @@ const displayFilterOptions = computed(() => {
   padding: 0 0 5px;
   color: #fff;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: 0.08em;
+}
+
+.work-detail-btn span {
+  display: inline-block;
+  transition: transform 0.28s var(--ease-smooth);
+}
+
+.work-detail-btn:hover span,
+.work-detail-btn:focus-visible span {
+  transform: translate(2px, -2px);
 }
 
 .work-empty {
@@ -265,21 +285,9 @@ const displayFilterOptions = computed(() => {
 }
 
 .more-btn {
-  display: block;
+  display: flex;
+  width: fit-content;
   margin: 42px auto 0;
-  height: 46px;
-  border: 1px solid var(--color-ink);
-  background: transparent;
-  color: var(--color-ink);
-  padding: 0 26px;
-  cursor: pointer;
-  transition: background 0.28s ease, color 0.28s ease, transform 0.28s ease;
-}
-
-.more-btn:hover {
-  background: var(--color-graphite);
-  color: #fff;
-  transform: translateY(-2px);
 }
 
 @media (max-width: 980px) {

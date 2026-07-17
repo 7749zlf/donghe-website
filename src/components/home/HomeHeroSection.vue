@@ -26,9 +26,12 @@
         <div :key="currentSlide.id || currentSlideIndex" class="hero-copy">
           <span class="eyebrow">DONGHE INTERIOR STUDIO</span>
           <h1>东禾空间设计</h1>
-          <p>以结构、材质与光影，建立可被日常使用的空间秩序。</p>
+          <p>从现场尺度、材质温度和生活动线出发，把空间做得安静、清楚、耐看。</p>
           <div class="hero-actions">
-            <button class="primary-btn" @click="$emit('view-more')">查看作品</button>
+            <button class="dh-action dh-action--light" @click="$emit('view-more')">
+              <span class="dh-action__label">进入项目索引</span>
+              <span class="dh-action__mark">↗</span>
+            </button>
             <span v-if="currentSlide.name" class="project-note">
               {{ currentSlide.name }} / {{ currentSlide.type || '空间设计' }} / {{ currentSlide.year || '近年' }}
             </span>
@@ -283,21 +286,6 @@ watch(
   align-items: center;
   gap: 20px;
   pointer-events: auto;
-}
-
-.primary-btn {
-  height: 46px;
-  border: 1px solid rgba(255, 255, 255, 0.76);
-  background: rgba(255, 255, 255, 0.92);
-  color: #171714;
-  padding: 0 24px;
-  cursor: pointer;
-  transition: background 0.28s ease, transform 0.28s ease;
-}
-
-.primary-btn:hover {
-  background: #fff;
-  transform: translateY(-2px);
 }
 
 .project-note {

@@ -59,8 +59,8 @@ const heroSlides = computed(() => displayDesignCases.value.slice(0, 3))
 const currentSlideIndex = ref(0)
 const workFilterOptions = [
   { label: '商业空间', value: tags[1] },
-  { label: '平层', value: tags[2] },
-  { label: '别墅', value: tags[3] }
+  { label: '办公空间', value: tags[2] },
+  { label: '居住空间', value: tags[3] }
 ]
 
 let autoTimer = null

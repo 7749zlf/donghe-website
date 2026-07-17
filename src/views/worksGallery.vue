@@ -4,16 +4,16 @@
       <header class="works-header">
         <div class="works-title">
           <span>PROJECT INDEX</span>
-          <h1>空间作品集</h1>
-          <p>按空间类型、项目名称与年份检索，快速进入完整项目画册。</p>
+          <h1>项目索引</h1>
+          <p>按空间类型、名称和年份查找项目，再进入完整画册阅读。</p>
         </div>
 
         <label class="works-search">
-          <span>搜索</span>
+          <span>查找</span>
           <input
             v-model.trim="searchQuery"
             type="search"
-            placeholder="作品名称、空间、年份"
+            placeholder="输入名称、空间或年份"
             aria-label="搜索作品"
           />
         </label>
@@ -44,11 +44,15 @@
             <img :src="item.cover" :alt="item.name" loading="lazy" decoding="async" />
           </div>
           <div class="card-caption">
-            <span>{{ item.category }}</span>
-            <h2>{{ item.name }}</h2>
-            <p>{{ item.type }} / {{ item.year }}</p>
-          </div>
-        </article>
+          <span>{{ item.category }}</span>
+          <h2>{{ item.name }}</h2>
+          <p>{{ item.type }} / {{ item.year }}</p>
+          <button class="card-link" type="button" @click.stop="openDetail(item.id)">
+            阅读项目
+            <span>↗</span>
+          </button>
+        </div>
+      </article>
       </section>
 
       <p v-else class="works-empty">暂无匹配作品</p>
@@ -75,8 +79,8 @@ const searchQuery = ref('')
 const filterOptions = [
   { label: '全部', value: tags[0] },
   { label: '商业空间', value: tags[1] },
-  { label: '平层', value: tags[2] },
-  { label: '别墅', value: tags[3] }
+  { label: '办公空间', value: tags[2] },
+  { label: '居住空间', value: tags[3] }
 ]
 
 function normalizeCategory(category) {
@@ -311,6 +315,30 @@ onBeforeUnmount(() => {
   margin: 0;
   color: var(--color-muted);
   font-size: 14px;
+}
+
+.card-link {
+  margin-top: 8px;
+  justify-self: start;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+}
+
+.card-link span {
+  transition: transform 0.28s var(--ease-smooth);
+}
+
+.card-link:hover span,
+.card-link:focus-visible span {
+  transform: translate(2px, -2px);
 }
 
 @media (max-width: 1100px) {

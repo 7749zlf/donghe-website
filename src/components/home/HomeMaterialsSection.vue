@@ -1,11 +1,11 @@
 <template>
-  <section class="materials-section">
+  <section id="approach" class="materials-section">
     <div class="materials-shell">
       <div class="materials-copy">
         <span class="section-kicker">MATERIAL LANGUAGE</span>
-        <h2>用材质、光线和尺度，让空间有可感知的层次。</h2>
+        <h2>材料不是背景，是空间性格。</h2>
         <p>
-          室内设计不是单一风格的堆叠。我们更关注材料之间的温差、光线进入空间的角度，以及人在其中行走、停留、交流的节奏。
+          木的温润、石的重量、金属的冷感、织物的柔软，都会改变人对空间的判断。东禾把这些细节放在同一张秩序表里推敲。
         </p>
       </div>
 
@@ -13,22 +13,22 @@
         <article class="material-panel panel-sage">
           <span>01</span>
           <h3>光</h3>
-          <p>用自然光与灯光层次塑造空间情绪。</p>
+          <p>先判断光从哪里来，再决定空间该安静还是聚焦。</p>
         </article>
         <article class="material-panel panel-clay">
           <span>02</span>
           <h3>材</h3>
-          <p>通过木、石、金属与织物建立触感。</p>
+          <p>让木、石、金属与织物形成真实可触的温差。</p>
         </article>
         <article class="material-panel panel-ink">
           <span>03</span>
           <h3>序</h3>
-          <p>让收纳、动线和视觉中心更清楚。</p>
+          <p>把动线、收纳和视觉中心放回清楚的位置。</p>
         </article>
         <article class="material-panel panel-brass">
           <span>04</span>
           <h3>落地</h3>
-          <p>把设计表达控制在真实施工可实现范围内。</p>
+          <p>让效果图里的判断，能在现场被完整执行。</p>
         </article>
       </div>
     </div>

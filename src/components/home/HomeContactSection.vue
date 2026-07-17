@@ -2,13 +2,18 @@
   <section id="contact" class="section contact">
     <div class="container contact-layout">
       <div class="contact-copy">
-        <span class="section-kicker">CONTACT</span>
-        <h2>从一次现场沟通开始，整理空间真正需要解决的问题。</h2>
+        <span class="section-kicker">SITE VISIT</span>
+        <h2>把项目聊清楚，再决定风格该往哪边走。</h2>
+        <p>如果你手上已经有现场照片、平面图或预算范围，发给我们，判断会更快。</p>
+        <a class="dh-action dh-action--light contact-cta" href="mailto:info@luxedesign.com">
+          <span class="dh-action__label">预约现场沟通</span>
+          <span class="dh-action__mark">↗</span>
+        </a>
       </div>
 
       <address class="contact-info">
         <div>
-          <span>地址</span>
+          <span>工作室</span>
           <strong>上饶市信州区洋码头B座13A1307</strong>
         </div>
         <div>
@@ -66,6 +71,18 @@
   font-size: clamp(34px, 5vw, 66px);
   font-weight: 500;
   line-height: 1.08;
+}
+
+.contact-copy p {
+  max-width: 520px;
+  margin: 18px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.contact-cta {
+  margin-top: 30px;
 }
 
 .contact-info {

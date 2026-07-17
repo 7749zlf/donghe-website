@@ -7,16 +7,16 @@
         </button>
 
         <div class="project-copy">
-          <span class="section-kicker">PROJECT GALLERY</span>
+          <span class="section-kicker">PROJECT NOTES</span>
           <h1>{{ currentCase.name }}</h1>
-          <p>{{ currentCase.note || '以尺度、材质与光影组织空间关系，让项目在视觉表达与实际使用之间保持平衡。' }}</p>
+          <p>{{ currentCase.note || '先看条件，再看结果。这个项目的重点在尺度、材质和光线的关系是否成立。' }}</p>
           <dl class="project-meta">
             <div>
-              <dt>类型</dt>
+              <dt>空间</dt>
               <dd>{{ currentCase.category || '空间设计' }}</dd>
             </div>
             <div>
-              <dt>信息</dt>
+              <dt>属性</dt>
               <dd>{{ currentCase.type || '室内空间' }}</dd>
             </div>
             <div>
@@ -53,13 +53,13 @@
       </section>
 
       <footer class="page-nav">
-        <button type="button" class="nav-link" @click="goWorks">
-          <span class="nav-caret">‹</span>
-          <span class="nav-label">返回作品集</span>
+        <button type="button" class="dh-action" @click="goWorks">
+          <span class="dh-action__label">返回索引</span>
+          <span class="dh-action__mark">←</span>
         </button>
-        <button v-if="URL" type="button" class="nav-link" @click="go3D">
-          <span class="nav-caret">↗</span>
-          <span class="nav-label">3D查看</span>
+        <button v-if="URL" type="button" class="dh-action dh-action--solid" @click="go3D">
+          <span class="dh-action__label">打开3D</span>
+          <span class="dh-action__mark">↗</span>
         </button>
       </footer>
     </main>
@@ -73,10 +73,10 @@
       @wheel.prevent="handlePreviewWheel"
     >
       <div class="preview-toolbar" aria-label="图片缩放工具">
-        <button type="button" :disabled="previewZoom <= MIN_PREVIEW_ZOOM" @click="zoomOutPreview">缩小</button>
+        <button type="button" :disabled="previewZoom <= MIN_PREVIEW_ZOOM" @click="zoomOutPreview">−</button>
         <span>{{ previewZoomLabel }}</span>
-        <button type="button" :disabled="previewZoom >= MAX_PREVIEW_ZOOM" @click="zoomInPreview">放大</button>
-        <button type="button" @click="resetPreviewTransform">重置</button>
+        <button type="button" :disabled="previewZoom >= MAX_PREVIEW_ZOOM" @click="zoomInPreview">+</button>
+        <button type="button" @click="resetPreviewTransform">复位</button>
       </div>
       <button class="preview-close" type="button" aria-label="关闭预览" @click="closePreview">×</button>
       <button
@@ -492,35 +492,6 @@ onBeforeUnmount(() => {
   gap: 18px;
   border-top: 1px solid var(--color-line);
   padding-top: 24px;
-}
-
-.nav-link {
-  border: 0;
-  background: transparent;
-  color: var(--color-ink);
-  font-size: 16px;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0;
-  cursor: pointer;
-  transition: color 0.25s ease;
-}
-
-.nav-caret {
-  display: inline-block;
-  font-size: 24px;
-  line-height: 1;
-  transition: transform 0.28s ease;
-}
-
-.nav-link:hover {
-  color: var(--color-olive);
-}
-
-.nav-link:hover .nav-caret {
-  transform: translateX(-4px);
 }
 
 .image-preview {

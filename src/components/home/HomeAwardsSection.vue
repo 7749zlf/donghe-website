@@ -2,8 +2,8 @@
   <section class="section awards">
     <div class="container section-head">
       <span class="section-kicker">RECOGNITION</span>
-      <h2>荣誉与资质</h2>
-      <p>奖项不是装饰，它说明项目在审美、执行和行业标准中被持续验证。</p>
+      <h2>荣誉，是项目被看见的结果。</h2>
+      <p>它说明设计不只停留在概念层面，也经得起审美、执行和行业标准的验证。</p>
     </div>
 
     <div class="container award-list">
