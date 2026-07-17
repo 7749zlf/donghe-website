@@ -10,7 +10,7 @@
       <div v-for="(slide, index) in displaySlides" :key="`${slide.id}-${index}`" class="hero-slide">
         <img
           :src="slide.list?.[0] || ''"
-          :alt="slide.name || '轮播图'"
+          :alt="slide.name || '空间作品'"
           class="hero-image"
           :loading="index === trackIndex ? 'eager' : 'lazy'"
           decoding="async"
@@ -19,32 +19,40 @@
       </div>
     </div>
 
-    <div class="hero-mask">
+    <div class="hero-shade"></div>
+
+    <div class="hero-content">
+      <Transition name="hero-copy" mode="out-in">
+        <div :key="currentSlide.id || currentSlideIndex" class="hero-copy">
+          <span class="eyebrow">DONGHE INTERIOR STUDIO</span>
+          <h1>东禾空间设计</h1>
+          <p>以结构、材质与光影，建立可被日常使用的空间秩序。</p>
+          <div class="hero-actions">
+            <button class="primary-btn" @click="$emit('view-more')">查看作品</button>
+            <span v-if="currentSlide.name" class="project-note">
+              {{ currentSlide.name }} / {{ currentSlide.type || '空间设计' }} / {{ currentSlide.year || '近年' }}
+            </span>
+          </div>
+        </div>
+      </Transition>
+    </div>
+
+    <div class="hero-controls">
       <button class="hero-arrow" aria-label="上一张" @click="$emit('prev')">
         <span class="arrow-icon">‹</span>
       </button>
-
-      <Transition name="hero-copy" mode="out-in">
-        <div :key="currentSlide.id || currentSlideIndex" class="hero-center">
-          <h1>{{ currentSlide.name }}</h1>
-          <p>专注于为您打造独具品味的空间美学</p>
-          <button class="pill-btn" @click="$emit('view-more')">了解更多</button>
-        </div>
-      </Transition>
-
+      <div class="indicators" role="tablist" aria-label="轮播图">
+        <button
+          v-for="(slide, index) in slides"
+          :key="slide.id"
+          :class="['dot-btn', { active: index === currentSlideIndex }]"
+          :aria-label="`切换到第 ${index + 1} 张`"
+          @click="$emit('set-slide', index)"
+        ></button>
+      </div>
       <button class="hero-arrow" aria-label="下一张" @click="$emit('next')">
         <span class="arrow-icon">›</span>
       </button>
-    </div>
-
-    <div class="indicators" role="tablist" aria-label="轮播图">
-      <button
-        v-for="(slide, index) in slides"
-        :key="slide.id"
-        :class="['dot-btn', { active: index === currentSlideIndex }]"
-        :aria-label="`切换到第 ${index + 1} 张`"
-        @click="$emit('set-slide', index)"
-      ></button>
     </div>
   </section>
 </template>
@@ -148,15 +156,17 @@ watch(
 <style scoped lang="scss">
 .hero {
   position: relative;
-  height: 700px;
+  min-height: 560px;
+  height: calc(100svh - var(--nav-height) - 34px);
+  max-height: 780px;
   overflow: hidden;
-  background: #f3f4f6;
+  background: #1a1a16;
 }
 
 .hero-track {
   height: 100%;
   display: flex;
-  transition: transform 0.72s cubic-bezier(0.65, 0, 0.35, 1);
+  transition: transform 1.05s var(--ease-smooth);
   will-change: transform;
 }
 
@@ -175,37 +185,158 @@ watch(
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scale(1.02);
+  filter: saturate(0.88) contrast(1.02);
 }
 
-.hero-mask {
+.hero-shade {
   position: absolute;
   inset: 0;
-  padding: 0 32px;
-  background: rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  background:
+    linear-gradient(90deg, rgba(14, 13, 10, 0.78) 0%, rgba(14, 13, 10, 0.36) 48%, rgba(14, 13, 10, 0.2) 100%),
+    linear-gradient(0deg, rgba(14, 13, 10, 0.62) 0%, transparent 42%);
 }
 
-.hero-center {
-  text-align: center;
+.hero-content {
+  position: absolute;
+  inset: 0;
+  width: min(1240px, calc(100% - 64px));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.hero-copy {
+  max-width: 720px;
   color: #fff;
   will-change: opacity, transform, filter;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 12px;
+  letter-spacing: 4px;
+}
+
+.hero-copy h1 {
+  margin: 0;
+  font-size: clamp(52px, 7vw, 92px);
+  font-weight: 500;
+  line-height: 0.98;
+}
+
+.hero-copy p {
+  max-width: 560px;
+  margin: 24px 0 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(18px, 2vw, 24px);
+  line-height: 1.6;
+}
+
+.hero-actions {
+  margin-top: 34px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  pointer-events: auto;
+}
+
+.primary-btn {
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  background: rgba(255, 255, 255, 0.92);
+  color: #171714;
+  padding: 0 24px;
+  cursor: pointer;
+  transition: background 0.28s ease, transform 0.28s ease;
+}
+
+.primary-btn:hover {
+  background: #fff;
+  transform: translateY(-2px);
+}
+
+.project-note {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.hero-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.hero-arrow {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  background: rgba(16, 15, 12, 0.28);
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.24s ease, border-color 0.24s ease;
+}
+
+.hero-arrow:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.72);
+}
+
+.arrow-icon {
+  display: block;
+  width: 1em;
+  height: 1em;
+  font-size: 30px;
+  line-height: 0.82;
+  text-align: center;
+}
+
+.indicators {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot-btn {
+  width: 34px;
+  height: 2px;
+  border: none;
+  background: rgba(255, 255, 255, 0.35);
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.24s ease, width 0.24s ease;
+}
+
+.dot-btn.active {
+  width: 52px;
+  background: #fff;
 }
 
 .hero-copy-enter-active,
 .hero-copy-leave-active {
   transition:
-    opacity 0.56s ease,
-    transform 0.56s ease,
-    filter 0.56s ease;
+    opacity 0.7s ease,
+    transform 0.7s var(--ease-smooth),
+    filter 0.7s ease;
 }
 
 .hero-copy-enter-from,
 .hero-copy-leave-to {
   opacity: 0;
-  transform: translateY(16px);
-  filter: blur(5px);
+  transform: translateY(18px);
+  filter: blur(6px);
 }
 
 .hero-copy-enter-to,
@@ -215,99 +346,44 @@ watch(
   filter: blur(0);
 }
 
-.hero-center h1 {
-  margin: 0;
-  font-size: 48px;
-  line-height: 1.2;
-}
-
-.hero-center p {
-  margin: 16px 0 32px;
-  font-size: 20px;
-  line-height: 1.2;
-}
-
-.hero-arrow {
-  width: 48px;
-  height: 48px;
-  border: none;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.4);
-  color: #fff;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.arrow-icon {
-  display: block;
-  width: 1em;
-  height: 1em;
-  font-size: 32px;
-  line-height: 0.85;
-  text-align: center;
-}
-
-.pill-btn {
-  height: 48px;
-  border: none;
-  border-radius: 999px;
-  background: #fff;
-  color: #333;
-  padding: 0 32px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.indicators {
-  position: absolute;
-  left: 50%;
-  bottom: 36px;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.dot-btn {
-  width: 8px;
-  height: 8px;
-  border: none;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 0;
-  cursor: pointer;
-}
-
-.dot-btn.active {
-  width: 12px;
-  height: 12px;
-  background: #fff;
-}
-
 @media (max-width: 860px) {
   .hero {
-    height: 520px;
+    min-height: 560px;
+    height: calc(100svh - var(--nav-height) - 24px);
   }
 
-  .hero-mask {
-    padding: 0 18px;
+  .hero-content {
+    width: calc(100% - 36px);
+    align-items: flex-end;
+    padding-bottom: 112px;
   }
 
-  .hero-center h1 {
-    font-size: 32px;
+  .hero-copy h1 {
+    font-size: clamp(42px, 13vw, 62px);
   }
 
-  .hero-center p {
-    font-size: 16px;
+  .hero-copy p {
+    font-size: 17px;
   }
 
-  .hero-arrow {
-    width: 42px;
-    height: 42px;
+  .hero-actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .hero-controls {
+    width: calc(100% - 36px);
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .dot-btn {
+    width: 24px;
+  }
+
+  .dot-btn.active {
+    width: 38px;
   }
 }
 </style>

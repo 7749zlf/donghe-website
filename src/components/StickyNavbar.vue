@@ -1,24 +1,29 @@
-﻿<template>
+<template>
   <nav class="sticky-navbar">
     <div class="navbar-inner">
-      <div class="brand" @click="toHome">LUXE DESIGN</div>
+      <button class="brand" type="button" @click="toHome">
+        <span>东禾</span>
+        <small>SPACE DESIGN</small>
+      </button>
+
       <div class="nav-container">
-        <ul class="nav-list" :class="{ collapsed: isCollapsed }">
+        <ul class="nav-list" :class="{ open: isMenuOpen }">
           <li class="nav-item">
-            <a href="#about">关于</a>
-          </li>
-          <li class="nav-item dropdown">
-            <a href="#works">作品</a>
+            <button type="button" @click="scrollToSection('about')">关于</button>
           </li>
           <li class="nav-item">
-            <a href="#contact">联系</a>
+            <button type="button" @click="toWorks">作品</button>
           </li>
           <li class="nav-item">
-            <button type="button" @click="toManager">管理</button>
+            <button type="button" @click="scrollToSection('contact')">联系</button>
+          </li>
+          <li class="nav-item">
+            <button type="button" class="manager-link" @click="toManager">管理</button>
           </li>
         </ul>
-        <button type="button" @click="toggleCollapse" class="toggle-btn">
-          <span v-if="isCollapsed">☰</span>
+
+        <button type="button" @click="toggleCollapse" class="toggle-btn" aria-label="打开或关闭导航">
+          <span v-if="!isMenuOpen">☰</span>
           <span v-else>✕</span>
         </button>
       </div>
@@ -27,27 +32,46 @@
 </template>
 
 <script>
-
 export default {
   name: 'StickyNavbar',
   data() {
     return {
-      activeDropdown: null,
-      isCollapsed: false,
-    };
+      isMenuOpen: false
+    }
   },
   methods: {
     toggleCollapse() {
-      this.isCollapsed = !this.isCollapsed;
+      this.isMenuOpen = !this.isMenuOpen
     },
     toHome() {
-      this.$router.push('/');
+      this.isMenuOpen = false
+      this.$router.push('/')
+    },
+    toWorks() {
+      this.isMenuOpen = false
+      this.$router.push({ name: 'worksGallery' })
+    },
+    scrollToSection(sectionId) {
+      this.isMenuOpen = false
+      const scroll = () => {
+        document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+
+      if (this.$route.name === 'Home') {
+        scroll()
+        return
+      }
+
+      this.$router.push({ name: 'Home' }).then(() => {
+        this.$nextTick(scroll)
+      })
     },
     toManager() {
-      this.$router.push({ name: 'contentManager' });
+      this.isMenuOpen = false
+      this.$router.push({ name: 'contentManager' })
     }
-  },
-};
+  }
+}
 </script>
 
 <style scoped>
@@ -55,12 +79,11 @@ export default {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  padding: 0 48px;
-  border-bottom: 1px solid rgba(243, 244, 246, 0.8);
-  height: 73px;
+  height: var(--nav-height);
+  padding: 0 clamp(20px, 4vw, 58px);
+  background: rgba(247, 244, 237, 0.9);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--color-line);
 }
 
 .navbar-inner {
@@ -70,168 +93,139 @@ export default {
   height: 100%;
 }
 
+.brand {
+  flex-shrink: 0;
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.brand span {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.brand small {
+  color: var(--color-muted);
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 2.2px;
+}
+
 .nav-container {
   display: flex;
   align-items: center;
   gap: 16px;
-  /* 调整导航和开关之间的间距 */
-}
-
-.brand {
-  font-size: 24px;
-  font-weight: 700;
-  flex-shrink: 0;
-  cursor: pointer;
 }
 
 .nav-list {
   display: flex;
-  list-style: none;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
   margin: 0;
   padding: 0;
-  height: 100%;
-  align-items: center;
-  transition: all 0.3s ease;
-}
-
-.nav-list.collapsed {
-  opacity: 0;
-  transform: translateX(10px);
+  list-style: none;
 }
 
 .nav-item {
   position: relative;
-  margin-right: 32px;
 }
 
-.nav-item:last-child {
-  margin-right: 0;
-}
-
-.nav-item>a,
-.nav-item>button {
-  text-decoration: none;
-  color: #333;
-  font-size: 18px;
-  padding: 10px 16px;
+.nav-item > button {
   display: block;
-  transition: opacity 0.3s ease, transform 0.3s ease, color 0.2s;
-}
-
-.nav-item>button {
+  padding: 10px 14px;
   border: 0;
   background: transparent;
-  cursor: pointer;
-}
-
-.nav-item>a:hover,
-.nav-item>button:hover {
-  color: #0078ff;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: #fff;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  border-radius: 4px;
-  min-width: 140px;
-  padding: 8px 0;
-  margin-top: 4px;
-  z-index: 1001;
-}
-
-.dropdown-menu li {
-  list-style: none;
-}
-
-.dropdown-menu a {
-  display: block;
-  padding: 8px 20px;
-  color: #333;
+  color: var(--color-ink-soft);
+  font-size: 15px;
   text-decoration: none;
-  font-size: 16px;
-  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+  transition: color 0.24s ease, background 0.24s ease;
 }
 
-.dropdown-menu a:hover {
-  background: #f5f7fa;
-  color: #0078ff;
+.nav-item > button:hover {
+  color: var(--color-ink);
+  background: rgba(93, 101, 73, 0.08);
+}
+
+.manager-link {
+  color: var(--color-muted) !important;
 }
 
 .toggle-btn {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: #333;
-  transition: color 0.2s;
+  display: none;
   flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .toggle-btn:hover {
-  color: #0078ff;
+  background: rgba(93, 101, 73, 0.08);
 }
 
 @media (max-width: 768px) {
   .sticky-navbar {
-    padding: 0 12px;
-    height: 60px;
+    padding: 0 16px;
   }
 
   .navbar-inner {
     gap: 12px;
   }
 
-  .brand {
-    font-size: 20px;
+  .brand span {
+    font-size: 21px;
+  }
+
+  .brand small {
+    font-size: 9px;
+    letter-spacing: 1.8px;
   }
 
   .nav-list {
-    display: flex;
-    flex-direction: column;
     position: absolute;
-    top: 50px;
-    left: 0;
-    right: 0;
-    width: 100%;
-    max-width: 100vw;
+    top: var(--nav-height);
+    left: 12px;
+    right: 12px;
+    flex-direction: column;
+    align-items: stretch;
     height: auto;
-    background: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 10px 0;
-    border-radius: 0 0 10px 10px;
+    padding: 8px;
+    border: 1px solid var(--color-line);
+    background: rgba(247, 244, 237, 0.98);
+    box-shadow: var(--shadow-soft);
+    opacity: 0;
+    transform: translateY(-8px);
+    pointer-events: none;
+    transition: opacity 0.24s ease, transform 0.24s ease;
+  }
+
+  .nav-list.open {
     opacity: 1;
-    transform: translateY(10px);
+    transform: translateY(0);
     pointer-events: auto;
-    transition: opacity 0.3s ease, transform 0.3s ease;
   }
 
-  .nav-item {
-    margin: 0;
-  }
-
-  .nav-list.collapsed {
-    display: none;
-    transform: none;
-    pointer-events: auto;
+  .nav-item > button {
+    width: 100%;
+    padding: 12px 14px;
+    text-align: left;
   }
 
   .toggle-btn {
     display: block;
-  }
-
-
-  .nav-list.collapsed .nav-item {
-    margin: 0;
-  }
-
-  .nav-list.collapsed .nav-item>a,
-  .nav-list.collapsed .nav-item>button {
-    padding: 12px 16px;
-    width: 100%;
-    box-sizing: border-box;
   }
 }
 </style>

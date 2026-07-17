@@ -1,8 +1,9 @@
 <template>
   <section class="section awards">
-    <div class="section-title">
-      <h2>奖项荣誉</h2>
-      <span class="title-line"></span>
+    <div class="container section-head">
+      <span class="section-kicker">RECOGNITION</span>
+      <h2>荣誉与资质</h2>
+      <p>奖项不是装饰，它说明项目在审美、执行和行业标准中被持续验证。</p>
     </div>
 
     <div class="container award-list">
@@ -10,15 +11,17 @@
         <button class="award-image-btn" type="button" :aria-label="`放大查看 ${item.title}`" @click="openPreview(item)">
           <img class="award-image" :src="item.image" :alt="item.imageAlt || item.title" loading="lazy" decoding="async" />
         </button>
-        <h4>{{ item.title }}</h4>
-        <p>{{ item.desc }}</p>
-        <span>{{ item.year }}</span>
+        <div class="award-copy">
+          <span>{{ item.year }}</span>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.desc }}</p>
+        </div>
       </article>
     </div>
 
     <div v-if="previewAward" class="award-preview" role="dialog" aria-modal="true" @click.self="closePreview">
       <div class="preview-panel">
-        <!-- <button class="preview-close" type="button" aria-label="关闭预览" @click="closePreview">×</button> -->
+        <button class="preview-close" type="button" aria-label="关闭预览" @click="closePreview">×</button>
         <img :src="previewAward.image" :alt="previewAward.imageAlt || previewAward.title" loading="lazy" decoding="async" />
         <div class="preview-info">
           <h3>{{ previewAward.title }}</h3>
@@ -52,70 +55,72 @@ function closePreview() {
 
 <style scoped lang="scss">
 .container {
-  max-width: 1344px;
+  width: min(1240px, calc(100% - 64px));
   margin: 0 auto;
 }
 
 .section {
-  padding: 80px 48px;
-}
-
-.section-title {
-  text-align: center;
-  margin-bottom: 64px;
-}
-
-.section-title h2 {
-  margin: 0;
-  font-size: 36px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.title-line {
-  display: inline-block;
-  width: 81px;
-  height: 4px;
-  margin-top: 12px;
-  background: var(--border);
+  padding: 104px 0;
 }
 
 .awards {
-  background: var(--bg-light);
+  background: var(--color-ink);
+  color: #fff;
+}
+
+.section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(280px, 0.45fr);
+  gap: 34px 64px;
+  align-items: end;
+  margin-bottom: 46px;
+}
+
+.section-kicker {
+  grid-column: 1 / -1;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  letter-spacing: 3.4px;
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: clamp(34px, 4.8vw, 60px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.section-head p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 15px;
+  line-height: 1.8;
 }
 
 .award-list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 32px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .award-card {
-  min-height: 300px;
-  padding: 20px 20px 28px;
-  border-radius: var(--radius-lg);
-  background: #fff;
-  text-align: center;
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.06);
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.16);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .award-image-btn {
   width: 100%;
   border: none;
   padding: 0;
-  margin: 0 0 22px;
-  border-radius: 10px;
-  background: #f3f4f6;
+  background: rgba(255, 255, 255, 0.08);
   overflow: hidden;
   cursor: zoom-in;
   display: block;
-  transition: transform 0.28s ease, box-shadow 0.28s ease;
-}
-
-.award-image-btn:hover,
-.award-image-btn:focus-visible {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.14);
 }
 
 .award-image {
@@ -123,32 +128,48 @@ function closePreview() {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+  filter: saturate(0.86);
+  transition: transform 0.7s var(--ease-smooth), filter 0.35s ease;
 }
 
-.award-card h4 {
+.award-image-btn:hover .award-image,
+.award-image-btn:focus-visible .award-image {
+  transform: scale(1.04);
+  filter: saturate(1);
+}
+
+.award-copy {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 22px;
+}
+
+.award-copy span {
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 13px;
+}
+
+.award-copy h3 {
   margin: 0;
-  font-size: 22px;
-  line-height: 1.2;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.25;
 }
 
-.award-card p {
-  margin: 8px 0 12px;
-  color: var(--text-secondary);
+.award-copy p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.62);
   font-size: 14px;
   line-height: 1.7;
-}
-
-.award-card span {
-  color: var(--text-muted);
-  font-size: 14px;
 }
 
 .award-preview {
   position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: 2000;
   padding: 48px 24px;
-  background: rgba(12, 15, 20, 0.74);
+  background: rgba(12, 15, 20, 0.76);
   backdrop-filter: blur(10px);
   display: grid;
   place-items: center;
@@ -160,8 +181,7 @@ function closePreview() {
   max-height: calc(100vh - 96px);
   padding: 34px 32px 28px;
   overflow: auto;
-  border-radius: 12px;
-  background: #fff;
+  background: var(--color-paper);
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.32);
   text-align: center;
 }
@@ -171,21 +191,19 @@ function closePreview() {
   width: 100%;
   max-height: 66vh;
   object-fit: contain;
-  border-radius: 8px;
-  background: #f5f5f5;
+  background: #fff;
 }
 
 .preview-close {
   position: absolute;
   top: 14px;
   right: 14px;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border: none;
-  border-radius: 50%;
-  background: rgba(15, 23, 42, 0.72);
+  background: rgba(23, 23, 20, 0.78);
   color: #fff;
-  font-size: 26px;
+  font-size: 28px;
   line-height: 1;
   cursor: pointer;
 }
@@ -194,47 +212,50 @@ function closePreview() {
   max-width: 680px;
   margin: 0 auto;
   padding: 22px 0 0;
+  color: var(--color-ink);
   text-align: center;
 }
 
 .preview-info h3 {
   margin: 0;
   font-size: 24px;
+  font-weight: 500;
   line-height: 1.25;
 }
 
 .preview-info p {
   margin: 8px 0 0;
-  color: var(--text-secondary);
+  color: var(--color-ink-soft);
   font-size: 15px;
   line-height: 1.7;
 }
 
-@media (max-width: 1440px) {
-  .container {
-    max-width: 100%;
-  }
-
+@media (max-width: 1120px) {
   .award-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 760px) {
+  .container {
+    width: calc(100% - 36px);
+  }
+
   .section {
-    padding: 56px 20px;
+    padding: 74px 0;
   }
 
-  .section-title {
-    margin-bottom: 40px;
-  }
-
-  .section-title h2 {
-    font-size: 30px;
+  .section-head {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 
   .award-list {
     grid-template-columns: 1fr;
+  }
+
+  .award-card {
+    min-height: 0;
   }
 
   .award-preview {
@@ -244,19 +265,6 @@ function closePreview() {
   .preview-panel {
     max-height: calc(100vh - 48px);
     padding: 50px 14px 20px;
-  }
-
-  .preview-panel img {
-    max-height: 58vh;
-    border-radius: 6px;
-  }
-
-  .preview-info {
-    padding-top: 18px;
-  }
-
-  .preview-info h3 {
-    font-size: 20px;
   }
 }
 </style>

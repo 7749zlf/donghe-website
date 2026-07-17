@@ -1,8 +1,11 @@
 <template>
   <section id="works" class="section works">
-    <div class="section-title">
-      <h2>设计作品</h2>
-      <span class="title-line"></span>
+    <div class="container section-head">
+      <div>
+        <span class="section-kicker">SELECTED WORKS</span>
+        <h2>精选空间作品</h2>
+      </div>
+      <p>用少量代表案例建立第一印象，更多项目进入完整作品页查看。</p>
     </div>
 
     <div class="container work-tags">
@@ -18,9 +21,10 @@
 
     <div v-if="projects.length" class="container work-grid">
       <article
-        v-for="item in projects"
+        v-for="(item, index) in projects"
         :key="item.id"
         class="work-card"
+        :class="{ featured: index === 0 }"
         role="button"
         tabindex="0"
         @click="$emit('view-detail', item.id)"
@@ -28,24 +32,19 @@
       >
         <div class="work-image-wrap">
           <img :src="item.image" :alt="item.name" loading="lazy" decoding="async" />
-          <div class="work-overlay">
-            <span>{{ item.name }}</span>
-          </div>
         </div>
         <div class="work-content">
-          <h4>{{ item.name }}</h4>
-          <p>{{ item.type }}</p>
-          <div class="work-meta">
-            <span>{{ item.year }}</span>
-            <button class="work-detail-btn" @click.stop="$emit('view-detail', item.id)">查看详情 →</button>
-          </div>
+          <span>{{ item.category }}</span>
+          <h3>{{ item.name }}</h3>
+          <p>{{ item.type }} / {{ item.year }}</p>
+          <button class="work-detail-btn" @click.stop="$emit('view-detail', item.id)">查看项目</button>
         </div>
       </article>
     </div>
 
     <p v-else class="container work-empty">暂无匹配作品</p>
 
-    <button class="more-btn" @click="$emit('view-more')">查看更多作品</button>
+    <button class="more-btn" @click="$emit('view-more')">进入作品集</button>
   </section>
 </template>
 
@@ -87,211 +86,238 @@ const displayFilterOptions = computed(() => {
 
 <style scoped lang="scss">
 .container {
-  max-width: 1344px;
+  width: min(1240px, calc(100% - 64px));
   margin: 0 auto;
 }
 
 .section {
-  padding: 80px 48px;
+  padding: 108px 0;
 }
 
-.section-title {
-  text-align: center;
-  margin-bottom: 64px;
+.works {
+  background: #efeadf;
 }
 
-.section-title h2 {
-  margin: 0;
-  font-size: 36px;
-  font-weight: 600;
-  line-height: 1.2;
+.section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 40px;
+  margin-bottom: 34px;
 }
 
-.title-line {
+.section-kicker {
   display: inline-block;
-  width: 81px;
-  height: 4px;
-  margin-top: 12px;
-  background: var(--border);
+  margin-bottom: 14px;
+  color: var(--color-olive);
+  font-size: 12px;
+  letter-spacing: 3.4px;
+}
+
+.section-head h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(34px, 4.8vw, 62px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.section-head p {
+  max-width: 360px;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 15px;
+  line-height: 1.8;
 }
 
 .work-tags {
-  margin-bottom: 48px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
+  margin-bottom: 34px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .tag {
   height: 38px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: #666;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-ink-soft);
+  padding: 0 16px;
   font-size: 14px;
   cursor: pointer;
+  transition: background 0.24s ease, color 0.24s ease, border-color 0.24s ease;
 }
 
-.tag.active {
-  background: #1f2937;
+.tag.active,
+.tag:hover {
+  border-color: var(--color-olive);
+  background: var(--color-olive);
   color: #fff;
-  border-color: #1f2937;
 }
 
 .work-grid {
   display: grid;
-  grid-template-columns: repeat(3, 400px);
-  gap: 32px;
+  grid-template-columns: minmax(0, 1.12fr) minmax(340px, 0.88fr);
+  grid-auto-rows: 300px;
+  gap: 22px;
 }
 
 .work-card {
-  border-radius: var(--radius-lg);
+  position: relative;
+  min-height: 0;
   overflow: hidden;
-  background: #fff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  background: #d8d1c2;
   cursor: pointer;
+  box-shadow: 0 20px 62px rgba(30, 27, 20, 0.08);
+}
+
+.work-card.featured {
+  grid-row: span 2;
 }
 
 .work-card:focus-visible {
-  outline: 2px solid #1f2937;
-  outline-offset: 2px;
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
 }
 
 .work-image-wrap {
-  position: relative;
-  width: 400px;
-  height: 520px;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 
 .work-image-wrap img {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  filter: saturate(0.9) contrast(1.02);
+  transition: transform 0.9s var(--ease-smooth), filter 0.4s ease;
 }
 
-.work-overlay {
+.work-card::after {
+  content: '';
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.35);
-  color: #fff;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  font-size: 24px;
-  font-weight: 600;
+  background: linear-gradient(0deg, rgba(16, 15, 12, 0.72), rgba(16, 15, 12, 0.08) 62%);
+  transition: background 0.4s ease;
 }
 
-.work-card:hover .work-overlay {
-  opacity: 1;
+.work-card:hover img,
+.work-card:focus-visible img {
+  transform: scale(1.045);
+  filter: saturate(1) contrast(1.04);
 }
 
-.work-card:hover img {
-  transform: scale(1.04);
+.work-card:hover::after,
+.work-card:focus-visible::after {
+  background: linear-gradient(0deg, rgba(16, 15, 12, 0.82), rgba(16, 15, 12, 0.14) 62%);
 }
 
 .work-content {
-  padding: 24px;
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 22px;
+  z-index: 1;
+  color: #fff;
 }
 
-.work-content h4 {
+.work-content span {
+  display: inline-block;
+  margin-bottom: 10px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  letter-spacing: 2.4px;
+}
+
+.work-content h3 {
   margin: 0;
-  font-size: 20px;
-  line-height: 1.4;
+  font-size: clamp(22px, 2.4vw, 34px);
+  font-weight: 500;
+  line-height: 1.18;
 }
 
 .work-content p {
-  margin: 8px 0 12px;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.work-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.work-meta span {
-  color: var(--text-muted);
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.72);
   font-size: 14px;
 }
 
 .work-detail-btn {
-  border: none;
+  margin-top: 18px;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.72);
   background: transparent;
-  padding: 0;
-  color: #1f2937;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 0 0 5px;
+  color: #fff;
   cursor: pointer;
-  transition: color 0.2s ease, transform 0.2s ease;
-}
-
-.work-detail-btn:hover {
-  color: #111827;
-  transform: translateX(2px);
-}
-
-.work-detail-btn:focus-visible {
-  outline: 2px solid #1f2937;
-  outline-offset: 2px;
-  border-radius: 4px;
 }
 
 .work-empty {
   margin: 0 auto;
-  padding: 48px 0 24px;
-  text-align: center;
-  color: var(--text-secondary);
+  padding: 42px 0 12px;
+  color: var(--color-muted);
   font-size: 15px;
 }
 
 .more-btn {
   display: block;
-  margin: 48px auto 0;
-  height: 48px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: #fff;
-  padding: 0 32px;
-  font-size: 16px;
-  font-weight: 500;
+  margin: 42px auto 0;
+  height: 46px;
+  border: 1px solid var(--color-ink);
+  background: transparent;
+  color: var(--color-ink);
+  padding: 0 26px;
   cursor: pointer;
+  transition: background 0.28s ease, color 0.28s ease, transform 0.28s ease;
 }
 
-@media (max-width: 1440px) {
-  .container {
-    max-width: 100%;
+.more-btn:hover {
+  background: var(--color-ink);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 980px) {
+  .section-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
   }
 
   .work-grid {
     grid-template-columns: 1fr;
+    grid-auto-rows: 380px;
   }
 
-  .work-image-wrap {
-    width: 100%;
+  .work-card.featured {
+    grid-row: span 1;
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 760px) {
+  .container {
+    width: calc(100% - 36px);
+  }
+
   .section {
-    padding: 56px 20px;
+    padding: 74px 0;
   }
 
-  .section-title {
-    margin-bottom: 40px;
+  .section-head h2 {
+    font-size: 36px;
   }
 
-  .section-title h2 {
-    font-size: 30px;
+  .work-grid {
+    grid-auto-rows: 330px;
+    gap: 14px;
   }
 
-  .work-tags {
-    grid-template-columns: repeat(2, 1fr);
+  .work-content {
+    left: 18px;
+    right: 18px;
+    bottom: 18px;
   }
-
 }
 </style>

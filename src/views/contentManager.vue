@@ -405,6 +405,12 @@ const awardForm = reactive({
 
 const isEditing = computed(() => Boolean(editingCase.value))
 const managerEmail = computed(() => managerSession.value?.user?.email || '')
+const MAX_IMAGE_UPLOAD_BYTES = 9 * 1024 * 1024
+const IMAGE_OPTIMIZE_BYTES = 3 * 1024 * 1024
+const IMAGE_MAX_EDGE = 2400
+const IMAGE_QUALITY = 0.86
+const MIN_IMAGE_QUALITY = 0.62
+const COMPRESSIBLE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 function createCaseId() {
   return `case-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -542,6 +548,96 @@ function editAward(item) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+function fileSizeLabel(bytes) {
+  return `${(bytes / 1024 / 1024).toFixed(1)}MB`
+}
+
+function uploadFileName(file) {
+  return String(file.name || 'image.jpg').replace(/\.[^.]+$/, '') + '.jpg'
+}
+
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    const objectUrl = URL.createObjectURL(file)
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      resolve(image)
+    }
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('图片读取失败，请换成 JPG、PNG 或 WebP 后重试。'))
+    }
+    image.src = objectUrl
+  })
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob)
+      } else {
+        reject(new Error('图片压缩失败，请换一张图片重试。'))
+      }
+    }, type, quality)
+  })
+}
+
+async function optimizeImageFile(file) {
+  if (file.size <= IMAGE_OPTIMIZE_BYTES && COMPRESSIBLE_IMAGE_TYPES.has(file.type)) {
+    return { file, optimized: false }
+  }
+
+  if (!COMPRESSIBLE_IMAGE_TYPES.has(file.type)) {
+    if (file.size <= MAX_IMAGE_UPLOAD_BYTES) {
+      return { file, optimized: false }
+    }
+
+    throw new Error(`图片过大（${fileSizeLabel(file.size)}），请先导出为 JPG、PNG 或 WebP。`)
+  }
+
+  const image = await loadImageFromFile(file)
+  if (!image.naturalWidth || !image.naturalHeight) {
+    throw new Error('图片尺寸读取失败，请换一张图片重试。')
+  }
+  const scale = Math.min(1, IMAGE_MAX_EDGE / Math.max(image.naturalWidth, image.naturalHeight))
+  const width = Math.max(1, Math.round(image.naturalWidth * scale))
+  const height = Math.max(1, Math.round(image.naturalHeight * scale))
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')
+
+  canvas.width = width
+  canvas.height = height
+  if (!context) {
+    throw new Error('当前浏览器无法处理图片，请换用新版浏览器重试。')
+  }
+  context.fillStyle = '#fff'
+  context.fillRect(0, 0, width, height)
+  context.drawImage(image, 0, 0, width, height)
+
+  let quality = IMAGE_QUALITY
+  let blob = await canvasToBlob(canvas, 'image/jpeg', quality)
+
+  while (blob.size > MAX_IMAGE_UPLOAD_BYTES && quality > MIN_IMAGE_QUALITY) {
+    quality = Math.max(MIN_IMAGE_QUALITY, quality - 0.08)
+    blob = await canvasToBlob(canvas, 'image/jpeg', quality)
+  }
+
+  if (blob.size > MAX_IMAGE_UPLOAD_BYTES) {
+    throw new Error(`图片压缩后仍超过 ${fileSizeLabel(MAX_IMAGE_UPLOAD_BYTES)}，请先裁剪或降低分辨率。`)
+  }
+
+  return {
+    file: new File([blob], uploadFileName(file), {
+      type: 'image/jpeg',
+      lastModified: Date.now()
+    }),
+    optimized: true
+  }
+}
+
 function readImageAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -561,15 +657,20 @@ async function handleImageUpload(event) {
   }
 
   uploading.value = true
-  statusText.value = `正在上传 ${files.length} 张图片。`
+  statusText.value = `正在处理并上传 ${files.length} 张图片。`
 
   try {
+    const preparedImages = await Promise.all(files.map(optimizeImageFile))
+    const uploadFiles = preparedImages.map((item) => item.file)
+    const optimizedCount = preparedImages.filter((item) => item.optimized).length
     const images = cloudEnabled
-      ? await Promise.all(files.map((file) => uploadCaseImage(file, currentCaseId())))
-      : await Promise.all(files.map(readImageAsDataUrl))
+      ? await Promise.all(uploadFiles.map((file) => uploadCaseImage(file, currentCaseId())))
+      : await Promise.all(uploadFiles.map(readImageAsDataUrl))
 
     form.images = [...form.images, ...images]
-    statusText.value = `已添加 ${images.length} 张图片，第一张会作为封面。`
+    statusText.value = optimizedCount
+      ? `已添加 ${images.length} 张图片，其中 ${optimizedCount} 张已自动压缩，第一张会作为封面。`
+      : `已添加 ${images.length} 张图片，第一张会作为封面。`
   } catch (error) {
     statusText.value = `图片上传失败：${error.message}`
   } finally {
@@ -588,16 +689,19 @@ async function handleAwardImageUpload(event) {
   }
 
   awardUploading.value = true
-  awardStatusText.value = '正在上传奖项图片。'
+  awardStatusText.value = '正在处理并上传奖项图片。'
 
   try {
+    const preparedImage = await optimizeImageFile(file)
     awardForm.image = cloudEnabled
-      ? await uploadAwardImage(file, currentAwardId())
-      : await readImageAsDataUrl(file)
+      ? await uploadAwardImage(preparedImage.file, currentAwardId())
+      : await readImageAsDataUrl(preparedImage.file)
     if (!awardForm.imageAlt) {
       awardForm.imageAlt = awardForm.title || '奖项图片'
     }
-    awardStatusText.value = '奖项图片已添加。'
+    awardStatusText.value = preparedImage.optimized
+      ? '奖项图片已添加，并已自动压缩。'
+      : '奖项图片已添加。'
   } catch (error) {
     awardStatusText.value = `奖项图片上传失败：${error.message}`
   } finally {

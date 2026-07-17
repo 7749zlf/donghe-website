@@ -165,15 +165,15 @@ onBeforeUnmount(() => {
 
 <style lang="scss">
 :root {
-  --text-primary: #1a1a1a;
-  --text-secondary: #666;
-  --text-muted: #999;
-  --border: #d1d5db;
-  --border-light: #f3f4f6;
-  --bg-light: #f9fafb;
-  --bg-footer: #181a1d;
-  --radius-lg: 12px;
-  --radius-sm: 8px;
+  --text-primary: var(--color-ink);
+  --text-secondary: var(--color-ink-soft);
+  --text-muted: var(--color-muted);
+  --border: var(--color-line);
+  --border-light: rgba(42, 39, 31, 0.08);
+  --bg-light: var(--color-warm);
+  --bg-footer: var(--color-ink);
+  --radius-lg: 8px;
+  --radius-sm: 4px;
 }
 
 * {
@@ -184,6 +184,6 @@ body {
   margin: 0;
   font-family: 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   color: var(--text-primary);
-  background: #fff;
+  background: var(--color-paper);
 }
 </style>

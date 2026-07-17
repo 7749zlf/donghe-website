@@ -1,108 +1,125 @@
 <template>
   <section id="contact" class="section contact">
-    <div class="section-title">
-      <h2>联系我们</h2>
-      <span class="title-line"></span>
-    </div>
-
-    <div class="container contact-grid">
-      <div class="contact-info">
-        <h3>让我们一起打造理想空间</h3>
-        <p>
-          无论您是有商业项目需求，还是想要打造梦想中的家，我们都将为您提供专业的设计服务。欢迎随时联系我们，让我们一起开启您的空间设计之旅。
-        </p>
-        <ul>
-          <li><strong>公司地址：</strong>上饶市信州区洋码头B座13A1307</li>
-          <li><strong>联系电话：</strong>400-888-9999</li>
-          <li><strong>电子邮箱：</strong>info@luxedesign.com</li>
-          <li><strong>工作时间：</strong>周一至周五 9:00 - 18:00</li>
-        </ul>
+    <div class="container contact-layout">
+      <div class="contact-copy">
+        <span class="section-kicker">CONTACT</span>
+        <h2>从一次现场沟通开始，整理空间真正需要解决的问题。</h2>
       </div>
+
+      <address class="contact-info">
+        <div>
+          <span>地址</span>
+          <strong>上饶市信州区洋码头B座13A1307</strong>
+        </div>
+        <div>
+          <span>电话</span>
+          <strong>400-888-9999</strong>
+        </div>
+        <div>
+          <span>邮箱</span>
+          <strong>info@luxedesign.com</strong>
+        </div>
+        <div>
+          <span>时间</span>
+          <strong>周一至周五 9:00 - 18:00</strong>
+        </div>
+      </address>
     </div>
   </section>
 </template>
 
 <style scoped lang="scss">
 .container {
-  max-width: 1344px;
+  width: min(1240px, calc(100% - 64px));
   margin: 0 auto;
 }
 
 .section {
-  padding: 80px 48px;
-}
-
-.section-title {
-  text-align: center;
-  margin-bottom: 64px;
-}
-
-.section-title h2 {
-  margin: 0;
-  font-size: 36px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.title-line {
-  display: inline-block;
-  width: 81px;
-  height: 4px;
-  margin-top: 12px;
-  background: var(--border);
+  padding: 108px 0 114px;
 }
 
 .contact {
-  background: #f9fafb;
+  background: var(--color-paper);
 }
 
-.contact-grid {
+.contact-layout {
   display: grid;
-  grid-template-columns: 647px 650px;
-  gap: 48px;
+  grid-template-columns: minmax(0, 0.92fr) minmax(420px, 0.78fr);
+  gap: 72px;
+  align-items: start;
+  padding-top: 42px;
+  border-top: 1px solid var(--color-line);
 }
 
-.contact-info h3 {
+.section-kicker {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: var(--color-olive);
+  font-size: 12px;
+  letter-spacing: 3.4px;
+}
+
+.contact-copy h2 {
+  max-width: 760px;
   margin: 0;
-  font-size: 28px;
-  line-height: 1.2;
+  color: var(--color-ink);
+  font-size: clamp(34px, 5vw, 66px);
+  font-weight: 500;
+  line-height: 1.08;
 }
 
-.contact-info p {
-  margin: 24px 0 40px;
-  color: var(--text-secondary);
-  line-height: 1.75;
-}
-
-.contact-info ul {
+.contact-info {
+  display: grid;
+  gap: 0;
   margin: 0;
   padding: 0;
-  list-style: none;
+  font-style: normal;
+  border-top: 1px solid var(--color-line);
+}
+
+.contact-info div {
   display: grid;
+  grid-template-columns: 84px 1fr;
   gap: 24px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--color-line);
 }
 
-@media (max-width: 1440px) {
-  .container {
-    max-width: 100%;
-  }
+.contact-info span {
+  color: var(--color-muted);
+  font-size: 14px;
+}
 
-  .contact-grid {
+.contact-info strong {
+  color: var(--color-ink);
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+@media (max-width: 980px) {
+  .contact-layout {
     grid-template-columns: 1fr;
+    gap: 42px;
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 760px) {
+  .container {
+    width: calc(100% - 36px);
+  }
+
   .section {
-    padding: 56px 20px;
+    padding: 74px 0 80px;
   }
 
-  .section-title {
-    margin-bottom: 40px;
+  .contact-copy h2 {
+    font-size: 34px;
   }
 
-  .section-title h2 {
-    font-size: 30px;
+  .contact-info div {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 }
 </style>

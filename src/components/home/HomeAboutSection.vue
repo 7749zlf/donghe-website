@@ -1,27 +1,42 @@
 <template>
   <section id="about" class="section about">
-    <div class="section-title">
-      <h2>关于我们</h2>
-      <span class="title-line"></span>
-    </div>
-
-    <div class="container about-grid">
-      <img :src="aboutImage" alt="关于我们" class="about-image" loading="lazy" decoding="async" />
+    <div class="container about-layout">
       <div class="about-copy">
-        <h3>打造理想空间，传递生活美学</h3>
+        <span class="section-kicker">ABOUT DONGHE</span>
+        <h2>把空间从“好看”推进到“好用、耐看、可落地”。</h2>
         <p>
-          LUXE DESIGN 成立于2010年，是一家专注于高端室内设计的专业机构。我们拥有一支由资深设计师组成的团队，致力于为客户提供从概念设计到落地执行的全流程服务。
+          东禾专注商业、办公与居住空间的室内设计。我们从动线、尺度、材质、灯光与施工细节进入项目，让视觉表达和真实使用保持一致。
         </p>
         <p>
-          多年来，我们始终坚持“设计创造价值”的理念，将功能性与艺术性完美融合，为每一位客户量身定制专属的空间解决方案。我们的作品涵盖商业空间、办公空间、居住空间等多个领域，在业内享有良好的声誉。
-        </p>
-        <p>
-          我们相信，好的设计不仅能够提升空间的使用价值，更能够传递生活的美好与温度。未来，我们将继续秉持专业、创新的态度，为更多客户创造独具魅力的空间作品。
+          每一个项目都以现场条件和客户需求为起点，经过概念梳理、深化设计、材料选择与落地跟进，形成具有秩序感和温度的空间结果。
         </p>
         <div class="about-actions">
-          <button class="ghost-btn" @click="$emit('view-more')">查看更多案例</button>
+          <button class="ghost-btn" @click="$emit('view-more')">浏览案例</button>
         </div>
       </div>
+
+      <figure class="about-figure">
+        <img :src="aboutImage" alt="东禾空间设计工作室项目现场" class="about-image" loading="lazy" decoding="async" />
+        <figcaption>
+          <strong>商业 / 办公 / 居住</strong>
+          <span>从方案到落地的空间设计服务</span>
+        </figcaption>
+      </figure>
+
+      <dl class="about-stats">
+        <div>
+          <dt>10+</dt>
+          <dd>多年空间经验</dd>
+        </div>
+        <div>
+          <dt>3</dt>
+          <dd>核心设计方向</dd>
+        </div>
+        <div>
+          <dt>1:1</dt>
+          <dd>重视落地还原</dd>
+        </div>
+      </dl>
     </div>
   </section>
 </template>
@@ -39,103 +54,195 @@ defineEmits(['view-more'])
 
 <style scoped lang="scss">
 .container {
-  max-width: 1344px;
+  width: min(1240px, calc(100% - 64px));
   margin: 0 auto;
 }
 
 .section {
-  padding: 80px 48px;
+  padding: 118px 0 104px;
 }
 
-.section-title {
-  text-align: center;
-  margin-bottom: 64px;
+.about {
+  background: var(--color-paper);
 }
 
-.section-title h2 {
-  margin: 0;
-  font-size: 36px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.title-line {
-  display: inline-block;
-  width: 81px;
-  height: 4px;
-  margin-top: 12px;
-  background: var(--border);
-}
-
-.about-grid {
+.about-layout {
   display: grid;
-  grid-template-columns: 672px 624px;
-  gap: 48px;
+  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+  gap: 72px 64px;
   align-items: center;
 }
 
-.about-image {
-  width: 672px;
-  height: 500px;
-  border-radius: var(--radius-lg);
-  object-fit: cover;
+.section-kicker {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: var(--color-olive);
+  font-size: 12px;
+  letter-spacing: 3.4px;
 }
 
-.about-copy h3 {
+.about-copy h2 {
+  max-width: 620px;
   margin: 0;
-  font-size: 28px;
-  line-height: 1.2;
+  color: var(--color-ink);
+  font-size: clamp(32px, 4vw, 54px);
+  font-weight: 500;
+  line-height: 1.12;
 }
 
 .about-copy p {
-  margin: 20px 0 0;
-  color: var(--text-secondary);
+  max-width: 620px;
+  margin: 24px 0 0;
+  color: var(--color-ink-soft);
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.9;
 }
 
 .about-actions {
-  margin-top: 32px;
-  display: flex;
-  gap: 16px;
+  margin-top: 34px;
 }
 
 .ghost-btn {
   height: 46px;
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-ink);
+  background: transparent;
+  color: var(--color-ink);
   padding: 0 24px;
-  font-size: 14px;
   cursor: pointer;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: #333;
+  transition: background 0.28s ease, color 0.28s ease, transform 0.28s ease;
 }
 
-@media (max-width: 1440px) {
-  .container {
-    max-width: 100%;
+.ghost-btn:hover {
+  background: var(--color-ink);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.about-figure {
+  position: relative;
+  margin: 0;
+  min-height: 520px;
+  overflow: hidden;
+  background: var(--color-stone);
+  box-shadow: var(--shadow-soft);
+}
+
+.about-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+  object-fit: cover;
+  filter: saturate(0.88) contrast(1.02);
+  transition: transform 1s var(--ease-smooth);
+}
+
+.about-figure:hover .about-image {
+  transform: scale(1.035);
+}
+
+.about-figure figcaption {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.48);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.about-figure strong,
+.about-figure span {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.about-stats {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: -18px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.about-stats div {
+  padding: 28px 28px 26px;
+  border-right: 1px solid var(--color-line);
+}
+
+.about-stats div:last-child {
+  border-right: 0;
+}
+
+.about-stats dt {
+  color: var(--color-brass);
+  font-size: 36px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.about-stats dd {
+  margin: 10px 0 0;
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+@media (max-width: 1020px) {
+  .about-layout {
+    grid-template-columns: 1fr;
+    gap: 44px;
   }
 
-  .about-grid {
-    grid-template-columns: 1fr;
+  .about-figure {
+    min-height: 440px;
   }
 
   .about-image {
-    width: 100%;
+    min-height: 440px;
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 760px) {
+  .container {
+    width: calc(100% - 36px);
+  }
+
   .section {
-    padding: 56px 20px;
+    padding: 72px 0 68px;
   }
 
-  .section-title {
-    margin-bottom: 40px;
+  .about-copy h2 {
+    font-size: 32px;
   }
 
-  .section-title h2 {
-    font-size: 30px;
+  .about-figure,
+  .about-image {
+    min-height: 360px;
+  }
+
+  .about-figure figcaption {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .about-stats {
+    grid-template-columns: 1fr;
+    margin-top: 0;
+  }
+
+  .about-stats div {
+    border-right: 0;
+    border-bottom: 1px solid var(--color-line);
+  }
+
+  .about-stats div:last-child {
+    border-bottom: 0;
   }
 }
 </style>

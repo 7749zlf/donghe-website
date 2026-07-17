@@ -1,7 +1,23 @@
-﻿<template>
+<template>
   <div class="works-page">
     <div class="works-shell">
       <header class="works-header">
+        <div class="works-title">
+          <span>PROJECT INDEX</span>
+          <h1>空间作品集</h1>
+          <p>按空间类型、项目名称与年份检索，快速进入完整项目画册。</p>
+        </div>
+
+        <label class="works-search">
+          <span>搜索</span>
+          <input
+            v-model.trim="searchQuery"
+            type="search"
+            placeholder="作品名称、空间、年份"
+            aria-label="搜索作品"
+          />
+        </label>
+
         <div class="filter-row">
           <button
             v-for="option in filterOptions"
@@ -12,15 +28,6 @@
             {{ option.label }}
           </button>
         </div>
-        <label class="works-search">
-          <span>搜索</span>
-          <input
-            v-model.trim="searchQuery"
-            type="search"
-            placeholder="作品名称、空间、年份"
-            aria-label="搜索作品"
-          />
-        </label>
       </header>
 
       <section v-if="filteredWorks.length" class="works-grid">
@@ -34,12 +41,12 @@
           @keyup.enter="openDetail(item.id)"
         >
           <div class="card-media">
-            <div class="media-track">
-              <img :src="item.cover" :alt="item.name" loading="lazy" decoding="async" />
-              <div class="card-caption">
-                <h3>{{ item.name }}</h3>
-              </div>
-            </div>
+            <img :src="item.cover" :alt="item.name" loading="lazy" decoding="async" />
+          </div>
+          <div class="card-caption">
+            <span>{{ item.category }}</span>
+            <h2>{{ item.name }}</h2>
+            <p>{{ item.type }} / {{ item.year }}</p>
           </div>
         </article>
       </section>
@@ -132,8 +139,8 @@ onBeforeUnmount(() => {
 .works-page {
   min-height: calc(100vh - var(--nav-height));
   min-height: calc(100svh - var(--nav-height));
-  background: #efefef;
-  padding: 0 0 80px;
+  padding: 68px 0 96px;
+  background: var(--color-paper);
 }
 
 .works-shell {
@@ -142,55 +149,49 @@ onBeforeUnmount(() => {
 }
 
 .works-header {
-  padding-top: 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  gap: 28px 64px;
+  align-items: end;
+  padding-bottom: 38px;
+  border-bottom: 1px solid var(--color-line);
 }
 
-.works-header h1 {
+.works-title span {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--color-olive);
+  font-size: 12px;
+  letter-spacing: 3.4px;
+}
+
+.works-title h1 {
   margin: 0;
-  font-size: 36px;
-  letter-spacing: 2px;
+  color: var(--color-ink);
+  font-size: clamp(42px, 7vw, 86px);
   font-weight: 500;
-  color: #0f1318;
+  line-height: 0.98;
 }
 
-.filter-row {
-  margin-top: 28px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 34px;
-}
-
-.filter-btn {
-  border: none;
-  padding: 0;
-  background: transparent;
-  font-size: 24px;
-  letter-spacing: 1px;
-  color: #6d7682;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-
-.filter-btn.active,
-.filter-btn:hover {
-  color: #11161d;
+.works-title p {
+  max-width: 520px;
+  margin: 22px 0 0;
+  color: var(--color-muted);
+  font-size: 15px;
+  line-height: 1.8;
 }
 
 .works-search {
-  width: min(520px, 100%);
   height: 48px;
-  margin-top: 28px;
   display: flex;
   align-items: center;
   gap: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 999px;
-  background: #fff;
-  padding: 0 18px;
+  border-bottom: 1px solid var(--color-ink);
+  background: transparent;
 }
 
 .works-search span {
-  color: #11161d;
+  color: var(--color-ink);
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
@@ -202,81 +203,114 @@ onBeforeUnmount(() => {
   border: none;
   outline: none;
   background: transparent;
-  color: #11161d;
+  color: var(--color-ink);
   font: inherit;
   font-size: 15px;
 }
 
 .works-search input::placeholder {
-  color: #9ca3af;
+  color: var(--color-muted);
+}
+
+.filter-row {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filter-btn {
+  height: 38px;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  padding: 0 16px;
+  color: var(--color-ink-soft);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.24s ease, color 0.24s ease, border-color 0.24s ease;
+}
+
+.filter-btn.active,
+.filter-btn:hover {
+  border-color: var(--color-olive);
+  background: var(--color-olive);
+  color: #fff;
 }
 
 .works-grid {
-  margin-top: 56px;
+  margin-top: 42px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 30px 26px;
+  gap: 34px 24px;
 }
 
 .works-empty {
   margin: 56px 0 0;
-  color: #6d7682;
+  color: var(--color-muted);
   font-size: 15px;
 }
 
 .work-card {
+  display: grid;
+  gap: 16px;
   border: none;
   padding: 0;
   background: transparent;
   cursor: pointer;
 }
 
+.work-card:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 4px;
+}
+
 .card-media {
   position: relative;
   overflow: hidden;
-  background: #d8d8d8;
+  background: var(--color-stone);
   aspect-ratio: 4 / 3;
-}
-
-.media-track {
-  --caption-height: 46px;
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  transform: translateY(0);
-  transition: transform 0.52s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .card-media img {
   display: block;
   width: 100%;
   height: 100%;
-  flex: 0 0 100%;
   object-fit: cover;
+  filter: saturate(0.9) contrast(1.02);
+  transition: transform 0.8s var(--ease-smooth), filter 0.35s ease;
+}
+
+.work-card:hover img,
+.work-card:focus-visible img {
+  transform: scale(1.045);
+  filter: saturate(1) contrast(1.04);
 }
 
 .card-caption {
-  height: var(--caption-height);
-  flex: 0 0 var(--caption-height);
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  background: #fff;
-  border-top: 1px solid rgba(21, 26, 33, 0.08);
+  display: grid;
+  gap: 8px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--color-line);
 }
 
-.card-caption h3 {
+.card-caption span {
+  color: var(--color-olive);
+  font-size: 12px;
+  letter-spacing: 2.2px;
+}
+
+.card-caption h2 {
   margin: 0;
-  font-size: 16px;
-  font-weight: 400;
-  color: #5e6570;
-  line-height: 1;
+  color: var(--color-ink);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.25;
 }
 
-.work-card:hover .media-track,
-.work-card:focus-visible .media-track {
-  transform: translateY(calc(var(--caption-height) * -1));
+.card-caption p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
 }
 
 @media (max-width: 1100px) {
@@ -286,26 +320,27 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 760px) {
+  .works-page {
+    padding: 46px 0 72px;
+  }
+
   .works-shell {
-    width: calc(100% - 32px);
+    width: calc(100% - 36px);
   }
 
-  .works-header h1 {
-    font-size: 30px;
+  .works-header {
+    grid-template-columns: 1fr;
+    gap: 24px;
   }
 
-  .filter-row {
-    gap: 16px 24px;
-  }
-
-  .filter-btn {
-    font-size: 20px;
+  .works-title h1 {
+    font-size: 44px;
   }
 
   .works-grid {
     margin-top: 34px;
     grid-template-columns: 1fr;
-    gap: 18px;
+    gap: 28px;
   }
 }
 </style>

@@ -1,33 +1,66 @@
 <template>
   <div class="view-more-page">
-    <main class="gallery-shell">
-      <section class="hero-block">
+    <main class="project-shell">
+      <section class="project-hero">
         <button class="hero-preview-btn" type="button" :aria-label="`放大查看 ${activeItem.alt}`" @click="openPreview">
-          <img :src="activeItem.full" :alt="activeItem.alt" class="hero-image" loading="lazy" decoding="async" />
+          <img v-if="activeItem.full" :src="activeItem.full" :alt="activeItem.alt" class="hero-image" loading="eager" decoding="async" />
         </button>
+
+        <div class="project-copy">
+          <span class="section-kicker">PROJECT GALLERY</span>
+          <h1>{{ currentCase.name }}</h1>
+          <p>{{ currentCase.note || '以尺度、材质与光影组织空间关系，让项目在视觉表达与实际使用之间保持平衡。' }}</p>
+          <dl class="project-meta">
+            <div>
+              <dt>类型</dt>
+              <dd>{{ currentCase.category || '空间设计' }}</dd>
+            </div>
+            <div>
+              <dt>信息</dt>
+              <dd>{{ currentCase.type || '室内空间' }}</dd>
+            </div>
+            <div>
+              <dt>年份</dt>
+              <dd>{{ currentCase.year || '近年' }}</dd>
+            </div>
+            <div>
+              <dt>图片</dt>
+              <dd>{{ galleryItems.length }} 张</dd>
+            </div>
+          </dl>
+        </div>
       </section>
 
-      <section class="thumb-block">
-        <button v-for="(item, index) in galleryItems" :key="item.id" class="thumb-btn"
-          :class="{ active: index === activeIndex }" @click="activeIndex = index"
-          :aria-label="`show image ${index + 1}`">
-          <img :src="item.thumb" :alt="item.alt" class="thumb-image" loading="lazy" decoding="async" />
-        </button>
+      <section class="gallery-section">
+        <div class="gallery-main">
+          <button class="gallery-image-btn" type="button" :aria-label="`放大查看 ${activeItem.alt}`" @click="openPreview">
+            <img v-if="activeItem.full" :src="activeItem.full" :alt="activeItem.alt" class="gallery-image" loading="lazy" decoding="async" />
+          </button>
+        </div>
+
+        <div class="thumb-block">
+          <button
+            v-for="(item, index) in galleryItems"
+            :key="item.id"
+            class="thumb-btn"
+            :class="{ active: index === activeIndex }"
+            @click="activeIndex = index"
+            :aria-label="`查看第 ${index + 1} 张图片`"
+          >
+            <img :src="item.thumb" :alt="item.alt" class="thumb-image" loading="lazy" decoding="async" />
+          </button>
+        </div>
       </section>
 
       <footer class="page-nav">
-        <!-- <a href="#" class="nav-link" @click.prevent="goNext">
-          <span class="nav-caret">&lt;</span>
-          <span class="nav-label">下一页</span>
-        </a>
-        <a href="#" class="nav-link" @click.prevent="goPrev">
-          <span class="nav-caret">&lt;</span>
-          <span class="nav-label">上一页</span>
-        </a> -->
-        <a href="#" class="nav-link" @click.prevent="go3D">
-          <span class="nav-caret">&lt;</span>
+        <button type="button" class="nav-link" @click="goWorks">
+          <span class="nav-caret">‹</span>
+          <span class="nav-label">返回作品集</span>
+        </button>
+        <button v-if="URL" type="button" class="nav-link" @click="go3D">
+          <span class="nav-caret">↗</span>
           <span class="nav-label">3D查看</span>
-        </a>
+        </button>
       </footer>
     </main>
 
@@ -86,12 +119,14 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { getDisplayDesignCases } from '@/mock/data'
+import { useRoute, useRouter } from 'vue-router'
+import { getDisplayDesignCases, getDisplayWorksList } from '@/mock/data'
 
 const route = useRoute()
+const router = useRouter()
 
-const displayCases = ref(getDisplayDesignCases())
+const displayWorks = ref(getDisplayWorksList())
+const displayDesignCases = ref(getDisplayDesignCases())
 const activeIndex = ref(0)
 const isPreviewOpen = ref(false)
 const MIN_PREVIEW_ZOOM = 1
@@ -109,19 +144,24 @@ const previewDragStart = reactive({
 })
 
 const currentCase = computed(() => {
-  return displayCases.value.find((item) => String(item.id) === String(route.params.id)) || displayCases.value[0] || {
-    id: '',
-    name: '',
-    list: [],
-    url: ''
+  const routeId = String(route.params.id || '')
+  const work = displayWorks.value.find((item) => String(item.id) === routeId) || displayWorks.value[0] || {}
+  const designCase = displayDesignCases.value.find((item) => String(item.id) === String(work.id || routeId)) || {}
+  const list = work.list || designCase.list || []
+
+  return {
+    ...designCase,
+    ...work,
+    url: designCase.url || work.url || '',
+    list,
+    image: work.image || work.cover || designCase.image || list[0] || ''
   }
 })
-const URL = computed(() => {
-  return currentCase.value.url 
-})
+
+const URL = computed(() => currentCase.value.url)
 
 const galleryItems = computed(() => {
-  return currentCase.value.list.map((url, index) => ({
+  return (currentCase.value.list || []).map((url, index) => ({
     id: `${currentCase.value.id}-${index}`,
     alt: `${currentCase.value.name}-${index + 1}`,
     full: url,
@@ -158,6 +198,10 @@ function goNext() {
   activeIndex.value = nextImageIndex.value
 }
 
+function goWorks() {
+  router.push({ name: 'worksGallery' })
+}
+
 function go3D() {
   if (URL.value) {
     window.open(URL.value, '_blank')
@@ -165,6 +209,10 @@ function go3D() {
 }
 
 function openPreview() {
+  if (!activeItem.value.full) {
+    return
+  }
+
   resetPreviewTransform()
   isPreviewOpen.value = true
 }
@@ -256,14 +304,16 @@ function stopPreviewDrag(event) {
 watch(
   () => route.params.id,
   () => {
-    displayCases.value = getDisplayDesignCases()
+    displayWorks.value = getDisplayWorksList()
+    displayDesignCases.value = getDisplayDesignCases()
     activeIndex.value = 0
     isPreviewOpen.value = false
   }
 )
 
 function refreshDetail() {
-  displayCases.value = getDisplayDesignCases()
+  displayWorks.value = getDisplayWorksList()
+  displayDesignCases.value = getDisplayDesignCases()
   activeIndex.value = 0
 }
 
@@ -280,124 +330,197 @@ onBeforeUnmount(() => {
 .view-more-page {
   min-height: calc(100vh - var(--nav-height));
   min-height: calc(100svh - var(--nav-height));
-  background: #e9e9e9;
+  background: var(--color-paper);
 }
 
-.gallery-shell {
-  width: min(1320px, 94vw);
+.project-shell {
+  width: min(1240px, calc(100% - 64px));
   margin: 0 auto;
-  padding: 16px 0 40px;
-  position: relative;
+  padding: 56px 0 86px;
 }
 
-.close-btn {
-  position: absolute;
-  top: 180px;
-  left: -34px;
-  width: 28px;
-  height: 28px;
-  border: 1px solid #bdbdbd;
-  color: #9b9b9b;
-  background: transparent;
-  font-size: 20px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.hero-block {
-  width: fit-content;
-  max-width: min(1000px, 100%);
-  margin: 0 auto;
-  text-align: center;
+.project-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.7fr);
+  gap: 58px;
+  align-items: end;
 }
 
 .hero-preview-btn {
-  width: fit-content;
-  max-width: 100%;
+  width: 100%;
   border: none;
   padding: 0;
-  background: transparent;
-  display: inline-block;
+  background: var(--color-stone);
+  display: block;
   line-height: 0;
   overflow: hidden;
   cursor: zoom-in;
+  box-shadow: var(--shadow-soft);
 }
 
 .hero-image {
-  max-width: 100%;
-  height: auto;
+  width: 100%;
+  aspect-ratio: 4 / 3;
   display: block;
+  object-fit: cover;
+  filter: saturate(0.9) contrast(1.02);
+  transition: transform 0.9s var(--ease-smooth);
+}
+
+.hero-preview-btn:hover .hero-image {
+  transform: scale(1.035);
+}
+
+.section-kicker {
+  display: inline-block;
+  margin-bottom: 16px;
+  color: var(--color-olive);
+  font-size: 12px;
+  letter-spacing: 3.4px;
+}
+
+.project-copy h1 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(42px, 6vw, 76px);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.project-copy p {
+  margin: 24px 0 0;
+  color: var(--color-ink-soft);
+  font-size: 16px;
+  line-height: 1.9;
+}
+
+.project-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 34px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--color-line);
+  border-left: 1px solid var(--color-line);
+}
+
+.project-meta div {
+  padding: 18px;
+  border-right: 1px solid var(--color-line);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.project-meta dt {
+  margin: 0 0 8px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+.project-meta dd {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.gallery-section {
+  margin-top: 72px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 168px;
+  gap: 22px;
+  align-items: start;
+}
+
+.gallery-main {
+  min-width: 0;
+}
+
+.gallery-image-btn {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: var(--color-stone);
+  line-height: 0;
+  cursor: zoom-in;
+  display: block;
+  overflow: hidden;
+}
+
+.gallery-image {
+  width: 100%;
+  max-height: 74vh;
+  display: block;
+  object-fit: contain;
+  background: var(--color-stone);
 }
 
 .thumb-block {
-  margin: 182px auto 0;
-  width: min(1210px, 100%);
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: 1fr;
   gap: 10px;
 }
 
 .thumb-btn {
-  border: none;
+  border: 1px solid transparent;
   padding: 0;
   line-height: 0;
-  aspect-ratio: 16 / 9;
-  background: #ddd;
+  aspect-ratio: 4 / 3;
+  background: var(--color-stone);
   cursor: pointer;
-  opacity: 0.9;
+  opacity: 0.72;
   overflow: hidden;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.24s ease, border-color 0.24s ease;
+}
 
-  &:hover,
-  &.active {
-    opacity: 1;
-  }
+.thumb-btn:hover,
+.thumb-btn.active {
+  opacity: 1;
+  border-color: var(--color-olive);
 }
 
 .thumb-image {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
 }
 
 .page-nav {
   margin-top: 52px;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 18px;
+  border-top: 1px solid var(--color-line);
+  padding-top: 24px;
 }
 
 .nav-link {
-  color: #222;
-  font-size: 18px;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 16px;
   text-decoration: none;
-  font-family: 'Times New Roman', serif;
-  letter-spacing: 0.2px;
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  width: 160px;
-  padding: 2px 0;
+  gap: 12px;
+  padding: 0;
+  cursor: pointer;
   transition: color 0.25s ease;
 }
 
 .nav-caret {
   display: inline-block;
+  font-size: 24px;
+  line-height: 1;
   transition: transform 0.28s ease;
 }
 
-.nav-label {
-  text-align: right;
-}
-
 .nav-link:hover {
-  color: #6b7280;
+  color: var(--color-olive);
 }
 
 .nav-link:hover .nav-caret {
-  transform: translateX(-1ch);
+  transform: translateX(-4px);
 }
 
 .image-preview {
@@ -495,7 +618,6 @@ onBeforeUnmount(() => {
   width: 42px;
   height: 42px;
   border: none;
-  border-radius: 50%;
   background: rgba(255, 255, 255, 0.16);
   color: #fff;
   font-size: 30px;
@@ -521,7 +643,7 @@ onBeforeUnmount(() => {
   line-height: 1;
   cursor: pointer;
   transform: translateY(-50%);
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .preview-nav:hover {
@@ -536,34 +658,47 @@ onBeforeUnmount(() => {
   right: 28px;
 }
 
-@media (max-width: 1100px) {
-  .thumb-block {
-    grid-template-columns: repeat(8, 1fr);
-    margin-top: 96px;
+@media (max-width: 980px) {
+  .project-hero {
+    grid-template-columns: 1fr;
+    gap: 34px;
   }
 
-  .close-btn {
-    display: none;
+  .gallery-section {
+    grid-template-columns: 1fr;
+  }
+
+  .thumb-block {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 760px) {
-  .gallery-shell {
-    width: 94vw;
+  .project-shell {
+    width: calc(100% - 36px);
+    padding: 36px 0 68px;
+  }
+
+  .project-copy h1 {
+    font-size: 42px;
+  }
+
+  .project-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .gallery-section {
+    margin-top: 46px;
   }
 
   .thumb-block {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
   }
 
   .page-nav {
+    flex-direction: column;
     align-items: flex-start;
-  }
-
-  .nav-link {
-    font-size: 16px;
-    width: 200px;
   }
 
   .image-preview {
