@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js'
-
 const SUPABASE_URL = process.env.VUE_APP_SUPABASE_URL
 const SUPABASE_ANON_KEY = process.env.VUE_APP_SUPABASE_ANON_KEY
 const CASES_TABLE = process.env.VUE_APP_SUPABASE_CASES_TABLE || 'design_cases'
@@ -7,7 +5,31 @@ const AWARDS_TABLE = process.env.VUE_APP_SUPABASE_AWARDS_TABLE || 'design_awards
 const CASE_IMAGES_BUCKET = process.env.VUE_APP_SUPABASE_CASE_IMAGES_BUCKET || 'case-images'
 
 const enabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
-const client = enabled ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null
+let clientPromise = null
+
+async function getClient() {
+  if (!enabled) {
+    return null
+  }
+
+  if (!clientPromise) {
+    clientPromise = import('@supabase/supabase-js').then(({ createClient }) => {
+      return createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    })
+  }
+
+  return clientPromise
+}
+
+async function requireClient() {
+  const client = await getClient()
+
+  if (!client) {
+    throw new Error('Supabase is not configured.')
+  }
+
+  return client
+}
 
 function normalizeImages(value) {
   if (Array.isArray(value)) {
@@ -32,9 +54,7 @@ function safePathPart(value) {
 }
 
 export async function uploadCaseImage(file, caseId = 'case') {
-  if (!client) {
-    throw new Error('Supabase is not configured.')
-  }
+  const client = await requireClient()
 
   const fileName = safePathPart(file.name || 'image')
   const folder = safePathPart(caseId)
@@ -60,6 +80,8 @@ export function uploadAwardImage(file, awardId = 'award') {
 }
 
 export async function getManagerSession() {
+  const client = await getClient()
+
   if (!client) {
     return null
   }
@@ -73,21 +95,35 @@ export async function getManagerSession() {
 }
 
 export function onManagerAuthChange(callback) {
-  if (!client) {
+  if (!enabled) {
     return () => {}
   }
 
-  const { data } = client.auth.onAuthStateChange((_event, session) => {
-    callback(session)
+  let cancelled = false
+  let subscription = null
+
+  getClient().then((client) => {
+    if (!client || cancelled) {
+      return
+    }
+
+    const { data } = client.auth.onAuthStateChange((_event, session) => {
+      callback(session)
+    })
+
+    subscription = data.subscription
+  }).catch((error) => {
+    console.warn('Failed to listen for manager auth changes:', error)
   })
 
-  return () => data.subscription.unsubscribe()
+  return () => {
+    cancelled = true
+    subscription?.unsubscribe()
+  }
 }
 
 export async function signInManager(email, password) {
-  if (!client) {
-    throw new Error('Supabase is not configured.')
-  }
+  const client = await requireClient()
 
   const { data, error } = await client.auth.signInWithPassword({
     email,
@@ -102,6 +138,8 @@ export async function signInManager(email, password) {
 }
 
 export async function signOutManager() {
+  const client = await getClient()
+
   if (!client) {
     return
   }
@@ -113,6 +151,8 @@ export async function signOutManager() {
 }
 
 export async function isManagerAdmin() {
+  const client = await getClient()
+
   if (!client) {
     return false
   }
@@ -200,6 +240,8 @@ function awardToRow(awardItem) {
 }
 
 export async function fetchCloudCases() {
+  const client = await getClient()
+
   if (!client) {
     return []
   }
@@ -217,6 +259,8 @@ export async function fetchCloudCases() {
 }
 
 export async function fetchCloudAwards() {
+  const client = await getClient()
+
   if (!client) {
     return []
   }
@@ -234,9 +278,7 @@ export async function fetchCloudAwards() {
 }
 
 export async function upsertCloudCase(caseItem) {
-  if (!client) {
-    throw new Error('Supabase is not configured.')
-  }
+  const client = await requireClient()
 
   const row = caseToRow(caseItem)
   const { data, error } = await client
@@ -253,9 +295,7 @@ export async function upsertCloudCase(caseItem) {
 }
 
 export async function upsertCloudAward(awardItem) {
-  if (!client) {
-    throw new Error('Supabase is not configured.')
-  }
+  const client = await requireClient()
 
   const row = awardToRow(awardItem)
   const { data, error } = await client
@@ -272,9 +312,7 @@ export async function upsertCloudAward(awardItem) {
 }
 
 export async function deleteCloudCase(id) {
-  if (!client) {
-    throw new Error('Supabase is not configured.')
-  }
+  const client = await requireClient()
 
   const { error } = await client
     .from(CASES_TABLE)
@@ -287,9 +325,7 @@ export async function deleteCloudCase(id) {
 }
 
 export async function deleteCloudAward(id) {
-  if (!client) {
-    throw new Error('Supabase is not configured.')
-  }
+  const client = await requireClient()
 
   const { error } = await client
     .from(AWARDS_TABLE)
