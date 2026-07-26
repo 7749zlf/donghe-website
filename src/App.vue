@@ -1,33 +1,81 @@
-﻿<template>
-  <div id="app">
+<template>
+  <div id="app" :data-theme="currentTheme">
+    <!-- 加载条 -->
+    <div v-if="isLoading" class="loading-bar" :class="{ finished: false }"></div>
+
+    <!-- 主题切换按钮 -->
+    <button class="theme-toggle" @click="toggleTheme" :aria-label="`切换至${currentTheme === 'light' ? '深' : '浅'}色主题`">
+      {{ currentTheme === 'light' ? '🌙' : '☀️' }}
+    </button>
+
+    <!-- 导航栏 -->
     <StickyNavbar />
-    <router-view />
+
+    <!-- 页面过渡 -->
+    <Transition
+      name="slide-up"
+      mode="out-in"
+      @enter="onPageEnter"
+      @leave="onPageLeave"
+    >
+      <router-view :key="$route.fullPath" />
+    </Transition>
   </div>
 </template>
 
-<script>
+<script setup>
+import { ref, onMounted } from 'vue'
 import StickyNavbar from './components/StickyNavbar.vue'
+import { useTheme } from './composables/useTheme'
+import { usePageTransition } from './composables/usePageTransition'
+import { useMobileOptimize } from './composables/useMobileOptimize'
 
-export default {
-  name: 'App',
-  components: {
-    StickyNavbar
-  }
+const { currentTheme, toggleTheme } = useTheme()
+const { isLoading, initRouterHooks } = usePageTransition()
+const { isMobile } = useMobileOptimize()
+
+// 页面进入动画钩子
+function onPageEnter(el) {
+  el.style.opacity = '0'
+  el.style.transform = 'translateY(20px)'
+  setTimeout(() => {
+    el.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
+    el.style.opacity = '1'
+    el.style.transform = 'translateY(0)'
+  }, 10)
 }
+
+// 页面离开动画钩子
+function onPageLeave(el) {
+  el.style.transition = 'all 0.4s ease'
+  el.style.opacity = '0'
+  el.style.transform = 'translateY(-20px)'
+}
+
+onMounted(() => {
+  initRouterHooks()
+})
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
+@import './assets/animations.scss';
+@import './assets/scroll-animations.scss';
+@import './assets/page-transitions.scss';
+@import './assets/theme.scss';
+
 #app {
-  background: var(--color-paper);
-  min-height: 100%;
+  background: var(--theme-bg);
+  color: var(--theme-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
 }
 
 :global(:root) {
   --nav-height: 73px;
+  --color-paper: #f5f1e8;
   --color-ink: #171714;
   --color-ink-soft: #3f4239;
   --color-muted: #78766c;
-  --color-paper: #f5f1e8;
   --color-porcelain: #f8f7f2;
   --color-warm: #ede6d8;
   --color-stone: #d5d0c3;
@@ -65,12 +113,8 @@ export default {
 }
 
 :global(body) {
-  color: var(--color-ink);
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.26) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(93, 101, 73, 0.045), transparent 340px),
-    var(--color-paper);
-  background-size: 96px 96px, 100% 100%;
+  color: var(--theme-text);
+  background: var(--theme-bg);
   font-family: 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
@@ -79,6 +123,7 @@ export default {
 :global(textarea),
 :global(select) {
   font: inherit;
+  color: inherit;
 }
 
 :global(button) {
@@ -90,10 +135,10 @@ export default {
 }
 
 :global(.dh-action) {
-  --dh-action-fg: var(--color-ink);
+  --dh-action-fg: var(--theme-text);
   --dh-action-bg: transparent;
-  --dh-action-hover-bg: var(--color-ink);
-  --dh-action-hover-fg: #fff;
+  --dh-action-hover-bg: var(--theme-text);
+  --dh-action-hover-fg: var(--theme-bg);
   min-height: 46px;
   display: inline-flex;
   align-items: stretch;
@@ -103,10 +148,9 @@ export default {
   padding: 0;
   cursor: pointer;
   text-decoration: none;
-  transition:
-    background 0.32s var(--ease-smooth),
-    color 0.32s var(--ease-smooth),
-    transform 0.32s var(--ease-smooth);
+  transition: all 0.32s var(--ease-smooth);
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 :global(.dh-action:hover),
@@ -148,10 +192,10 @@ export default {
 }
 
 :global(.dh-action--solid) {
-  --dh-action-bg: var(--color-ink);
-  --dh-action-fg: #fff;
+  --dh-action-bg: var(--theme-text);
+  --dh-action-fg: var(--theme-bg);
   --dh-action-hover-bg: transparent;
-  --dh-action-hover-fg: var(--color-ink);
+  --dh-action-hover-fg: var(--theme-text);
 }
 
 @media (max-width: 768px) {
