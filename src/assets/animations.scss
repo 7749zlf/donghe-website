@@ -94,13 +94,13 @@
   }
 }
 
-// 9. 卡片翻转
+// 9. 3D 卡片翻转
 @keyframes cardFlip {
   0% {
-    transform: rotateY(0deg) rotateX(0deg);
+    transform: rotateY(0deg);
   }
   100% {
-    transform: rotateY(360deg) rotateX(5deg);
+    transform: rotateY(360deg);
   }
 }
 
@@ -117,51 +117,22 @@
   }
 }
 
-// 工具类 mixin
-// ==========================================
-
-@mixin animateOnScroll($delay: 0s) {
-  animation: fadeInUp 0.8s ease-out $delay forwards;
-  opacity: 0;
-  
-  &.in-view {
-    animation: fadeInUp 0.8s ease-out $delay forwards;
+// 11. 按钮脉冲
+@keyframes buttonPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(93, 101, 73, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(93, 101, 73, 0);
   }
 }
 
-@mixin glowEffect($color: #5d6549) {
-  box-shadow: 0 0 20px rgba($color, 0.3),
-              inset 0 0 20px rgba($color, 0.1);
-}
-
-@mixin floatingCard {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, box-shadow;
-  
-  &:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 50px rgba(30, 27, 20, 0.15);
+// 12. 闪光效果
+@keyframes flashLight {
+  0%, 100% {
+    opacity: 0;
   }
-}
-
-@mixin shimmerBackground {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  background-size: 1000px 100%;
-  animation: shimmer 2s infinite;
-}
-
-// 文字特效
-@mixin textShadowGlow {
-  text-shadow: 0 0 20px rgba(93, 101, 73, 0.2),
-               0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-// 平滑过渡
-@mixin smoothTransition($props: all, $duration: 0.4s) {
-  transition: $props $duration cubic-bezier(0.16, 1, 0.3, 1);
+  50% {
+    opacity: 1;
+  }
 }

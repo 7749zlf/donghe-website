@@ -5,7 +5,7 @@
         <span class="section-kicker">ABOUT DONGHE</span>
         <h2>先校准生活方式，再讨论风格。</h2>
         <p>
-          东禾专注商业、办公与居住空间的室内设计。我们先看现场条件、人的行为路径和预算边界，再把材质、灯光、收纳与施工细节放进同一个系统里。
+          东禾专注商业、办公与居住空间的室内设计。我们先看现场条件、人的行为路径和预算边界，再把材质、灯光、收纳与施工细节放进同一个系统中优先级排序。
         </p>
         <p>
           好的空间不靠堆满元素取胜，而是让功能、尺度和情绪各自站稳。最终留下来的，是每天使用时依然舒服的秩序。
@@ -56,6 +56,8 @@ defineEmits(['view-more'])
 </script>
 
 <style scoped lang="scss">
+@import '@/assets/animations.scss';
+
 .container {
   width: min(1240px, calc(100% - 64px));
   margin: 0 auto;
@@ -67,6 +69,21 @@ defineEmits(['view-more'])
 
 .about {
   background: var(--color-paper);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(93, 101, 73, 0.08), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: float 6s ease-in-out infinite;
+  }
 }
 
 .about-layout {
@@ -74,6 +91,8 @@ defineEmits(['view-more'])
   grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
   gap: 72px 64px;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .section-kicker {
@@ -82,6 +101,7 @@ defineEmits(['view-more'])
   color: var(--color-olive);
   font-size: 12px;
   letter-spacing: 3.4px;
+  animation: slideInLeft 0.8s ease-out;
 }
 
 .about-copy h2 {
@@ -91,6 +111,7 @@ defineEmits(['view-more'])
   font-size: clamp(32px, 4vw, 54px);
   font-weight: 500;
   line-height: 1.12;
+  animation: fadeInUp 0.8s ease-out 0.1s both;
 }
 
 .about-copy p {
@@ -99,10 +120,17 @@ defineEmits(['view-more'])
   color: var(--color-ink-soft);
   font-size: 16px;
   line-height: 1.9;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: var(--color-ink);
+  }
 }
 
 .about-actions {
   margin-top: 34px;
+  animation: fadeInUp 0.8s ease-out 0.3s both;
 }
 
 .about-figure {
@@ -112,6 +140,8 @@ defineEmits(['view-more'])
   overflow: hidden;
   background: var(--color-stone);
   box-shadow: var(--shadow-soft);
+  animation: scaleIn 0.8s ease-out 0.2s both;
+  border-radius: 8px;
 }
 
 .about-image {
@@ -121,11 +151,13 @@ defineEmits(['view-more'])
   min-height: 520px;
   object-fit: cover;
   filter: saturate(0.88) contrast(1.02);
-  transition: transform 1s var(--ease-smooth);
+  transition: transform 1.2s var(--ease-smooth), filter 0.6s ease;
+  will-change: transform, filter;
 }
 
 .about-figure:hover .about-image {
-  transform: scale(1.035);
+  transform: scale(1.045) rotate(0.5deg);
+  filter: saturate(1) contrast(1.05);
 }
 
 .about-figure figcaption {
@@ -139,6 +171,10 @@ defineEmits(['view-more'])
   padding-top: 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.48);
   color: rgba(255, 255, 255, 0.88);
+  animation: fadeInUp 0.8s ease-out 0.5s both;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
+  padding-bottom: 8px;
+  border-radius: 4px;
 }
 
 .about-figure strong,
@@ -156,11 +192,34 @@ defineEmits(['view-more'])
   padding: 0;
   border-top: 1px solid var(--color-line);
   border-bottom: 1px solid var(--color-line);
+  animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
 .about-stats div {
   padding: 28px 28px 26px;
   border-right: 1px solid var(--color-line);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(93, 101, 73, 0.05);
+    transition: left 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &:hover {
+    background: rgba(93, 101, 73, 0.04);
+
+    &::before {
+      left: 100%;
+    }
+  }
 }
 
 .about-stats div:last-child {
@@ -172,12 +231,14 @@ defineEmits(['view-more'])
   font-size: 36px;
   font-weight: 500;
   line-height: 1;
+  animation: scaleIn 0.8s ease-out 0.5s both;
 }
 
 .about-stats dd {
   margin: 10px 0 0;
   color: var(--color-muted);
   font-size: 14px;
+  animation: fadeInUp 0.8s ease-out 0.6s both;
 }
 
 @media (max-width: 1020px) {

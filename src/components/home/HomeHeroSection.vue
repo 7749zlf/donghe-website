@@ -163,6 +163,8 @@ watch(
 </script>
 
 <style scoped lang="scss">
+@import '@/assets/animations.scss';
+
 .hero {
   position: relative;
   min-height: 560px;
@@ -196,6 +198,18 @@ watch(
   object-fit: cover;
   transform: scale(1.02);
   filter: saturate(0.88) contrast(1.02);
+  animation: heroImageZoom 8s ease-out forwards;
+}
+
+@keyframes heroImageZoom {
+  0% {
+    transform: scale(1.08) translateZ(0);
+    filter: brightness(0.7);
+  }
+  100% {
+    transform: scale(1.02);
+    filter: saturate(0.88) contrast(1.02);
+  }
 }
 
 .hero-shade {
@@ -204,6 +218,7 @@ watch(
   background:
     linear-gradient(90deg, rgba(14, 13, 10, 0.78) 0%, rgba(14, 13, 10, 0.36) 48%, rgba(14, 13, 10, 0.2) 100%),
     linear-gradient(0deg, rgba(14, 13, 10, 0.62) 0%, transparent 42%);
+  animation: fadeInUp 1.2s ease-out 0.2s both;
 }
 
 .hero-content {
@@ -225,6 +240,7 @@ watch(
   align-items: end;
   gap: 1px;
   color: rgba(255, 255, 255, 0.78);
+  animation: slideInLeft 0.8s ease-out 0.3s both;
 }
 
 .hero-atelier span {
@@ -239,6 +255,13 @@ watch(
   font-size: 11px;
   letter-spacing: 1.8px;
   backdrop-filter: blur(8px);
+  transition: all 0.4s ease;
+
+  &:hover {
+    background: rgba(93, 101, 73, 0.35);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: rotate(180deg) translateY(-4px);
+  }
 }
 
 .hero-atelier span:nth-child(2) {
@@ -263,6 +286,7 @@ watch(
   color: rgba(255, 255, 255, 0.74);
   font-size: 12px;
   letter-spacing: 4px;
+  animation: textReveal 0.8s ease-out;
 }
 
 .hero-copy h1 {
@@ -270,6 +294,8 @@ watch(
   font-size: clamp(52px, 7vw, 92px);
   font-weight: 500;
   line-height: 0.98;
+  animation: textReveal 0.8s ease-out 0.1s both;
+  text-shadow: 0 0 30px rgba(93, 101, 73, 0.15);
 }
 
 .hero-copy p {
@@ -278,6 +304,7 @@ watch(
   color: rgba(255, 255, 255, 0.82);
   font-size: clamp(18px, 2vw, 24px);
   line-height: 1.6;
+  animation: textReveal 0.8s ease-out 0.2s both;
 }
 
 .hero-actions {
@@ -286,12 +313,14 @@ watch(
   align-items: center;
   gap: 20px;
   pointer-events: auto;
+  animation: textReveal 0.8s ease-out 0.3s both;
 }
 
 .project-note {
   color: rgba(255, 255, 255, 0.72);
   font-size: 14px;
   line-height: 1.5;
+  animation: pulse 3s infinite 0.5s;
 }
 
 .hero-controls {
@@ -302,6 +331,7 @@ watch(
   display: flex;
   align-items: center;
   gap: 18px;
+  animation: fadeInUp 0.8s ease-out 0.4s both;
 }
 
 .hero-arrow {
@@ -315,12 +345,19 @@ watch(
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: background 0.24s ease, border-color 0.24s ease;
-}
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(8px);
 
-.hero-arrow:hover {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.72);
+  &:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.72);
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(93, 101, 73, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .arrow-icon {
@@ -330,6 +367,7 @@ watch(
   font-size: 30px;
   line-height: 0.82;
   text-align: center;
+  transition: transform 0.3s ease;
 }
 
 .indicators {
@@ -345,12 +383,18 @@ watch(
   background: rgba(255, 255, 255, 0.35);
   padding: 0;
   cursor: pointer;
-  transition: background 0.24s ease, width 0.24s ease;
-}
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 1px;
 
-.dot-btn.active {
-  width: 52px;
-  background: #fff;
+  &:hover {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  &.active {
+    width: 52px;
+    background: #fff;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+  }
 }
 
 .hero-copy-enter-active,
