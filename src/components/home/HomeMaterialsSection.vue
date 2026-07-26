@@ -5,27 +5,27 @@
         <span class="section-kicker">MATERIAL LANGUAGE</span>
         <h2>材料不是背景，是空间性格。</h2>
         <p>
-          木的温润、石的重量、金属的冷感、织物的柔软，都会改变人对空间的判断。东禾把这些细节放在同一张秩序表里推敲。
+          木的温润、石的重量、金属的冷感、织物的柔软，都会改变人对空间的判断。东禾把这些细节放在同一个系统内推敲。
         </p>
       </div>
 
       <div class="material-board" aria-label="东禾空间设计的材质语言">
-        <article class="material-panel panel-sage">
+        <article class="material-panel panel-sage scroll-scale-in scroll-scale-in-1">
           <span>01</span>
           <h3>光</h3>
           <p>先判断光从哪里来，再决定空间该安静还是聚焦。</p>
         </article>
-        <article class="material-panel panel-clay">
+        <article class="material-panel panel-clay scroll-scale-in scroll-scale-in-2">
           <span>02</span>
           <h3>材</h3>
           <p>让木、石、金属与织物形成真实可触的温差。</p>
         </article>
-        <article class="material-panel panel-ink">
+        <article class="material-panel panel-ink scroll-scale-in scroll-scale-in-3">
           <span>03</span>
           <h3>序</h3>
           <p>把动线、收纳和视觉中心放回清楚的位置。</p>
         </article>
-        <article class="material-panel panel-brass">
+        <article class="material-panel panel-brass scroll-scale-in scroll-scale-in-4">
           <span>04</span>
           <h3>落地</h3>
           <p>让效果图里的判断，能在现场被完整执行。</p>
@@ -36,12 +36,42 @@
 </template>
 
 <style scoped lang="scss">
+@import '@/assets/animations.scss';
+
 .materials-section {
   padding: 106px 0;
   background:
     linear-gradient(90deg, rgba(32, 35, 31, 0.06) 1px, transparent 1px),
     var(--color-porcelain);
   background-size: 72px 72px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: -30%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(93, 101, 73, 0.08), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -20%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(169, 130, 71, 0.06), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: float 10s ease-in-out infinite 1s;
+  }
 }
 
 .materials-shell {
@@ -51,12 +81,15 @@
   grid-template-columns: minmax(0, 0.72fr) minmax(520px, 1fr);
   gap: 58px;
   align-items: stretch;
+  position: relative;
+  z-index: 1;
 }
 
 .materials-copy {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .section-kicker {
@@ -65,6 +98,7 @@
   color: var(--color-rust);
   font-size: 12px;
   letter-spacing: 3.4px;
+  animation: slideInLeft 0.8s ease-out;
 }
 
 .materials-copy h2 {
@@ -73,6 +107,7 @@
   font-size: clamp(34px, 4.6vw, 58px);
   font-weight: 500;
   line-height: 1.1;
+  animation: fadeInUp 0.8s ease-out 0.1s both;
 }
 
 .materials-copy p {
@@ -81,6 +116,7 @@
   color: var(--color-ink-soft);
   font-size: 16px;
   line-height: 1.9;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
 .material-board {
@@ -98,7 +134,10 @@
   padding: 24px;
   overflow: hidden;
   position: relative;
-  transition: transform 0.45s var(--ease-smooth), box-shadow 0.45s ease;
+  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, box-shadow;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .material-panel::after {
@@ -110,16 +149,30 @@
   border: 1px solid currentColor;
   opacity: 0.18;
   transform: rotate(18deg);
-  transition: transform 0.45s var(--ease-smooth);
+  transition: all 0.45s var(--ease-smooth);
+}
+
+.material-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.2), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.45s ease;
 }
 
 .material-panel:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-soft);
-}
+  transform: translateY(-12px);
+  box-shadow: 0 20px 60px rgba(30, 27, 20, 0.15);
 
-.material-panel:hover::after {
-  transform: rotate(0deg) scale(1.08);
+  &::after {
+    transform: rotate(0deg) scale(1.15);
+    opacity: 0.28;
+  }
+
+  &::before {
+    opacity: 1;
+  }
 }
 
 .material-panel span {
