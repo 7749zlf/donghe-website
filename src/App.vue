@@ -87,11 +87,11 @@ export default {
 
       this.setIntroTimer(() => {
         this.introLeaving = true
-      }, 1780)
+      }, 2750)
 
       this.setIntroTimer(() => {
         this.finishIntro()
-      }, 2320)
+      }, 3350)
     },
     finishIntro() {
       this.markIntroPlayed()
@@ -226,7 +226,7 @@ export default {
     linear-gradient(180deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
   background-size: 88px 88px;
   transform: scale(1.08);
-  animation: introGridSettle 1.7s var(--ease-smooth) both;
+  animation: introGridSettle 2.35s var(--ease-smooth) both;
 }
 
 .intro-light {
@@ -237,7 +237,7 @@ export default {
     radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.18), transparent 28%);
   mix-blend-mode: screen;
   transform: translate3d(-36%, 0, 0);
-  animation: introLightPass 1.82s var(--ease-smooth) both;
+  animation: introLightPass 2.7s var(--ease-smooth) both;
 }
 
 .intro-mark {
@@ -247,7 +247,7 @@ export default {
   gap: 12px;
   text-align: center;
   transform: translateY(18px);
-  animation: introMarkIn 1.1s var(--ease-smooth) 0.18s both;
+  animation: introMarkIn 1.35s var(--ease-smooth) 0.28s both;
 }
 
 .intro-mark span {
@@ -275,7 +275,7 @@ export default {
   font-size: 12px;
   letter-spacing: 0.28em;
   transform: translateX(-50%);
-  animation: introCopyIn 0.9s ease 0.7s both;
+  animation: introCopyIn 1.05s ease 1.08s both;
 }
 
 .intro-skip {
