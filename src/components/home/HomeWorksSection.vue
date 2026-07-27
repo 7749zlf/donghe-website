@@ -170,6 +170,7 @@ const displayFilterOptions = computed(() => {
   grid-template-columns: minmax(0, 1.12fr) minmax(340px, 0.88fr);
   grid-auto-rows: 300px;
   gap: 22px;
+  perspective: 1200px;
 }
 
 .work-card {
@@ -193,7 +194,7 @@ const displayFilterOptions = computed(() => {
 .work-card:hover,
 .work-card:focus-visible {
   box-shadow: 0 30px 86px rgba(30, 27, 20, 0.16);
-  transform: translateY(-4px);
+  transform: translateY(-8px) rotateX(1.2deg) rotateY(-1.2deg) scale(1.01);
 }
 
 .work-card:focus-visible {
@@ -258,6 +259,13 @@ const displayFilterOptions = computed(() => {
   bottom: 22px;
   z-index: 2;
   color: #fff;
+  transform: translateY(0);
+  transition: transform 0.45s var(--ease-smooth);
+}
+
+.work-card:hover .work-content,
+.work-card:focus-visible .work-content {
+  transform: translateY(-6px);
 }
 
 .work-content span {

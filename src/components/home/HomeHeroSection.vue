@@ -178,6 +178,20 @@ watch(
   background: #1a1a16;
 }
 
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255, 255, 255, 0.26), transparent 18%),
+    radial-gradient(circle at calc(var(--pointer-x) + 16%) calc(var(--pointer-y) + 12%), rgba(169, 130, 71, 0.18), transparent 22%);
+  mix-blend-mode: screen;
+  opacity: 0.72;
+  transition: opacity 0.4s ease;
+}
+
 .hero-track {
   height: 100%;
   display: flex;
@@ -213,6 +227,7 @@ watch(
 .hero-shade {
   position: absolute;
   inset: 0;
+  z-index: 1;
   background:
     linear-gradient(90deg, rgba(14, 13, 10, 0.78) 0%, rgba(14, 13, 10, 0.36) 48%, rgba(14, 13, 10, 0.2) 100%),
     linear-gradient(0deg, rgba(14, 13, 10, 0.62) 0%, transparent 42%);
@@ -221,8 +236,10 @@ watch(
 .hero-light-field {
   position: absolute;
   inset: 0;
+  z-index: 2;
   pointer-events: none;
   background:
+    radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255, 255, 255, 0.2), transparent 20%),
     radial-gradient(circle at 74% 24%, rgba(255, 255, 255, 0.18), transparent 24%),
     linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.16) 42%, transparent 54%);
   mix-blend-mode: screen;
@@ -234,6 +251,7 @@ watch(
 .hero-content {
   position: absolute;
   inset: 0;
+  z-index: 3;
   width: min(1240px, calc(100% - 64px));
   margin: 0 auto;
   display: flex;
@@ -243,6 +261,7 @@ watch(
 
 .hero-atelier {
   position: absolute;
+  z-index: 3;
   top: 34px;
   right: clamp(28px, 5vw, 74px);
   display: grid;
@@ -327,6 +346,7 @@ watch(
 
 .hero-controls {
   position: absolute;
+  z-index: 3;
   left: 50%;
   bottom: 28px;
   transform: translateX(-50%);

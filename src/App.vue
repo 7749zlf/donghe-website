@@ -1,5 +1,5 @@
 ﻿<template>
-  <div id="app">
+  <div id="app" @pointermove="handlePointerMove">
     <div class="site-atmosphere" aria-hidden="true"></div>
     <StickyNavbar />
     <router-view />
@@ -13,6 +13,42 @@ export default {
   name: 'App',
   components: {
     StickyNavbar
+  },
+  data() {
+    return {
+      pendingPointer: null,
+      pointerFrame: null
+    }
+  },
+  methods: {
+    handlePointerMove(event) {
+      if (event.pointerType === 'touch') {
+        return
+      }
+
+      this.pendingPointer = {
+        x: `${Math.round((event.clientX / Math.max(window.innerWidth, 1)) * 100)}%`,
+        y: `${Math.round((event.clientY / Math.max(window.innerHeight, 1)) * 100)}%`
+      }
+
+      if (this.pointerFrame) {
+        return
+      }
+
+      this.pointerFrame = requestAnimationFrame(() => {
+        if (this.pendingPointer) {
+          document.documentElement.style.setProperty('--pointer-x', this.pendingPointer.x)
+          document.documentElement.style.setProperty('--pointer-y', this.pendingPointer.y)
+        }
+
+        this.pointerFrame = null
+      })
+    }
+  },
+  beforeUnmount() {
+    if (this.pointerFrame) {
+      cancelAnimationFrame(this.pointerFrame)
+    }
   }
 }
 </script>
@@ -37,11 +73,13 @@ export default {
   z-index: 0;
   pointer-events: none;
   background:
+    radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(255, 255, 255, 0.5), transparent 18%),
+    radial-gradient(circle at calc(var(--pointer-x) + 18%) calc(var(--pointer-y) + 16%), rgba(169, 130, 71, 0.13), transparent 22%),
     linear-gradient(90deg, rgba(42, 39, 31, 0.045) 1px, transparent 1px),
     linear-gradient(180deg, rgba(42, 39, 31, 0.034) 1px, transparent 1px),
     linear-gradient(180deg, rgba(93, 101, 73, 0.06), transparent 34%, rgba(154, 95, 71, 0.045) 78%, transparent),
     var(--color-paper);
-  background-size: 96px 96px, 96px 96px, 100% 100%, 100% 100%;
+  background-size: 100% 100%, 100% 100%, 96px 96px, 96px 96px, 100% 100%, 100% 100%;
 }
 
 .site-atmosphere::before,
@@ -52,23 +90,27 @@ export default {
 }
 
 .site-atmosphere::before {
-  opacity: 0.38;
+  opacity: 0.42;
   background:
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 7px),
-    repeating-linear-gradient(90deg, rgba(42, 39, 31, 0.018) 0 1px, transparent 1px 11px);
+    repeating-linear-gradient(90deg, rgba(42, 39, 31, 0.018) 0 1px, transparent 1px 11px),
+    linear-gradient(128deg, transparent 0 34%, rgba(93, 101, 73, 0.08) 44%, transparent 56% 100%);
   mix-blend-mode: multiply;
+  animation: atmosphereTexture 16s ease-in-out infinite alternate;
 }
 
 .site-atmosphere::after {
   width: 150%;
   left: -25%;
-  opacity: 0.42;
-  background: linear-gradient(112deg, transparent 0 36%, rgba(255, 255, 255, 0.22) 45%, rgba(169, 130, 71, 0.08) 51%, transparent 62% 100%);
+  opacity: 0.56;
+  background: linear-gradient(112deg, transparent 0 33%, rgba(255, 255, 255, 0.3) 43%, rgba(169, 130, 71, 0.12) 51%, transparent 64% 100%);
   transform: translate3d(-8%, 0, 0);
-  animation: atmosphereDrift 18s var(--ease-smooth) infinite alternate;
+  animation: atmosphereDrift 14s var(--ease-smooth) infinite alternate;
 }
 
 :global(:root) {
+  --pointer-x: 50%;
+  --pointer-y: 34%;
   --nav-height: 73px;
   --color-ink: #171714;
   --color-ink-soft: #3f4239;
@@ -129,6 +171,27 @@ export default {
 
 :global(img) {
   max-width: 100%;
+}
+
+:global(.page > section) {
+  position: relative;
+  isolation: isolate;
+}
+
+:global(.page > section:not(.hero)::before) {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 0;
+  height: 92px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent);
+  mix-blend-mode: soft-light;
+}
+
+:global(.page > section:not(.hero) > *) {
+  position: relative;
+  z-index: 1;
 }
 
 :global(.dh-action) {
@@ -268,13 +331,23 @@ export default {
   }
 }
 
+@keyframes atmosphereTexture {
+  0% {
+    background-position: 0 0, 0 0, -8vw 0;
+  }
+
+  100% {
+    background-position: 0 12px, 10px 0, 8vw 0;
+  }
+}
+
 @media (max-width: 768px) {
   :global(:root) {
     --nav-height: 60px;
   }
 
   .site-atmosphere {
-    background-size: 118px 118px, 118px 118px, 100% 100%, 100% 100%;
+    background-size: 100% 100%, 100% 100%, 118px 118px, 118px 118px, 100% 100%, 100% 100%;
   }
 
   .site-atmosphere::before {
