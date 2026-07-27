@@ -1,5 +1,6 @@
 ﻿<template>
   <div id="app">
+    <div class="site-atmosphere" aria-hidden="true"></div>
     <StickyNavbar />
     <router-view />
   </div>
@@ -18,8 +19,53 @@ export default {
 
 <style lang="scss" scoped>
 #app {
+  position: relative;
   background: var(--color-paper);
   min-height: 100%;
+  isolation: isolate;
+  overflow-x: hidden;
+}
+
+#app > :not(.site-atmosphere) {
+  position: relative;
+  z-index: 1;
+}
+
+.site-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(42, 39, 31, 0.045) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(42, 39, 31, 0.034) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(93, 101, 73, 0.06), transparent 34%, rgba(154, 95, 71, 0.045) 78%, transparent),
+    var(--color-paper);
+  background-size: 96px 96px, 96px 96px, 100% 100%, 100% 100%;
+}
+
+.site-atmosphere::before,
+.site-atmosphere::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.site-atmosphere::before {
+  opacity: 0.38;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.12) 0 1px, transparent 1px 7px),
+    repeating-linear-gradient(90deg, rgba(42, 39, 31, 0.018) 0 1px, transparent 1px 11px);
+  mix-blend-mode: multiply;
+}
+
+.site-atmosphere::after {
+  width: 150%;
+  left: -25%;
+  opacity: 0.42;
+  background: linear-gradient(112deg, transparent 0 36%, rgba(255, 255, 255, 0.22) 45%, rgba(169, 130, 71, 0.08) 51%, transparent 62% 100%);
+  transform: translate3d(-8%, 0, 0);
+  animation: atmosphereDrift 18s var(--ease-smooth) infinite alternate;
 }
 
 :global(:root) {
@@ -66,11 +112,7 @@ export default {
 
 :global(body) {
   color: var(--color-ink);
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.26) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(93, 101, 73, 0.045), transparent 340px),
-    var(--color-paper);
-  background-size: 96px 96px, 100% 100%;
+  background: var(--color-paper);
   font-family: 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
@@ -214,9 +256,34 @@ export default {
   transform: translate3d(0, 0, 0) scale(1);
 }
 
+@keyframes atmosphereDrift {
+  0% {
+    opacity: 0.24;
+    transform: translate3d(-10%, 0, 0);
+  }
+
+  100% {
+    opacity: 0.44;
+    transform: translate3d(8%, 0, 0);
+  }
+}
+
 @media (max-width: 768px) {
   :global(:root) {
     --nav-height: 60px;
+  }
+
+  .site-atmosphere {
+    background-size: 118px 118px, 118px 118px, 100% 100%, 100% 100%;
+  }
+
+  .site-atmosphere::before {
+    opacity: 0.24;
+  }
+
+  .site-atmosphere::after {
+    opacity: 0.2;
+    animation-duration: 24s;
   }
 
   :global(.reveal-item) {
@@ -244,6 +311,10 @@ export default {
     opacity: 1;
     filter: none;
     transform: none;
+  }
+
+  .site-atmosphere::after {
+    animation: none;
   }
 }
 </style>
