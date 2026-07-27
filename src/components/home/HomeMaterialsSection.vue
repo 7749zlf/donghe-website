@@ -1,7 +1,7 @@
 <template>
   <section id="approach" class="materials-section">
     <div class="materials-shell">
-      <div class="materials-copy">
+      <div class="materials-copy" v-reveal="{ variant: 'left' }">
         <span class="section-kicker">MATERIAL LANGUAGE</span>
         <h2>材料不是背景，是空间性格。</h2>
         <p>
@@ -10,22 +10,22 @@
       </div>
 
       <div class="material-board" aria-label="东禾空间设计的材质语言">
-        <article class="material-panel panel-sage">
+        <article class="material-panel panel-sage" v-reveal="{ variant: 'scale', delay: 80 }">
           <span>01</span>
           <h3>光</h3>
           <p>先判断光从哪里来，再决定空间该安静还是聚焦。</p>
         </article>
-        <article class="material-panel panel-clay">
+        <article class="material-panel panel-clay" v-reveal="{ variant: 'scale', delay: 150 }">
           <span>02</span>
           <h3>材</h3>
           <p>让木、石、金属与织物形成真实可触的温差。</p>
         </article>
-        <article class="material-panel panel-ink">
+        <article class="material-panel panel-ink" v-reveal="{ variant: 'scale', delay: 220 }">
           <span>03</span>
           <h3>序</h3>
           <p>把动线、收纳和视觉中心放回清楚的位置。</p>
         </article>
-        <article class="material-panel panel-brass">
+        <article class="material-panel panel-brass" v-reveal="{ variant: 'scale', delay: 290 }">
           <span>04</span>
           <h3>落地</h3>
           <p>让效果图里的判断，能在现场被完整执行。</p>
@@ -98,7 +98,11 @@
   padding: 24px;
   overflow: hidden;
   position: relative;
-  transition: transform 0.45s var(--ease-smooth), box-shadow 0.45s ease;
+  transition:
+    opacity 0.76s ease,
+    filter 0.76s ease,
+    transform 0.45s var(--ease-smooth),
+    box-shadow 0.45s ease;
 }
 
 .material-panel::after {

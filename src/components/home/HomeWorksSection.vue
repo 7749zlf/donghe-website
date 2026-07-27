@@ -1,6 +1,6 @@
 <template>
   <section id="works" class="section works">
-    <div class="container section-head">
+    <div class="container section-head" v-reveal>
       <div>
         <span class="section-kicker">SELECTED WORKS</span>
         <h2>被现场验证过的空间。</h2>
@@ -8,7 +8,7 @@
       <p>不按热闹排序，只保留能说明尺度、材质和落地能力的项目。</p>
     </div>
 
-    <div class="container work-tags">
+    <div class="container work-tags" v-reveal="{ delay: 120 }">
       <button
         v-for="option in displayFilterOptions"
         :key="option.value"
@@ -25,6 +25,7 @@
         :key="item.id"
         class="work-card"
         :class="{ featured: index === 0 }"
+        v-reveal="{ variant: 'scale', delay: index * 100 }"
         role="button"
         tabindex="0"
         @click="$emit('view-detail', item.id)"
@@ -47,7 +48,7 @@
 
     <p v-else class="container work-empty">暂无匹配作品</p>
 
-    <button class="dh-action more-btn" @click="$emit('view-more')">
+    <button class="dh-action more-btn" v-reveal="{ delay: 160 }" @click="$emit('view-more')">
       <span class="dh-action__label">打开完整项目索引</span>
       <span class="dh-action__mark">→</span>
     </button>
@@ -178,10 +179,21 @@ const displayFilterOptions = computed(() => {
   background: #d8d1c2;
   cursor: pointer;
   box-shadow: 0 20px 62px rgba(30, 27, 20, 0.08);
+  transition:
+    opacity 0.76s ease,
+    filter 0.76s ease,
+    box-shadow 0.45s ease,
+    transform 0.45s var(--ease-smooth);
 }
 
 .work-card.featured {
   grid-row: span 2;
+}
+
+.work-card:hover,
+.work-card:focus-visible {
+  box-shadow: 0 30px 86px rgba(30, 27, 20, 0.16);
+  transform: translateY(-4px);
 }
 
 .work-card:focus-visible {
@@ -212,6 +224,17 @@ const displayFilterOptions = computed(() => {
   transition: background 0.4s ease;
 }
 
+.work-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.18) 48%, transparent 64%);
+  transform: translateX(-120%);
+  transition: transform 0.82s var(--ease-smooth);
+  pointer-events: none;
+}
+
 .work-card:hover img,
 .work-card:focus-visible img {
   transform: scale(1.045);
@@ -223,12 +246,17 @@ const displayFilterOptions = computed(() => {
   background: linear-gradient(0deg, rgba(16, 15, 12, 0.82), rgba(16, 15, 12, 0.14) 62%);
 }
 
+.work-card:hover::before,
+.work-card:focus-visible::before {
+  transform: translateX(120%);
+}
+
 .work-content {
   position: absolute;
   left: 24px;
   right: 24px;
   bottom: 22px;
-  z-index: 1;
+  z-index: 2;
   color: #fff;
 }
 

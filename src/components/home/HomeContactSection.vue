@@ -1,7 +1,7 @@
 <template>
   <section id="contact" class="section contact">
     <div class="container contact-layout">
-      <div class="contact-copy">
+      <div class="contact-copy" v-reveal="{ variant: 'left' }">
         <span class="section-kicker">SITE VISIT</span>
         <h2>把项目聊清楚，再决定风格该往哪边走。</h2>
         <p>如果你手上已经有现场照片、平面图或预算范围，发给我们，判断会更快。</p>
@@ -11,20 +11,20 @@
         </a>
       </div>
 
-      <address class="contact-info">
-        <div>
+      <address class="contact-info" v-reveal="{ variant: 'right', delay: 120 }">
+        <div v-reveal="{ delay: 180 }">
           <span>工作室</span>
           <strong>上饶市信州区洋码头B座13A1307</strong>
         </div>
-        <div>
+        <div v-reveal="{ delay: 230 }">
           <span>电话</span>
           <strong>400-888-9999</strong>
         </div>
-        <div>
+        <div v-reveal="{ delay: 280 }">
           <span>邮箱</span>
           <strong>info@luxedesign.com</strong>
         </div>
-        <div>
+        <div v-reveal="{ delay: 330 }">
           <span>时间</span>
           <strong>周一至周五 9:00 - 18:00</strong>
         </div>
@@ -91,8 +91,10 @@
   margin: 0;
   padding: 0;
   font-style: normal;
-  border-top: 1px solid var(--color-line);
-  background: rgba(248, 247, 242, 0.86);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  background: rgba(248, 247, 242, 0.82);
+  box-shadow: 0 24px 70px rgba(32, 20, 15, 0.16);
+  backdrop-filter: blur(18px);
   padding: 0 28px;
 }
 

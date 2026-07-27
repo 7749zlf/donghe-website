@@ -1,7 +1,7 @@
 <template>
   <section id="about" class="section about">
     <div class="container about-layout">
-      <div class="about-copy">
+      <div class="about-copy" v-reveal="{ variant: 'left' }">
         <span class="section-kicker">ABOUT DONGHE</span>
         <h2>先校准生活方式，再讨论风格。</h2>
         <p>
@@ -18,7 +18,7 @@
         </div>
       </div>
 
-      <figure class="about-figure">
+      <figure class="about-figure" v-reveal="{ variant: 'right', delay: 120 }">
         <img :src="aboutImage" alt="东禾空间设计工作室项目现场" class="about-image" loading="lazy" decoding="async" />
         <figcaption>
           <strong>商业 / 办公 / 居住</strong>
@@ -26,16 +26,16 @@
         </figcaption>
       </figure>
 
-      <dl class="about-stats">
-        <div>
+      <dl class="about-stats" v-reveal="{ variant: 'up', delay: 180 }">
+        <div v-reveal="{ delay: 220 }">
           <dt>10+</dt>
           <dd>多年空间经验</dd>
         </div>
-        <div>
+        <div v-reveal="{ delay: 280 }">
           <dt>3</dt>
           <dd>核心设计方向</dd>
         </div>
-        <div>
+        <div v-reveal="{ delay: 340 }">
           <dt>1:1</dt>
           <dd>重视落地还原</dd>
         </div>

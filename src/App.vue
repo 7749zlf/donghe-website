@@ -94,6 +94,7 @@ export default {
   --dh-action-bg: transparent;
   --dh-action-hover-bg: var(--color-ink);
   --dh-action-hover-fg: #fff;
+  position: relative;
   min-height: 46px;
   display: inline-flex;
   align-items: stretch;
@@ -103,10 +104,24 @@ export default {
   padding: 0;
   cursor: pointer;
   text-decoration: none;
+  border-radius: 4px;
+  overflow: hidden;
+  isolation: isolate;
   transition:
     background 0.32s var(--ease-smooth),
     color 0.32s var(--ease-smooth),
+    border-color 0.32s var(--ease-smooth),
     transform 0.32s var(--ease-smooth);
+}
+
+:global(.dh-action::before) {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.26) 44%, transparent 62%);
+  transform: translateX(-130%);
+  transition: transform 0.72s var(--ease-smooth);
 }
 
 :global(.dh-action:hover),
@@ -114,6 +129,11 @@ export default {
   background: var(--dh-action-hover-bg);
   color: var(--dh-action-hover-fg);
   transform: translateY(-2px);
+}
+
+:global(.dh-action:hover::before),
+:global(.dh-action:focus-visible::before) {
+  transform: translateX(130%);
 }
 
 :global(.dh-action__label) {
@@ -154,9 +174,76 @@ export default {
   --dh-action-hover-fg: var(--color-ink);
 }
 
+:global(.dh-action--glass) {
+  --dh-action-fg: #fff;
+  --dh-action-bg: rgba(255, 255, 255, 0.12);
+  --dh-action-hover-bg: rgba(255, 255, 255, 0.92);
+  --dh-action-hover-fg: var(--color-ink);
+  border-color: rgba(255, 255, 255, 0.46);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.34), 0 18px 42px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+:global(.reveal-item) {
+  opacity: 0;
+  filter: blur(7px);
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity 0.76s ease,
+    filter 0.76s ease,
+    transform 0.76s var(--ease-smooth);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, filter, transform;
+}
+
+:global(.reveal-left) {
+  transform: translate3d(-28px, 0, 0);
+}
+
+:global(.reveal-right) {
+  transform: translate3d(28px, 0, 0);
+}
+
+:global(.reveal-scale) {
+  transform: translate3d(0, 18px, 0) scale(0.97);
+}
+
+:global(.reveal-item.is-visible) {
+  opacity: 1;
+  filter: blur(0);
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
 @media (max-width: 768px) {
   :global(:root) {
     --nav-height: 60px;
+  }
+
+  :global(.reveal-item) {
+    filter: none;
+    transform: translate3d(0, 18px, 0);
+    transition-duration: 0.52s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(html),
+  :global(body) {
+    scroll-behavior: auto;
+  }
+
+  :global(*),
+  :global(*::before),
+  :global(*::after) {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  :global(.reveal-item) {
+    opacity: 1;
+    filter: none;
+    transform: none;
   }
 }
 </style>

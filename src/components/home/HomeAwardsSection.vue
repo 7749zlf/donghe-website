@@ -1,13 +1,18 @@
 <template>
   <section class="section awards">
-    <div class="container section-head">
+    <div class="container section-head" v-reveal>
       <span class="section-kicker">RECOGNITION</span>
       <h2>荣誉，是项目被看见的结果。</h2>
       <p>它说明设计不只停留在概念层面，也经得起审美、执行和行业标准的验证。</p>
     </div>
 
     <div class="container award-list">
-      <article v-for="item in awards" :key="item.id || item.title" class="award-card">
+      <article
+        v-for="(item, index) in awards"
+        :key="item.id || item.title"
+        class="award-card"
+        v-reveal="{ variant: 'up', delay: index * 90 }"
+      >
         <button class="award-image-btn" type="button" :aria-label="`放大查看 ${item.title}`" @click="openPreview(item)">
           <img class="award-image" :src="item.image" :alt="item.imageAlt || item.title" loading="lazy" decoding="async" />
         </button>
@@ -111,6 +116,17 @@ function closePreview() {
   border-right: 1px solid rgba(255, 255, 255, 0.16);
   border-bottom: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.025);
+  transition:
+    opacity 0.76s ease,
+    filter 0.76s ease,
+    background 0.35s ease,
+    transform 0.35s var(--ease-smooth);
+}
+
+.award-card:hover,
+.award-card:focus-within {
+  background: rgba(255, 255, 255, 0.055);
+  transform: translateY(-4px);
 }
 
 .award-image-btn {

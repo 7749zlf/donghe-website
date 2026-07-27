@@ -7,7 +7,12 @@
       :style="{ transform: `translateX(-${trackIndex * 100}%)` }"
       @transitionend="handleTransitionEnd"
     >
-      <div v-for="(slide, index) in displaySlides" :key="`${slide.id}-${index}`" class="hero-slide">
+      <div
+        v-for="(slide, index) in displaySlides"
+        :key="`${slide.id}-${index}`"
+        class="hero-slide"
+        :class="{ 'is-active-slide': index === trackIndex }"
+      >
         <img
           :src="slide.list?.[0] || ''"
           :alt="slide.name || '空间作品'"
@@ -20,15 +25,16 @@
     </div>
 
     <div class="hero-shade"></div>
+    <div class="hero-light-field"></div>
 
     <div class="hero-content">
       <Transition name="hero-copy" mode="out-in">
-        <div :key="currentSlide.id || currentSlideIndex" class="hero-copy">
+        <div :key="currentSlide.id || currentSlideIndex" class="hero-copy" v-reveal="{ variant: 'left' }">
           <span class="eyebrow">DONGHE INTERIOR STUDIO</span>
           <h1>东禾空间设计</h1>
           <p>从现场尺度、材质温度和生活动线出发，把空间做得安静、清楚、耐看。</p>
           <div class="hero-actions">
-            <button class="dh-action dh-action--light" @click="$emit('view-more')">
+            <button class="dh-action dh-action--glass" @click="$emit('view-more')">
               <span class="dh-action__label">进入项目索引</span>
               <span class="dh-action__mark">↗</span>
             </button>
@@ -196,6 +202,12 @@ watch(
   object-fit: cover;
   transform: scale(1.02);
   filter: saturate(0.88) contrast(1.02);
+  transition: transform 6.4s ease, filter 1s ease;
+}
+
+.hero-slide.is-active-slide .hero-image {
+  transform: scale(1.07);
+  filter: saturate(0.96) contrast(1.04);
 }
 
 .hero-shade {
@@ -204,6 +216,19 @@ watch(
   background:
     linear-gradient(90deg, rgba(14, 13, 10, 0.78) 0%, rgba(14, 13, 10, 0.36) 48%, rgba(14, 13, 10, 0.2) 100%),
     linear-gradient(0deg, rgba(14, 13, 10, 0.62) 0%, transparent 42%);
+}
+
+.hero-light-field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 74% 24%, rgba(255, 255, 255, 0.18), transparent 24%),
+    linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.16) 42%, transparent 54%);
+  mix-blend-mode: screen;
+  opacity: 0.42;
+  transform: translateX(-18%);
+  animation: heroLightSweep 9s var(--ease-smooth) infinite alternate;
 }
 
 .hero-content {
@@ -239,6 +264,12 @@ watch(
   font-size: 11px;
   letter-spacing: 1.8px;
   backdrop-filter: blur(8px);
+  transition: background 0.45s ease, transform 0.45s var(--ease-smooth);
+}
+
+.hero-atelier span:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: rotate(180deg) translateY(-4px);
 }
 
 .hero-atelier span:nth-child(2) {
@@ -315,12 +346,14 @@ watch(
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: background 0.24s ease, border-color 0.24s ease;
+  backdrop-filter: blur(14px);
+  transition: background 0.24s ease, border-color 0.24s ease, transform 0.24s var(--ease-smooth);
 }
 
 .hero-arrow:hover {
   background: rgba(255, 255, 255, 0.18);
   border-color: rgba(255, 255, 255, 0.72);
+  transform: translateY(-2px);
 }
 
 .arrow-icon {
@@ -351,6 +384,18 @@ watch(
 .dot-btn.active {
   width: 52px;
   background: #fff;
+}
+
+@keyframes heroLightSweep {
+  0% {
+    opacity: 0.18;
+    transform: translateX(-28%);
+  }
+
+  100% {
+    opacity: 0.46;
+    transform: translateX(12%);
+  }
 }
 
 .hero-copy-enter-active,
@@ -405,6 +450,11 @@ watch(
     display: none;
   }
 
+  .hero-light-field {
+    opacity: 0.22;
+    animation-duration: 12s;
+  }
+
   .hero-controls {
     width: calc(100% - 36px);
     justify-content: space-between;
@@ -417,6 +467,21 @@ watch(
 
   .dot-btn.active {
     width: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-image,
+  .hero-light-field,
+  .hero-arrow,
+  .hero-atelier span {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
+
+  .hero-atelier span {
+    transform: rotate(180deg);
   }
 }
 </style>
