@@ -310,15 +310,22 @@ export default {
   animation: introFadeOut 0.34s ease both;
 }
 
-.studio-intro-enter-active,
 .studio-intro-leave-active {
   transition: opacity 0.5s ease, transform 0.5s var(--ease-smooth);
 }
 
-.studio-intro-enter-from,
 .studio-intro-leave-to {
   opacity: 0;
   transform: scale(1.015);
+}
+
+.studio-intro-enter-active {
+  transition: none;
+}
+
+.studio-intro-enter-from {
+  opacity: 1;
+  transform: none;
 }
 
 :global(:root) {

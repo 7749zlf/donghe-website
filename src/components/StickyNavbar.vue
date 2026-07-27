@@ -179,6 +179,10 @@ export default {
   background: rgba(93, 101, 73, 0.08);
 }
 
+.toggle-btn span {
+  display: block;
+}
+
 @media (max-width: 768px) {
   .sticky-navbar {
     padding: 0 16px;
@@ -195,6 +199,12 @@ export default {
   .brand small {
     font-size: 9px;
     letter-spacing: 1.8px;
+  }
+
+  .nav-container {
+    margin-left: auto;
+    position: relative;
+    z-index: 2;
   }
 
   .nav-list {
@@ -229,6 +239,10 @@ export default {
 
   .toggle-btn {
     display: block;
+    border-color: rgba(42, 39, 31, 0.28);
+    background: rgba(255, 255, 255, 0.42);
+    box-shadow: 0 10px 24px rgba(30, 27, 20, 0.08);
+    backdrop-filter: blur(12px);
   }
 }
 </style>

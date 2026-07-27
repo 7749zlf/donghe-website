@@ -453,10 +453,14 @@ watch(
   }
 
   .hero-copy h1 {
-    font-size: clamp(42px, 13vw, 62px);
+    max-width: 100%;
+    font-size: clamp(36px, 11vw, 48px);
+    line-height: 1.04;
+    overflow-wrap: anywhere;
   }
 
   .hero-copy p {
+    max-width: 100%;
     font-size: 17px;
   }
 
@@ -479,6 +483,7 @@ watch(
     width: calc(100% - 36px);
     justify-content: space-between;
     gap: 12px;
+    pointer-events: auto;
   }
 
   .dot-btn {
@@ -487,6 +492,52 @@ watch(
 
   .dot-btn.active {
     width: 38px;
+  }
+}
+
+@media (max-width: 860px) and (max-height: 520px) {
+  .hero {
+    min-height: 430px;
+    height: calc(100svh - var(--nav-height));
+  }
+
+  .hero-content {
+    align-items: center;
+    padding: 18px 0 64px;
+  }
+
+  .hero-copy {
+    max-width: 560px;
+  }
+
+  .eyebrow {
+    margin-bottom: 10px;
+    font-size: 10px;
+    letter-spacing: 3px;
+  }
+
+  .hero-copy h1 {
+    font-size: clamp(32px, 8vw, 44px);
+  }
+
+  .hero-copy p {
+    margin-top: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .hero-actions {
+    margin-top: 18px;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .project-note {
+    display: none;
+  }
+
+  .hero-controls {
+    bottom: 14px;
   }
 }
 
