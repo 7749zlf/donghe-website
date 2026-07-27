@@ -203,8 +203,6 @@ export default {
 
   .nav-container {
     margin-left: auto;
-    position: relative;
-    z-index: 2;
   }
 
   .nav-list {
@@ -238,6 +236,8 @@ export default {
   }
 
   .toggle-btn {
+    position: relative;
+    z-index: 2;
     display: block;
     border-color: rgba(42, 39, 31, 0.28);
     background: rgba(255, 255, 255, 0.42);
