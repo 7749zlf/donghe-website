@@ -1,6 +1,28 @@
 ﻿<template>
   <div id="app" @pointermove="handlePointerMove">
     <div class="site-atmosphere" aria-hidden="true"></div>
+    <Transition name="studio-intro">
+      <section
+        v-if="showIntro"
+        class="studio-intro"
+        :class="{ 'is-leaving': introLeaving }"
+        aria-label="东禾空间设计进场动画"
+        @click="skipIntro"
+      >
+        <div class="intro-grid" aria-hidden="true"></div>
+        <div class="intro-light" aria-hidden="true"></div>
+        <div class="intro-mark">
+          <span>东禾</span>
+          <strong>INTERIOR STUDIO</strong>
+        </div>
+        <div class="intro-copy">
+          <span>LIGHT</span>
+          <span>MATERIAL</span>
+          <span>ORDER</span>
+        </div>
+        <button class="intro-skip" type="button" @click.stop="skipIntro">跳过</button>
+      </section>
+    </Transition>
     <StickyNavbar />
     <router-view />
   </div>
@@ -17,10 +39,77 @@ export default {
   data() {
     return {
       pendingPointer: null,
-      pointerFrame: null
+      pointerFrame: null,
+      showIntro: false,
+      introLeaving: false,
+      introTimers: []
     }
   },
+  mounted() {
+    this.startIntro()
+  },
   methods: {
+    setIntroTimer(callback, delay) {
+      const timer = window.setTimeout(callback, delay)
+      this.introTimers.push(timer)
+      return timer
+    },
+    clearIntroTimers() {
+      this.introTimers.forEach((timer) => window.clearTimeout(timer))
+      this.introTimers = []
+    },
+    wasIntroPlayed() {
+      try {
+        return window.sessionStorage.getItem('donghe-intro-played') === '1'
+      } catch {
+        return false
+      }
+    },
+    markIntroPlayed() {
+      try {
+        window.sessionStorage.setItem('donghe-intro-played', '1')
+      } catch {
+        // Storage can be unavailable in restricted browser contexts.
+      }
+    },
+    startIntro() {
+      if (this.wasIntroPlayed()) {
+        return
+      }
+
+      const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      this.showIntro = true
+
+      if (prefersReducedMotion) {
+        this.setIntroTimer(() => this.skipIntro(), 320)
+        return
+      }
+
+      this.setIntroTimer(() => {
+        this.introLeaving = true
+      }, 1780)
+
+      this.setIntroTimer(() => {
+        this.finishIntro()
+      }, 2320)
+    },
+    finishIntro() {
+      this.markIntroPlayed()
+      this.showIntro = false
+      this.introLeaving = false
+      this.clearIntroTimers()
+    },
+    skipIntro() {
+      if (!this.showIntro) {
+        return
+      }
+
+      this.clearIntroTimers()
+      this.introLeaving = true
+      this.setIntroTimer(() => {
+        this.finishIntro()
+      }, 220)
+    },
     handlePointerMove(event) {
       if (event.pointerType === 'touch') {
         return
@@ -49,6 +138,7 @@ export default {
     if (this.pointerFrame) {
       cancelAnimationFrame(this.pointerFrame)
     }
+    this.clearIntroTimers()
   }
 }
 </script>
@@ -62,7 +152,7 @@ export default {
   overflow-x: hidden;
 }
 
-#app > :not(.site-atmosphere) {
+#app > :not(.site-atmosphere):not(.studio-intro) {
   position: relative;
   z-index: 1;
 }
@@ -106,6 +196,129 @@ export default {
   background: linear-gradient(112deg, transparent 0 33%, rgba(255, 255, 255, 0.3) 43%, rgba(169, 130, 71, 0.12) 51%, transparent 64% 100%);
   transform: translate3d(-8%, 0, 0);
   animation: atmosphereDrift 14s var(--ease-smooth) infinite alternate;
+}
+
+.studio-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 68% 26%, rgba(169, 130, 71, 0.24), transparent 28%),
+    linear-gradient(135deg, #171714 0%, #24241f 48%, #5d6549 100%);
+  color: var(--color-porcelain);
+  cursor: pointer;
+}
+
+.intro-grid,
+.intro-light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.intro-grid {
+  opacity: 0.32;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 88px 88px;
+  transform: scale(1.08);
+  animation: introGridSettle 1.7s var(--ease-smooth) both;
+}
+
+.intro-light {
+  width: 150%;
+  left: -25%;
+  background:
+    linear-gradient(112deg, transparent 0 36%, rgba(255, 255, 255, 0.5) 46%, rgba(169, 130, 71, 0.32) 54%, transparent 66% 100%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.18), transparent 28%);
+  mix-blend-mode: screen;
+  transform: translate3d(-36%, 0, 0);
+  animation: introLightPass 1.82s var(--ease-smooth) both;
+}
+
+.intro-mark {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  text-align: center;
+  transform: translateY(18px);
+  animation: introMarkIn 1.1s var(--ease-smooth) 0.18s both;
+}
+
+.intro-mark span {
+  font-size: clamp(58px, 11vw, 132px);
+  font-weight: 500;
+  line-height: 0.9;
+  letter-spacing: 0.08em;
+}
+
+.intro-mark strong {
+  color: rgba(248, 247, 242, 0.68);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.42em;
+}
+
+.intro-copy {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(54px, 8vw, 92px);
+  z-index: 1;
+  display: flex;
+  gap: clamp(20px, 5vw, 68px);
+  color: rgba(248, 247, 242, 0.62);
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  transform: translateX(-50%);
+  animation: introCopyIn 0.9s ease 0.7s both;
+}
+
+.intro-skip {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  z-index: 2;
+  min-width: 58px;
+  min-height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(248, 247, 242, 0.78);
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  transition: background 0.24s ease, color 0.24s ease, transform 0.24s var(--ease-smooth);
+}
+
+.intro-skip:hover,
+.intro-skip:focus-visible {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.studio-intro.is-leaving {
+  pointer-events: none;
+}
+
+.studio-intro.is-leaving .intro-mark,
+.studio-intro.is-leaving .intro-copy,
+.studio-intro.is-leaving .intro-skip {
+  animation: introFadeOut 0.34s ease both;
+}
+
+.studio-intro-enter-active,
+.studio-intro-leave-active {
+  transition: opacity 0.5s ease, transform 0.5s var(--ease-smooth);
+}
+
+.studio-intro-enter-from,
+.studio-intro-leave-to {
+  opacity: 0;
+  transform: scale(1.015);
 }
 
 :global(:root) {
@@ -341,6 +554,68 @@ export default {
   }
 }
 
+@keyframes introGridSettle {
+  0% {
+    opacity: 0;
+    transform: scale(1.16) translate3d(0, 18px, 0);
+  }
+
+  100% {
+    opacity: 0.32;
+    transform: scale(1.08) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes introLightPass {
+  0% {
+    opacity: 0;
+    transform: translate3d(-42%, 0, 0);
+  }
+
+  42% {
+    opacity: 0.86;
+  }
+
+  100% {
+    opacity: 0.28;
+    transform: translate3d(26%, 0, 0);
+  }
+}
+
+@keyframes introMarkIn {
+  0% {
+    opacity: 0;
+    filter: blur(10px);
+    transform: translateY(28px) scale(0.96);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes introCopyIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes introFadeOut {
+  100% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(-14px);
+  }
+}
+
 @media (max-width: 768px) {
   :global(:root) {
     --nav-height: 60px;
@@ -357,6 +632,29 @@ export default {
   .site-atmosphere::after {
     opacity: 0.2;
     animation-duration: 24s;
+  }
+
+  .studio-intro {
+    background:
+      radial-gradient(circle at 70% 28%, rgba(169, 130, 71, 0.2), transparent 30%),
+      linear-gradient(145deg, #171714 0%, #24241f 58%, #5d6549 100%);
+  }
+
+  .intro-grid {
+    background-size: 64px 64px;
+  }
+
+  .intro-copy {
+    width: calc(100% - 48px);
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+  }
+
+  .intro-skip {
+    top: 18px;
+    right: 18px;
   }
 
   :global(.reveal-item) {
@@ -388,6 +686,10 @@ export default {
 
   .site-atmosphere::after {
     animation: none;
+  }
+
+  .studio-intro {
+    display: none;
   }
 }
 </style>
