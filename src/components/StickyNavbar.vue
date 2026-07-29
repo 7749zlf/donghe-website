@@ -239,10 +239,12 @@ export default {
     position: relative;
     z-index: 2;
     display: block;
-    border-color: rgba(42, 39, 31, 0.28);
-    background: rgba(255, 255, 255, 0.42);
-    box-shadow: 0 10px 24px rgba(30, 27, 20, 0.08);
+    border-color: rgba(42, 39, 31, 0.2);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.34);
+    box-shadow: 0 12px 28px rgba(30, 27, 20, 0.07);
     backdrop-filter: blur(12px);
+    font-size: 20px;
   }
 }
 </style>

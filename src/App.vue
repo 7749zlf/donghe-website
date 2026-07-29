@@ -78,6 +78,9 @@ export default {
       }
 
       const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      const isMobileIntro = window.matchMedia?.('(max-width: 768px)').matches
+      const leaveDelay = isMobileIntro ? 1950 : 2750
+      const finishDelay = isMobileIntro ? 2450 : 3350
       this.showIntro = true
 
       if (prefersReducedMotion) {
@@ -87,11 +90,11 @@ export default {
 
       this.setIntroTimer(() => {
         this.introLeaving = true
-      }, 2750)
+      }, leaveDelay)
 
       this.setIntroTimer(() => {
         this.finishIntro()
-      }, 3350)
+      }, finishDelay)
     },
     finishIntro() {
       this.markIntroPlayed()
@@ -649,6 +652,16 @@ export default {
 
   .intro-grid {
     background-size: 64px 64px;
+    animation-duration: 1.6s;
+  }
+
+  .intro-light {
+    animation-duration: 2s;
+  }
+
+  .intro-mark {
+    animation-duration: 1s;
+    animation-delay: 0.18s;
   }
 
   .intro-copy {
@@ -657,11 +670,28 @@ export default {
     gap: 12px;
     font-size: 10px;
     letter-spacing: 0.2em;
+    animation-duration: 0.8s;
+    animation-delay: 0.72s;
   }
 
   .intro-skip {
     top: 18px;
     right: 18px;
+  }
+
+  :global(.dh-action) {
+    min-height: 42px;
+  }
+
+  :global(.dh-action__label) {
+    padding: 0 15px;
+    font-size: 13px;
+  }
+
+  :global(.dh-action__mark) {
+    width: 42px;
+    min-height: 40px;
+    font-size: 16px;
   }
 
   :global(.reveal-item) {
