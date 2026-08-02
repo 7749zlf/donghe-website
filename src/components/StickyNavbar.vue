@@ -37,25 +37,47 @@
 <script>
 export default {
   name: 'StickyNavbar',
+  /**
+   * 创建移动端导航菜单状态。
+   * @returns {Object} Vue 组件的响应式初始状态。
+   */
   data() {
     return {
       isMenuOpen: false
     }
   },
   methods: {
+    /**
+     * 切换移动端导航菜单的展开状态。
+     * @returns {void}
+     */
     toggleCollapse() {
       this.isMenuOpen = !this.isMenuOpen
     },
+    /**
+     * 收起菜单并返回网站首页。
+     * @returns {void}
+     */
     toHome() {
       this.isMenuOpen = false
       this.$router.push('/')
     },
+    /**
+     * 收起菜单并进入完整项目索引。
+     * @returns {void}
+     */
     toWorks() {
       this.isMenuOpen = false
       this.$router.push({ name: 'worksGallery' })
     },
+    /**
+     * 定位首页区块；不在首页时先完成路由跳转再滚动。
+     * @param {string} sectionId 目标区块的 DOM id。
+     * @returns {void}
+     */
     scrollToSection(sectionId) {
       this.isMenuOpen = false
+      /** 执行目标区块的平滑滚动。 */
       const scroll = () => {
         document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
@@ -69,6 +91,10 @@ export default {
         this.$nextTick(scroll)
       })
     },
+    /**
+     * 收起菜单并进入内容管理页面。
+     * @returns {void}
+     */
     toManager() {
       this.isMenuOpen = false
       this.$router.push({ name: 'contentManager' })

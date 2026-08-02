@@ -10,6 +10,10 @@ createApp(App)
   .directive('reveal', reveal)
   .mount('#app')
 
+/**
+ * 应用启动后加载云端项目；未配置云服务或请求失败时保留本地数据。
+ * @returns {Promise<void>}
+ */
 async function bootCloudCases() {
   if (!isCloudCasesEnabled()) {
     return

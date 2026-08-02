@@ -105,23 +105,40 @@ const filteredProjects = computed(() => {
     .slice(0, 3)
 })
 
+/**
+ * 循环切换到下一张首页主视觉，并重新计算自动播放时间。
+ * @returns {void}
+ */
 function nextSlide() {
   if (!heroSlides.value.length) return
   currentSlideIndex.value = (currentSlideIndex.value + 1) % heroSlides.value.length
   restartAutoSlide()
 }
 
+/**
+ * 循环切换到上一张首页主视觉，并重新计算自动播放时间。
+ * @returns {void}
+ */
 function prevSlide() {
   if (!heroSlides.value.length) return
   currentSlideIndex.value = (currentSlideIndex.value - 1 + heroSlides.value.length) % heroSlides.value.length
   restartAutoSlide()
 }
 
+/**
+ * 切换到指定首页主视觉并重新计算自动播放时间。
+ * @param {number} index 目标轮播索引。
+ * @returns {void}
+ */
 function setSlide(index) {
   currentSlideIndex.value = index
   restartAutoSlide()
 }
 
+/**
+ * 在存在主视觉数据时启动五秒间隔的自动轮播。
+ * @returns {void}
+ */
 function startAutoSlide() {
   if (!heroSlides.value.length) return
   autoTimer = setInterval(() => {
@@ -129,6 +146,10 @@ function startAutoSlide() {
   }, 5000)
 }
 
+/**
+ * 停止并清空首页自动轮播计时器。
+ * @returns {void}
+ */
 function stopAutoSlide() {
   if (autoTimer) {
     clearInterval(autoTimer)
@@ -136,24 +157,47 @@ function stopAutoSlide() {
   }
 }
 
+/**
+ * 重置首页自动轮播计时周期。
+ * @returns {void}
+ */
 function restartAutoSlide() {
   stopAutoSlide()
   startAutoSlide()
 }
 
+/**
+ * 进入指定项目详情，未传 id 时使用当前主视觉项目。
+ * @param {string|number|undefined} id 项目唯一标识。
+ * @returns {void}
+ */
 function viewMoreCases(id = currentSlide.value?.id) {
   if (!id) return
   router.push({ name: 'designDetail', params: { id } })
 }
 
+/**
+ * 更新首页项目的空间筛选条件。
+ * @param {string} space 空间筛选值。
+ * @returns {void}
+ */
 function setHomeSpace(space) {
   activeSpace.value = space || tags[0]
 }
 
+/**
+ * 更新首页项目的风格筛选条件。
+ * @param {string} style 风格筛选值。
+ * @returns {void}
+ */
 function setHomeStyle(style) {
   activeStyle.value = style || ''
 }
 
+/**
+ * 进入项目索引，并通过 URL 传递首页当前的有效筛选条件。
+ * @returns {void}
+ */
 function goWorksGallery() {
   const query = {}
   if (activeSpace.value !== tags[0]) {
@@ -165,6 +209,10 @@ function goWorksGallery() {
   router.push({ name: 'worksGallery', query })
 }
 
+/**
+ * 内容更新后刷新首页项目、主视觉和荣誉数据。
+ * @returns {void}
+ */
 function refreshCustomCases() {
   displayDesignCases.value = getDisplayDesignCases()
   displayProjects.value = getDisplayProjects()
@@ -174,6 +222,10 @@ function refreshCustomCases() {
   }
 }
 
+/**
+ * 分别加载云端项目与荣誉，并在请求结束后刷新首页展示数据。
+ * @returns {Promise<void>}
+ */
 async function refreshCloudContent() {
   if (!cloudEnabled) {
     return

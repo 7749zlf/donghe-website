@@ -5,6 +5,10 @@ const revealOptions = {
 
 let revealObserver = null
 
+/**
+ * 获取共享的元素入场观察器；浏览器不支持时返回 null。
+ * @returns {IntersectionObserver|null} 可复用的观察器实例。
+ */
 function getObserver() {
   if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
     return null
@@ -26,6 +30,11 @@ function getObserver() {
   return revealObserver
 }
 
+/**
+ * 将指令绑定值统一转换为入场动画配置对象。
+ * @param {string|Object|undefined} value 指令绑定值。
+ * @returns {Object} 标准化后的动画配置。
+ */
 function resolveRevealConfig(value) {
   if (typeof value === 'string') {
     return { variant: value }
@@ -39,6 +48,12 @@ function resolveRevealConfig(value) {
 }
 
 export default {
+  /**
+   * 初始化元素入场样式并注册可见性观察。
+   * @param {HTMLElement} el 指令绑定元素。
+   * @param {Object} binding Vue 指令绑定信息。
+   * @returns {void}
+   */
   mounted(el, binding) {
     const config = resolveRevealConfig(binding.value)
     const delay = Number(config.delay || 0)
@@ -56,6 +71,11 @@ export default {
     el.classList.add('is-visible')
   },
 
+  /**
+   * 元素卸载时停止观察，释放观察器引用。
+   * @param {HTMLElement} el 指令绑定元素。
+   * @returns {void}
+   */
   unmounted(el) {
     getObserver()?.unobserve(el)
   }

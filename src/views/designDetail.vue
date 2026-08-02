@@ -192,26 +192,46 @@ const nextImageIndex = computed(() => {
   return (activeIndex.value + 1) % galleryItems.value.length
 })
 
+/**
+ * 循环切换到画册上一张图片。
+ * @returns {void}
+ */
 function goPrev() {
   if (!galleryItems.value.length) return
   activeIndex.value = prevImageIndex.value
 }
 
+/**
+ * 循环切换到画册下一张图片。
+ * @returns {void}
+ */
 function goNext() {
   if (!galleryItems.value.length) return
   activeIndex.value = nextImageIndex.value
 }
 
+/**
+ * 返回完整项目索引页。
+ * @returns {void}
+ */
 function goWorks() {
   router.push({ name: 'worksGallery' })
 }
 
+/**
+ * 在新标签页打开当前项目配置的外部 3D 地址。
+ * @returns {void}
+ */
 function go3D() {
   if (URL.value) {
     window.open(URL.value, '_blank')
   }
 }
 
+/**
+ * 重置变换状态并打开当前图片的大图预览。
+ * @returns {void}
+ */
 function openPreview() {
   if (!activeItem.value.full) {
     return
@@ -221,15 +241,29 @@ function openPreview() {
   isPreviewOpen.value = true
 }
 
+/**
+ * 关闭大图预览并清除缩放和拖拽状态。
+ * @returns {void}
+ */
 function closePreview() {
   isPreviewOpen.value = false
   resetPreviewTransform()
 }
 
+/**
+ * 将预览缩放值限制在允许范围内并保留两位小数。
+ * @param {number} value 目标缩放倍数。
+ * @returns {number} 限制后的缩放倍数。
+ */
 function clampPreviewZoom(value) {
   return Math.min(MAX_PREVIEW_ZOOM, Math.max(MIN_PREVIEW_ZOOM, Number(value.toFixed(2))))
 }
 
+/**
+ * 更新预览缩放；恢复原始比例时同步归零平移位置。
+ * @param {number} value 目标缩放倍数。
+ * @returns {void}
+ */
 function setPreviewZoom(value) {
   previewZoom.value = clampPreviewZoom(value)
   if (previewZoom.value === MIN_PREVIEW_ZOOM) {
@@ -238,24 +272,44 @@ function setPreviewZoom(value) {
   }
 }
 
+/**
+ * 按固定步长放大预览图片。
+ * @returns {void}
+ */
 function zoomInPreview() {
   setPreviewZoom(previewZoom.value + PREVIEW_ZOOM_STEP)
 }
 
+/**
+ * 按固定步长缩小预览图片。
+ * @returns {void}
+ */
 function zoomOutPreview() {
   setPreviewZoom(previewZoom.value - PREVIEW_ZOOM_STEP)
 }
 
+/**
+ * 在预览层切换上一张图片并重置变换状态。
+ * @returns {void}
+ */
 function goPreviewPrev() {
   goPrev()
   resetPreviewTransform()
 }
 
+/**
+ * 在预览层切换下一张图片并重置变换状态。
+ * @returns {void}
+ */
 function goPreviewNext() {
   goNext()
   resetPreviewTransform()
 }
 
+/**
+ * 恢复预览图片的原始比例、位置和拖拽状态。
+ * @returns {void}
+ */
 function resetPreviewTransform() {
   previewZoom.value = MIN_PREVIEW_ZOOM
   previewPan.x = 0
@@ -264,11 +318,21 @@ function resetPreviewTransform() {
   previewDragStart.pointerId = null
 }
 
+/**
+ * 将鼠标滚轮方向转换为预览缩放步进。
+ * @param {WheelEvent} event 滚轮事件。
+ * @returns {void}
+ */
 function handlePreviewWheel(event) {
   const direction = event.deltaY < 0 ? 1 : -1
   setPreviewZoom(previewZoom.value + direction * PREVIEW_ZOOM_STEP)
 }
 
+/**
+ * 在图片已放大时记录拖拽起点并捕获当前指针。
+ * @param {PointerEvent} event 指针按下事件。
+ * @returns {void}
+ */
 function startPreviewDrag(event) {
   if (previewZoom.value <= MIN_PREVIEW_ZOOM) {
     return
@@ -283,6 +347,11 @@ function startPreviewDrag(event) {
   event.currentTarget.setPointerCapture(event.pointerId)
 }
 
+/**
+ * 根据当前指针与起点的距离更新预览图片平移量。
+ * @param {PointerEvent} event 指针移动事件。
+ * @returns {void}
+ */
 function movePreviewDrag(event) {
   if (!isPreviewDragging.value || previewDragStart.pointerId !== event.pointerId) {
     return
@@ -292,6 +361,11 @@ function movePreviewDrag(event) {
   previewPan.y = previewDragStart.panY + event.clientY - previewDragStart.y
 }
 
+/**
+ * 释放当前指针捕获并结束预览图片拖拽。
+ * @param {PointerEvent} event 指针结束事件。
+ * @returns {void}
+ */
 function stopPreviewDrag(event) {
   if (!isPreviewDragging.value || previewDragStart.pointerId !== event.pointerId) {
     return
@@ -315,6 +389,10 @@ watch(
   }
 )
 
+/**
+ * 内容更新后重新读取当前详情数据并回到画册首图。
+ * @returns {void}
+ */
 function refreshDetail() {
   displayWorks.value = getDisplayWorksList()
   displayDesignCases.value = getDisplayDesignCases()

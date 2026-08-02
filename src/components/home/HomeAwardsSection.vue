@@ -49,10 +49,19 @@ defineProps({
 
 const previewAward = ref(null)
 
+/**
+ * 打开指定荣誉图片的放大预览。
+ * @param {Object} item 荣誉数据。
+ * @returns {void}
+ */
 function openPreview(item) {
   previewAward.value = item
 }
 
+/**
+ * 关闭荣誉图片预览并清空当前项目。
+ * @returns {void}
+ */
 function closePreview() {
   previewAward.value = null
 }

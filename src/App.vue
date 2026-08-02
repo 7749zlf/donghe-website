@@ -36,6 +36,10 @@ export default {
   components: {
     StickyNavbar
   },
+  /**
+   * 创建应用级动画与指针状态。
+   * @returns {Object} Vue 组件的响应式初始状态。
+   */
   data() {
     return {
       pendingPointer: null,
@@ -45,19 +49,37 @@ export default {
       introTimers: []
     }
   },
+  /**
+   * 组件挂载后按当前会话状态启动进场动画。
+   * @returns {void}
+   */
   mounted() {
     this.startIntro()
   },
   methods: {
+    /**
+     * 创建受组件统一管理的进场动画计时器。
+     * @param {Function} callback 计时结束后执行的回调。
+     * @param {number} delay 延迟毫秒数。
+     * @returns {number} 浏览器计时器标识。
+     */
     setIntroTimer(callback, delay) {
       const timer = window.setTimeout(callback, delay)
       this.introTimers.push(timer)
       return timer
     },
+    /**
+     * 清除全部进场动画计时器，防止卸载后继续修改状态。
+     * @returns {void}
+     */
     clearIntroTimers() {
       this.introTimers.forEach((timer) => window.clearTimeout(timer))
       this.introTimers = []
     },
+    /**
+     * 检查当前浏览器会话是否已经播放过进场动画。
+     * @returns {boolean} 已播放时返回 true。
+     */
     wasIntroPlayed() {
       try {
         return window.sessionStorage.getItem('donghe-intro-played') === '1'
@@ -65,6 +87,10 @@ export default {
         return false
       }
     },
+    /**
+     * 将进场动画完成状态写入当前会话存储。
+     * @returns {void}
+     */
     markIntroPlayed() {
       try {
         window.sessionStorage.setItem('donghe-intro-played', '1')
@@ -72,6 +98,10 @@ export default {
         // Storage can be unavailable in restricted browser contexts.
       }
     },
+    /**
+     * 根据设备尺寸与减少动态效果偏好安排进场动画时序。
+     * @returns {void}
+     */
     startIntro() {
       if (this.wasIntroPlayed()) {
         return
@@ -96,12 +126,20 @@ export default {
         this.finishIntro()
       }, finishDelay)
     },
+    /**
+     * 完成进场动画并清理所有相关状态和计时器。
+     * @returns {void}
+     */
     finishIntro() {
       this.markIntroPlayed()
       this.showIntro = false
       this.introLeaving = false
       this.clearIntroTimers()
     },
+    /**
+     * 提前结束正在播放的进场动画，并保留短暂退场过渡。
+     * @returns {void}
+     */
     skipIntro() {
       if (!this.showIntro) {
         return
@@ -113,6 +151,11 @@ export default {
         this.finishIntro()
       }, 220)
     },
+    /**
+     * 将鼠标位置节流写入全局 CSS 变量，驱动页面环境光效果。
+     * @param {PointerEvent} event 指针移动事件。
+     * @returns {void}
+     */
     handlePointerMove(event) {
       if (event.pointerType === 'touch') {
         return
@@ -137,6 +180,10 @@ export default {
       })
     }
   },
+  /**
+   * 组件卸载前取消动画帧和计时器，避免残留异步任务。
+   * @returns {void}
+   */
   beforeUnmount() {
     if (this.pointerFrame) {
       cancelAnimationFrame(this.pointerFrame)

@@ -83,14 +83,18 @@
             <div class="form-grid">
               <label class="field">
                 <span>空间类型</span>
-                <select v-model="form.category">
-                  <option v-for="tag in caseTags" :key="tag" :value="tag">{{ tag }}</option>
-                </select>
+                <div class="select-control">
+                  <select v-model="form.category">
+                    <option v-for="tag in caseTags" :key="tag" :value="tag">{{ tag }}</option>
+                  </select>
+                </div>
               </label>
 
               <label class="field">
                 <span>设计风格</span>
-                <input v-model.trim="form.style" type="text" list="design-style-options" placeholder="例如：现代简约" />
+                <div class="select-control">
+                  <input v-model.trim="form.style" type="text" list="design-style-options" placeholder="请选择或输入风格" />
+                </div>
                 <datalist id="design-style-options">
                   <option v-for="style in caseStylePresets" :key="style" :value="style"></option>
                 </datalist>
@@ -458,22 +462,43 @@ const COVER_QUALITY = 0.78
 const MIN_IMAGE_QUALITY = 0.62
 const SUPPORTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
 
+/**
+ * 生成当前浏览器会话内低碰撞的项目草稿 id。
+ * @returns {string} 新项目草稿 id。
+ */
 function createCaseId() {
   return `case-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+/**
+ * 生成当前浏览器会话内低碰撞的荣誉草稿 id。
+ * @returns {string} 新荣誉草稿 id。
+ */
 function createAwardId() {
   return `award-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+/**
+ * 获取正在编辑项目的 id，新增状态下使用草稿 id。
+ * @returns {string|number} 当前项目 id。
+ */
 function currentCaseId() {
   return editingCase.value?.id || draftCaseId.value
 }
 
+/**
+ * 获取正在编辑荣誉的 id，新增状态下使用草稿 id。
+ * @returns {string|number} 当前荣誉 id。
+ */
 function currentAwardId() {
   return editingAward.value?.id || draftAwardId.value
 }
 
+/**
+ * 将图片数组或分隔字符串转换为独立副本的 URL 列表。
+ * @param {Array|string} list 原始图片字段。
+ * @returns {string[]} 标准化图片列表。
+ */
 function imagesToList(list) {
   if (Array.isArray(list)) {
     return [...list]
@@ -485,6 +510,11 @@ function imagesToList(list) {
     .filter(Boolean)
 }
 
+/**
+ * 展平、清洗并去重多组媒体地址。
+ * @param {Array} values 媒体地址或媒体地址数组集合。
+ * @returns {string[]} 唯一且非空的媒体地址。
+ */
 function uniqueMediaUrls(values) {
   return [...new Set(
     values
@@ -494,14 +524,28 @@ function uniqueMediaUrls(values) {
   )]
 }
 
+/**
+ * 收集项目画册与封面引用的全部媒体地址。
+ * @param {Object|null|undefined} item 项目数据。
+ * @returns {string[]} 项目使用的唯一媒体地址。
+ */
 function getCaseMedia(item) {
   return uniqueMediaUrls([item?.list || item?.images || [], item?.image])
 }
 
+/**
+ * 收集当前项目表单引用的全部媒体地址。
+ * @returns {string[]} 当前表单使用的唯一媒体地址。
+ */
 function getCurrentCaseMedia() {
   return uniqueMediaUrls([form.images, form.coverImage])
 }
 
+/**
+ * 从候选地址中筛出未被任何项目或荣誉引用的媒体。
+ * @param {string|string[]} urls 候选媒体地址。
+ * @returns {string[]} 可安全尝试清理的未引用地址。
+ */
 function getUnusedMediaUrls(urls) {
   const referenced = new Set([
     ...managedCases.value.flatMap(getCaseMedia),
@@ -511,6 +555,11 @@ function getUnusedMediaUrls(urls) {
   return uniqueMediaUrls(urls).filter((url) => !referenced.has(url))
 }
 
+/**
+ * 删除未被当前内容引用的云端媒体。
+ * @param {string|string[]} urls 候选媒体地址。
+ * @returns {Promise<number>} 实际提交删除的地址数量。
+ */
 async function cleanUnusedCloudMedia(urls) {
   const unusedUrls = getUnusedMediaUrls(urls)
 
@@ -521,6 +570,10 @@ async function cleanUnusedCloudMedia(urls) {
   return unusedUrls.length
 }
 
+/**
+ * 清理当前项目表单已上传但尚未保存的云端图片。
+ * @returns {Promise<void>}
+ */
 async function discardUploadedCaseMedia() {
   if (cloudEnabled && uploadedCaseMedia.size) {
     try {
@@ -533,6 +586,10 @@ async function discardUploadedCaseMedia() {
   uploadedCaseMedia = new Set()
 }
 
+/**
+ * 清理当前荣誉表单已上传但尚未保存的云端图片。
+ * @returns {Promise<void>}
+ */
 async function discardUploadedAwardMedia() {
   if (cloudEnabled && uploadedAwardMedia.size) {
     try {
@@ -545,6 +602,10 @@ async function discardUploadedAwardMedia() {
   uploadedAwardMedia = new Set()
 }
 
+/**
+ * 将项目编辑器恢复为新的空白草稿状态。
+ * @returns {void}
+ */
 function resetForm() {
   editingCase.value = null
   draftCaseId.value = createCaseId()
@@ -560,6 +621,10 @@ function resetForm() {
   externalImageUrl.value = ''
 }
 
+/**
+ * 将荣誉编辑器恢复为新的空白草稿状态。
+ * @returns {void}
+ */
 function resetAwardForm() {
   editingAward.value = null
   draftAwardId.value = createAwardId()
@@ -571,26 +636,46 @@ function resetAwardForm() {
   externalAwardImageUrl.value = ''
 }
 
+/**
+ * 从统一数据层重新读取后台项目列表。
+ * @returns {void}
+ */
 function refreshList() {
   managedCases.value = getManagedCases()
 }
 
+/**
+ * 从统一数据层重新读取后台荣誉列表。
+ * @returns {void}
+ */
 function refreshAwardsList() {
   managedAwards.value = getManagedAwards()
 }
 
+/**
+ * 在 DOM 更新后将项目表单平滑滚动到顶部。
+ * @returns {void}
+ */
 function resetCaseFormScroll() {
   nextTick(() => {
     caseFormScroll.value?.scrollTo({ top: 0, behavior: 'smooth' })
   })
 }
 
+/**
+ * 在 DOM 更新后将荣誉表单平滑滚动到顶部。
+ * @returns {void}
+ */
 function resetAwardFormScroll() {
   nextTick(() => {
     awardFormScroll.value?.scrollTo({ top: 0, behavior: 'smooth' })
   })
 }
 
+/**
+ * 刷新云端项目和荣誉缓存；本地模式下仅重读浏览器数据。
+ * @returns {Promise<void>}
+ */
 async function refreshCloudList() {
   if (!cloudEnabled) {
     refreshList()
@@ -610,6 +695,10 @@ async function refreshCloudList() {
   refreshAwardsList()
 }
 
+/**
+ * 重新校验当前会话的管理员权限并更新页面状态。
+ * @returns {Promise<boolean>} 当前账号是否拥有管理权限。
+ */
 async function refreshAdminStatus() {
   if (!cloudEnabled || !managerSession.value) {
     managerIsAdmin.value = false
@@ -620,6 +709,10 @@ async function refreshAdminStatus() {
   return managerIsAdmin.value
 }
 
+/**
+ * 放弃未保存上传并切换项目编辑器到新增状态。
+ * @returns {Promise<void>}
+ */
 async function startCreate() {
   await discardUploadedCaseMedia()
   originalCaseMedia = new Set()
@@ -628,6 +721,11 @@ async function startCreate() {
   resetCaseFormScroll()
 }
 
+/**
+ * 清理旧草稿后，将指定项目载入编辑器。
+ * @param {Object} item 待编辑项目。
+ * @returns {Promise<void>}
+ */
 async function editCase(item) {
   await discardUploadedCaseMedia()
   editingCase.value = item
@@ -647,6 +745,10 @@ async function editCase(item) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+/**
+ * 放弃未保存上传并切换荣誉编辑器到新增状态。
+ * @returns {Promise<void>}
+ */
 async function startCreateAward() {
   await discardUploadedAwardMedia()
   originalAwardMedia = new Set()
@@ -655,6 +757,11 @@ async function startCreateAward() {
   resetAwardFormScroll()
 }
 
+/**
+ * 清理旧草稿后，将指定荣誉载入编辑器。
+ * @param {Object} item 待编辑荣誉。
+ * @returns {Promise<void>}
+ */
 async function editAward(item) {
   await discardUploadedAwardMedia()
   editingAward.value = item
@@ -670,18 +777,38 @@ async function editAward(item) {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+/**
+ * 将字节数格式化为一位小数的 MB 文本。
+ * @param {number} bytes 文件字节数。
+ * @returns {string} 可读文件大小。
+ */
 function fileSizeLabel(bytes) {
   return `${(bytes / 1024 / 1024).toFixed(1)}MB`
 }
 
+/**
+ * 为转码后的 JPEG 文件生成上传文件名。
+ * @param {File} file 原始文件。
+ * @returns {string} 使用 jpg 扩展名的文件名。
+ */
 function uploadFileName(file) {
   return String(file.name || 'image.jpg').replace(/\.[^.]+$/, '') + '.jpg'
 }
 
+/**
+ * 判断文件 MIME 类型是否属于允许上传的图片格式。
+ * @param {File|Blob} file 待检查文件。
+ * @returns {boolean} 格式受支持时返回 true。
+ */
 function isSupportedImage(file) {
   return SUPPORTED_IMAGE_TYPES.has(file.type)
 }
 
+/**
+ * 通过临时对象地址将本地文件解码为图片元素。
+ * @param {File|Blob} file 图片文件。
+ * @returns {Promise<HTMLImageElement>} 已完成解码的图片元素。
+ */
 function loadImageFromFile(file) {
   return new Promise((resolve, reject) => {
     const image = new Image()
@@ -699,6 +826,13 @@ function loadImageFromFile(file) {
   })
 }
 
+/**
+ * 将画布异步编码为指定格式和质量的 Blob。
+ * @param {HTMLCanvasElement} canvas 待编码画布。
+ * @param {string} type 输出 MIME 类型。
+ * @param {number} quality 输出质量比例。
+ * @returns {Promise<Blob>} 编码后的图片 Blob。
+ */
 function canvasToBlob(canvas, type, quality) {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
@@ -711,6 +845,13 @@ function canvasToBlob(canvas, type, quality) {
   })
 }
 
+/**
+ * 按尺寸和体积限制生成网页 JPEG；允许配置保留合规 GIF。
+ * @param {File} file 原始图片文件。
+ * @param {Object} options 最大边长、体积、质量及 GIF 策略。
+ * @returns {Promise<{file: File, optimized: boolean}>} 可上传文件和是否转码标记。
+ * @throws {Error} 文件格式、大小或浏览器图片处理能力不符合要求时抛出。
+ */
 async function createImageVariant(file, options) {
   if (!isSupportedImage(file)) {
     throw new Error('仅支持 JPG、PNG、WebP 或 GIF 图片。')
@@ -778,6 +919,11 @@ async function createImageVariant(file, options) {
   throw new Error('图片压缩失败，请换一张图片重试。')
 }
 
+/**
+ * 按画册展示规格优化项目或荣誉图片。
+ * @param {File} file 原始图片文件。
+ * @returns {Promise<{file: File, optimized: boolean}>} 画册图片处理结果。
+ */
 function optimizeGalleryImage(file) {
   return createImageVariant(file, {
     maxEdge: GALLERY_MAX_EDGE,
@@ -787,6 +933,11 @@ function optimizeGalleryImage(file) {
   })
 }
 
+/**
+ * 按轻量列表封面规格生成 JPEG 文件。
+ * @param {File} file 原始或已处理图片文件。
+ * @returns {Promise<{file: File, optimized: boolean}>} 封面图片处理结果。
+ */
 function createCoverImageFile(file) {
   return createImageVariant(file, {
     maxEdge: COVER_MAX_EDGE,
@@ -796,6 +947,11 @@ function createCoverImageFile(file) {
   })
 }
 
+/**
+ * 将本地图片读取为 Data URL，供无云端配置时保存。
+ * @param {File|Blob} file 图片文件。
+ * @returns {Promise<string>} 图片 Data URL。
+ */
 function readImageAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -805,6 +961,11 @@ function readImageAsDataUrl(file) {
   })
 }
 
+/**
+ * 校验外部图片地址，仅接受完整的 HTTP 或 HTTPS URL。
+ * @param {*} value 用户输入地址。
+ * @returns {string} 标准化地址；无效输入返回空字符串。
+ */
 function normalizeExternalImageUrl(value) {
   try {
     const url = new URL(String(value || '').trim())
@@ -819,6 +980,10 @@ function normalizeExternalImageUrl(value) {
   }
 }
 
+/**
+ * 将有效且未重复的外部图片链接加入项目画册。
+ * @returns {void}
+ */
 function addExternalImage() {
   try {
     const imageUrl = normalizeExternalImageUrl(externalImageUrl.value)
@@ -843,6 +1008,10 @@ function addExternalImage() {
   }
 }
 
+/**
+ * 将有效外部图片链接设为当前荣誉图片。
+ * @returns {void}
+ */
 function addExternalAwardImage() {
   try {
     const imageUrl = normalizeExternalImageUrl(externalAwardImageUrl.value)
@@ -861,6 +1030,11 @@ function addExternalAwardImage() {
   }
 }
 
+/**
+ * 依次优化并上传所选项目图片，首批图片同时生成轻量封面。
+ * @param {Event} event 文件输入框 change 事件。
+ * @returns {Promise<void>}
+ */
 async function handleImageUpload(event) {
   const input = event.target
   const files = Array.from(input.files || []).filter(isSupportedImage)
@@ -931,6 +1105,11 @@ async function handleImageUpload(event) {
   }
 }
 
+/**
+ * 优化并上传第一张有效荣誉图片。
+ * @param {Event} event 文件输入框 change 事件。
+ * @returns {Promise<void>}
+ */
 async function handleAwardImageUpload(event) {
   const input = event.target
   const file = Array.from(input.files || []).find(isSupportedImage)
@@ -965,6 +1144,10 @@ async function handleAwardImageUpload(event) {
   }
 }
 
+/**
+ * 根据当前画册首图重新生成并上传轻量封面。
+ * @returns {Promise<void>}
+ */
 async function refreshCoverImage() {
   const firstImage = form.images[0]
 
@@ -994,6 +1177,11 @@ async function refreshCoverImage() {
   uploadedCaseMedia.add(coverUrl)
 }
 
+/**
+ * 将指定画册图片移到首位并重新生成项目封面。
+ * @param {number} index 目标图片索引。
+ * @returns {Promise<void>}
+ */
 async function setCoverImage(index) {
   if (index <= 0 || !form.images[index]) {
     return
@@ -1013,6 +1201,11 @@ async function setCoverImage(index) {
   }
 }
 
+/**
+ * 从项目画册移除指定图片；移除首图时同步更新封面。
+ * @param {number} index 待移除图片索引。
+ * @returns {Promise<void>}
+ */
 async function removeImage(index) {
   const removedWasCover = index === 0
   form.images = form.images.filter((_, imageIndex) => imageIndex !== index)
@@ -1031,10 +1224,20 @@ async function removeImage(index) {
   }
 }
 
+/**
+ * 清空当前荣誉表单的图片引用。
+ * @returns {void}
+ */
 function removeAwardImage() {
   awardForm.image = ''
 }
 
+/**
+ * 打开指定图片的后台放大预览。
+ * @param {string} src 图片地址。
+ * @param {string} alt 图片替代文本。
+ * @returns {void}
+ */
 function openImagePreview(src, alt = '作品图片') {
   if (!src) {
     return
@@ -1043,16 +1246,30 @@ function openImagePreview(src, alt = '作品图片') {
   imagePreview.value = { src, alt }
 }
 
+/**
+ * 关闭后台图片放大预览。
+ * @returns {void}
+ */
 function closeImagePreview() {
   imagePreview.value = null
 }
 
+/**
+ * 在图片预览打开时响应 Escape 键关闭操作。
+ * @param {KeyboardEvent} event 键盘事件。
+ * @returns {void}
+ */
 function handlePreviewKeydown(event) {
   if (event.key === 'Escape') {
     closeImagePreview()
   }
 }
 
+/**
+ * 根据运行模式和数据来源生成项目来源标签。
+ * @param {Object} item 项目数据。
+ * @returns {string} 后台展示的项目来源文本。
+ */
 function caseLabel(item) {
   if (cloudEnabled) {
     return '云端作品'
@@ -1061,24 +1278,49 @@ function caseLabel(item) {
   return item.source === 'base' ? '原有作品' : '新增作品'
 }
 
+/**
+ * 组合项目风格、类型和年份作为后台辅助信息。
+ * @param {Object} item 项目数据。
+ * @returns {string} 已过滤空值的项目辅助信息。
+ */
 function formatCaseMeta(item) {
   return [item.style || '风格待补充', item.type, item.year]
     .filter(Boolean)
     .join(' · ')
 }
 
+/**
+ * 判断项目是否支持隐藏或恢复操作。
+ * @param {Object} item 项目数据。
+ * @returns {boolean} 可切换可见性时返回 true。
+ */
 function canToggleVisibility(item) {
   return cloudEnabled || item.source === 'base'
 }
 
+/**
+ * 判断项目是否可恢复为本地默认内容。
+ * @param {Object} item 项目数据。
+ * @returns {boolean} 可恢复默认内容时返回 true。
+ */
 function canReset(item) {
   return !cloudEnabled && item.source === 'base'
 }
 
+/**
+ * 判断项目是否允许永久删除。
+ * @param {Object} item 项目数据。
+ * @returns {boolean} 可删除时返回 true。
+ */
 function canDelete(item) {
   return cloudEnabled || item.source === 'custom'
 }
 
+/**
+ * 根据运行模式和数据来源生成荣誉来源标签。
+ * @param {Object} item 荣誉数据。
+ * @returns {string} 后台展示的荣誉来源文本。
+ */
 function awardLabel(item) {
   if (cloudEnabled) {
     return '云端奖项'
@@ -1087,18 +1329,37 @@ function awardLabel(item) {
   return item.source === 'base' ? '原有奖项' : '新增奖项'
 }
 
+/**
+ * 判断荣誉是否支持隐藏或恢复操作。
+ * @param {Object} item 荣誉数据。
+ * @returns {boolean} 可切换可见性时返回 true。
+ */
 function canToggleAwardVisibility(item) {
   return cloudEnabled || item.source === 'base'
 }
 
+/**
+ * 判断荣誉是否可恢复为本地默认内容。
+ * @param {Object} item 荣誉数据。
+ * @returns {boolean} 可恢复默认内容时返回 true。
+ */
 function canResetAward(item) {
   return !cloudEnabled && item.source === 'base'
 }
 
+/**
+ * 判断荣誉是否允许永久删除。
+ * @param {Object} item 荣誉数据。
+ * @returns {boolean} 可删除时返回 true。
+ */
 function canDeleteAward(item) {
   return cloudEnabled || item.source === 'custom'
 }
 
+/**
+ * 将当前项目表单组装为数据层可保存的完整载荷。
+ * @returns {Object} 项目保存载荷。
+ */
 function formPayload() {
   return {
     id: currentCaseId(),
@@ -1116,6 +1377,10 @@ function formPayload() {
   }
 }
 
+/**
+ * 将当前荣誉表单组装为数据层可保存的完整载荷。
+ * @returns {Object} 荣誉保存载荷。
+ */
 function awardPayload() {
   return {
     id: currentAwardId(),
@@ -1129,6 +1394,10 @@ function awardPayload() {
   }
 }
 
+/**
+ * 校验并保存项目；云端成功后清理不再引用的旧图片。
+ * @returns {Promise<void>}
+ */
 async function handleSubmit() {
   let saved = null
   let cleanupMessage = ''
@@ -1187,6 +1456,10 @@ async function handleSubmit() {
   }
 }
 
+/**
+ * 校验并保存荣誉；云端成功后清理不再引用的旧图片。
+ * @returns {Promise<void>}
+ */
 async function handleAwardSubmit() {
   let saved = null
   let cleanupMessage = ''
@@ -1245,6 +1518,11 @@ async function handleAwardSubmit() {
   }
 }
 
+/**
+ * 隐藏指定项目；云端模式更新记录，本地模式写入隐藏列表。
+ * @param {string|number} id 项目唯一标识。
+ * @returns {Promise<void>}
+ */
 async function hideCase(id) {
   try {
     const target = managedCases.value.find((item) => String(item.id) === String(id))
@@ -1261,6 +1539,11 @@ async function hideCase(id) {
   }
 }
 
+/**
+ * 恢复指定项目显示；云端模式更新记录，本地模式移出隐藏列表。
+ * @param {string|number} id 项目唯一标识。
+ * @returns {Promise<void>}
+ */
 async function restoreCase(id) {
   try {
     const target = managedCases.value.find((item) => String(item.id) === String(id))
@@ -1277,6 +1560,11 @@ async function restoreCase(id) {
   }
 }
 
+/**
+ * 隐藏指定荣誉；云端模式更新记录，本地模式写入隐藏列表。
+ * @param {string|number} id 荣誉唯一标识。
+ * @returns {Promise<void>}
+ */
 async function hideAward(id) {
   try {
     const target = managedAwards.value.find((item) => String(item.id) === String(id))
@@ -1293,6 +1581,11 @@ async function hideAward(id) {
   }
 }
 
+/**
+ * 恢复指定荣誉显示；云端模式更新记录，本地模式移出隐藏列表。
+ * @param {string|number} id 荣誉唯一标识。
+ * @returns {Promise<void>}
+ */
 async function restoreAward(id) {
   try {
     const target = managedAwards.value.find((item) => String(item.id) === String(id))
@@ -1309,6 +1602,11 @@ async function restoreAward(id) {
   }
 }
 
+/**
+ * 删除本地项目覆盖和隐藏状态，恢复默认项目内容。
+ * @param {string|number} id 项目唯一标识。
+ * @returns {void}
+ */
 function resetBase(id) {
   if (cloudEnabled) {
     statusText.value = '云端模式下没有本地默认内容可恢复。'
@@ -1322,6 +1620,11 @@ function resetBase(id) {
   statusText.value = '已恢复默认内容。'
 }
 
+/**
+ * 删除本地荣誉覆盖和隐藏状态，恢复默认荣誉内容。
+ * @param {string|number} id 荣誉唯一标识。
+ * @returns {void}
+ */
 function resetAward(id) {
   if (cloudEnabled) {
     awardStatusText.value = '云端模式下没有本地默认内容可恢复。'
@@ -1335,6 +1638,11 @@ function resetAward(id) {
   awardStatusText.value = '已恢复默认奖项。'
 }
 
+/**
+ * 永久删除项目；云端删除记录后再清理没有引用的媒体。
+ * @param {string|number} id 项目唯一标识。
+ * @returns {Promise<void>}
+ */
 async function removeCustom(id) {
   let mediaCleanupFailed = false
 
@@ -1366,6 +1674,11 @@ async function removeCustom(id) {
   }
 }
 
+/**
+ * 永久删除荣誉；云端删除记录后再清理没有引用的图片。
+ * @param {string|number} id 荣誉唯一标识。
+ * @returns {Promise<void>}
+ */
 async function removeAward(id) {
   let mediaCleanupFailed = false
 
@@ -1394,6 +1707,10 @@ async function removeAward(id) {
   }
 }
 
+/**
+ * 登录管理员账号、校验授权并加载云端内容。
+ * @returns {Promise<void>}
+ */
 async function handleLogin() {
   authLoading.value = true
   loginStatus.value = '正在登录。'
@@ -1415,6 +1732,10 @@ async function handleLogin() {
   }
 }
 
+/**
+ * 清理未保存上传、注销会话并重置后台编辑状态。
+ * @returns {Promise<void>}
+ */
 async function handleLogout() {
   try {
     await discardUploadedCaseMedia()
@@ -1720,12 +2041,56 @@ onUnmounted(() => {
 .field input,
 .field select,
 .field textarea {
+  box-sizing: border-box;
   width: 100%;
   border: 1px solid #d8dde4;
   background: #fbfbfb;
   color: #11161d;
   padding: 12px 13px;
   font: inherit;
+}
+
+.field input,
+.field select {
+  height: 46px;
+}
+
+.select-control {
+  position: relative;
+  min-width: 0;
+}
+
+.select-control::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #69717d;
+  border-bottom: 1.5px solid #69717d;
+  pointer-events: none;
+  transform: translateY(-70%) rotate(45deg);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.select-control select,
+.select-control input[list] {
+  display: block;
+  padding: 0 42px 0 13px;
+}
+
+.select-control select {
+  appearance: none;
+}
+
+.select-control input[list]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+}
+
+.select-control:focus-within::after {
+  border-color: #11161d;
+  transform: translateY(-35%) rotate(225deg);
 }
 
 .field textarea {

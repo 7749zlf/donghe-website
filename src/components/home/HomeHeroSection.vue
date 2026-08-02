@@ -104,6 +104,11 @@ const displaySlides = computed(() => {
   return [lastSlide, ...props.slides, firstSlide]
 })
 
+/**
+ * 无动画跳转到真实轮播项，并在下一帧恢复过渡效果。
+ * @param {number} index 复制轨道中的目标索引。
+ * @returns {void}
+ */
 function jumpToRealSlide(index) {
   isTransitionEnabled.value = false
   trackIndex.value = index
@@ -121,6 +126,11 @@ function jumpToRealSlide(index) {
   })
 }
 
+/**
+ * 在复制轮播项过渡结束后校正到对应真实项，实现首尾无缝循环。
+ * @param {TransitionEvent} event CSS 过渡结束事件。
+ * @returns {void}
+ */
 function handleTransitionEnd(event) {
   if (event.target !== event.currentTarget || !props.slides.length) {
     return
