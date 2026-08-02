@@ -30,7 +30,7 @@
     <div class="hero-content">
       <Transition name="hero-copy" mode="out-in">
         <div :key="currentSlide.id || currentSlideIndex" class="hero-copy" v-reveal="{ variant: 'left' }">
-          <span class="eyebrow">DONGHE INTERIOR STUDIO</span>
+          <span class="eyebrow">DONGHE DH</span>
           <h1>东禾空间设计</h1>
           <p>从现场尺度、材质温度和生活动线出发，把空间做得安静、清楚、耐看。</p>
           <div class="hero-actions">

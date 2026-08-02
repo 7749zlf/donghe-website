@@ -19,29 +19,23 @@
         </label>
 
         <div class="filter-groups">
-          <div class="filter-row">
-            <span class="filter-label">空间</span>
-            <button
-              v-for="option in spaceOptions"
-              :key="option.value"
-              :class="['filter-btn', { active: option.value === activeCategory }]"
-              @click="setCategory(option.value)"
-            >
-              {{ option.label }}
-            </button>
-          </div>
+          <label class="filter-select">
+            <span>空间</span>
+            <select :value="activeCategory" @change="setCategory($event.target.value)">
+              <option v-for="option in spaceOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
 
-          <div v-if="styleOptions.length > 1" class="filter-row">
-            <span class="filter-label">风格</span>
-            <button
-              v-for="option in styleOptions"
-              :key="option.value || 'all-styles'"
-              :class="['filter-btn', { active: option.value === activeStyle }]"
-              @click="setStyle(option.value)"
-            >
-              {{ option.label }}
-            </button>
-          </div>
+          <label v-if="styleOptions.length > 1" class="filter-select">
+            <span>风格</span>
+            <select :value="activeStyle" @change="setStyle($event.target.value)">
+              <option v-for="option in styleOptions" :key="option.value || 'all-styles'" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
         </div>
       </header>
 
@@ -98,6 +92,7 @@ const spaceOptions = [
   { label: '居住空间', value: tags[3] }
 ]
 
+// 只展示当前作品实际使用的风格，避免用户选中后得到无意义的空结果。
 const styleOptions = computed(() => {
   const styles = new Set()
 
@@ -113,11 +108,21 @@ const styleOptions = computed(() => {
   ]
 })
 
+/**
+ * 校验空间筛选值，未知值统一回退为“全部空间”。
+ * @param {*} category 路由参数或用户选择的空间值。
+ * @returns {string} 可用于筛选的有效空间值。
+ */
 function normalizeCategory(category) {
   const value = String(category || tags[0])
   return spaceOptions.some((option) => option.value === value) ? value : tags[0]
 }
 
+/**
+ * 将风格筛选值转换为去除首尾空格的字符串。
+ * @param {*} style 路由参数或用户选择的风格值。
+ * @returns {string} 标准化后的风格值，空字符串表示全部风格。
+ */
 function normalizeStyle(style) {
   return String(style || '').trim()
 }
@@ -125,6 +130,7 @@ function normalizeStyle(style) {
 const activeCategory = ref(normalizeCategory(route.query.category))
 const activeStyle = ref(normalizeStyle(route.query.style))
 
+// 先收窄空间和风格范围，再在结果内执行关键词搜索。
 const filteredWorks = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   const categoryWorks = activeCategory.value === tags[0]
@@ -144,16 +150,30 @@ const filteredWorks = computed(() => {
   })
 })
 
+/**
+ * 更新当前空间筛选，并将结果同步到页面网址。
+ * @param {*} category 用户选择的空间值。
+ * @returns {void}
+ */
 function setCategory(category) {
   activeCategory.value = normalizeCategory(category)
   updateQuery()
 }
 
+/**
+ * 更新当前风格筛选，并将结果同步到页面网址。
+ * @param {*} style 用户选择的风格值。
+ * @returns {void}
+ */
 function setStyle(style) {
   activeStyle.value = normalizeStyle(style)
   updateQuery()
 }
 
+/**
+ * 将有效筛选条件写入 URL，全部选项不生成冗余参数。
+ * @returns {void}
+ */
 function updateQuery() {
   const query = {}
   if (activeCategory.value !== tags[0]) {
@@ -169,18 +189,37 @@ function updateQuery() {
   })
 }
 
+/**
+ * 组合项目的空间类型与设计风格，作为卡片分类标签。
+ * @param {Object} item 项目数据。
+ * @returns {string} 已过滤空值的分类标签。
+ */
 function formatProjectLabel(item) {
   return [item.category, item.style].filter(Boolean).join(' · ')
 }
 
+/**
+ * 组合项目类型与完成年份，作为卡片辅助信息。
+ * @param {Object} item 项目数据。
+ * @returns {string} 已过滤空值的项目辅助信息。
+ */
 function formatProjectMeta(item) {
   return [item.type, item.year].filter(Boolean).join(' / ')
 }
 
+/**
+ * 跳转到指定项目的详情页。
+ * @param {string|number} id 项目唯一标识。
+ * @returns {void}
+ */
 function openDetail(id) {
   router.push({ name: 'designDetail', params: { id } })
 }
 
+/**
+ * 重新读取作品数据，用于响应后台内容更新事件。
+ * @returns {void}
+ */
 function refreshWorks() {
   displayWorks.value = getDisplayWorksList()
 }
@@ -281,39 +320,36 @@ onBeforeUnmount(() => {
 
 .filter-groups {
   grid-column: 1 / -1;
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 14px;
 }
 
-.filter-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
+.filter-select {
+  width: min(240px, 100%);
+  display: grid;
+  gap: 8px;
 }
 
-.filter-label {
-  flex: 0 0 34px;
+.filter-select span {
   color: var(--color-muted);
   font-size: 13px;
 }
 
-.filter-btn {
-  height: 38px;
+.filter-select select {
+  width: 100%;
+  height: 44px;
   border: 1px solid var(--color-line);
   background: transparent;
-  padding: 0 16px;
-  color: var(--color-ink-soft);
-  font-size: 14px;
+  padding: 0 12px;
+  color: var(--color-ink);
+  font: inherit;
   cursor: pointer;
-  transition: background 0.24s ease, color 0.24s ease, border-color 0.24s ease;
 }
 
-.filter-btn.active,
-.filter-btn:hover {
-  border-color: var(--color-olive);
-  background: var(--color-olive);
-  color: #fff;
+.filter-select select:focus {
+  outline: 2px solid rgba(95, 94, 65, 0.18);
+  outline-offset: 2px;
 }
 
 .works-grid {
@@ -438,6 +474,10 @@ onBeforeUnmount(() => {
 
   .works-title h1 {
     font-size: 44px;
+  }
+
+  .filter-select {
+    width: 100%;
   }
 
   .works-grid {

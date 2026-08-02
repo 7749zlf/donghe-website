@@ -13,7 +13,7 @@
         <div class="intro-light" aria-hidden="true"></div>
         <div class="intro-mark">
           <span>东禾</span>
-          <strong>INTERIOR STUDIO</strong>
+          <strong>DH</strong>
         </div>
         <div class="intro-copy">
           <span>LIGHT</span>

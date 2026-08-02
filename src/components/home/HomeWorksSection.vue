@@ -8,34 +8,25 @@
       <p>不按热闹排序，只保留能说明尺度、材质和落地能力的项目。</p>
     </div>
 
+    <!-- 筛选状态由首页统一管理，组件只负责展示选项并上报用户选择。 -->
     <div class="container work-filters" v-reveal="{ delay: 120 }">
-      <div v-if="styleOptions.length > 1" class="filter-set">
-        <span class="filter-label">空间</span>
-        <div class="filter-options">
-          <button
-            v-for="option in spaceOptions"
-            :key="option.value"
-            :class="['tag', { active: option.value === activeSpace }]"
-            @click="$emit('change-space', option.value)"
-          >
+      <label class="filter-select">
+        <span>空间</span>
+        <select :value="activeSpace" @change="$emit('change-space', $event.target.value)">
+          <option v-for="option in spaceOptions" :key="option.value" :value="option.value">
             {{ option.label }}
-          </button>
-        </div>
-      </div>
+          </option>
+        </select>
+      </label>
 
-      <div class="filter-set">
-        <span class="filter-label">风格</span>
-        <div class="filter-options">
-          <button
-            v-for="option in styleOptions"
-            :key="option.value || 'all-styles'"
-            :class="['tag', { active: option.value === activeStyle }]"
-            @click="$emit('change-style', option.value)"
-          >
+      <label v-if="styleOptions.length > 1" class="filter-select">
+        <span>风格</span>
+        <select :value="activeStyle" @change="$emit('change-style', $event.target.value)">
+          <option v-for="option in styleOptions" :key="option.value || 'all-styles'" :value="option.value">
             {{ option.label }}
-          </button>
-        </div>
-      </div>
+          </option>
+        </select>
+      </label>
     </div>
 
     <div v-if="projects.length" class="container work-grid">
@@ -100,10 +91,20 @@ defineProps({
 
 defineEmits(['change-space', 'change-style', 'view-detail', 'view-more'])
 
+/**
+ * 组合项目的空间类型与设计风格，作为卡片分类标签。
+ * @param {Object} item 项目数据。
+ * @returns {string} 已过滤空值的分类标签。
+ */
 function formatProjectLabel(item) {
   return [item.category, item.style].filter(Boolean).join(' · ')
 }
 
+/**
+ * 组合项目类型与完成年份，作为卡片辅助信息。
+ * @param {Object} item 项目数据。
+ * @returns {string} 已过滤空值的项目辅助信息。
+ */
 function formatProjectMeta(item) {
   return [item.type, item.year].filter(Boolean).join(' / ')
 }
@@ -160,44 +161,36 @@ function formatProjectMeta(item) {
 
 .work-filters {
   margin-bottom: 34px;
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 14px;
 }
 
-.filter-set {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+.filter-select {
+  width: min(240px, 100%);
+  display: grid;
+  gap: 8px;
 }
 
-.filter-label {
-  flex: 0 0 34px;
+.filter-select span {
   color: var(--color-muted);
   font-size: 13px;
 }
 
-.filter-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.tag {
-  min-height: 38px;
+.filter-select select {
+  width: 100%;
+  height: 44px;
   border: 1px solid var(--color-line);
-  background: transparent;
-  color: var(--color-ink-soft);
-  padding: 0 16px;
-  font-size: 14px;
+  background: rgba(255, 255, 255, 0.42);
+  color: var(--color-ink);
+  padding: 0 12px;
+  font: inherit;
   cursor: pointer;
-  transition: background 0.24s ease, color 0.24s ease, border-color 0.24s ease;
 }
 
-.tag.active,
-.tag:hover {
-  border-color: var(--color-graphite);
-  background: var(--color-graphite);
-  color: #fff;
+.filter-select select:focus {
+  outline: 2px solid rgba(42, 39, 31, 0.16);
+  outline-offset: 2px;
 }
 
 .work-grid {
@@ -391,10 +384,8 @@ function formatProjectMeta(item) {
     font-size: 36px;
   }
 
-  .filter-set {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
+  .filter-select {
+    width: 100%;
   }
 
   .work-grid {
