@@ -2,6 +2,7 @@ const ABOUT_IMAGE = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.c
 export const aboutImage = ABOUT_IMAGE
 
 export const tags = ['全部', '商业空间', '办公空间', '居住空间']
+export const stylePresets = ['现代简约', '原木自然', '侘寂自然', '新中式', '法式轻奢', '工业风', '混搭']
 
 const CUSTOM_CASES_KEY = 'donghe-custom-design-cases'
 const CASE_OVERRIDES_KEY = 'donghe-design-case-overrides'
@@ -41,6 +42,7 @@ function normalizeCustomCase(caseItem) {
     id: String(caseItem.id || `custom-${Date.now()}`),
     name,
     category: String(caseItem.category || tags[1]),
+    style: String(caseItem.style || '').trim(),
     type: String(caseItem.type || '商业空间 / 上饶'),
     year: String(caseItem.year || `${new Date().getFullYear()}年`),
     url: String(caseItem.url || '').trim(),
@@ -381,6 +383,7 @@ function toProject(caseItem) {
     id: caseItem.id,
     name: caseItem.name,
     category: caseItem.category,
+    style: caseItem.style,
     type: caseItem.type,
     year: caseItem.year,
     image: caseItem.image || caseItem.list[0]

@@ -16,6 +16,10 @@
               <dd>{{ currentCase.category || '空间设计' }}</dd>
             </div>
             <div>
+              <dt>风格</dt>
+              <dd>{{ currentCase.style || '待补充' }}</dd>
+            </div>
+            <div>
               <dt>属性</dt>
               <dd>{{ currentCase.type || '室内空间' }}</dd>
             </div>
@@ -408,6 +412,10 @@ onBeforeUnmount(() => {
   padding: 18px;
   border-right: 1px solid var(--color-line);
   border-bottom: 1px solid var(--color-line);
+}
+
+.project-meta div:last-child {
+  grid-column: 1 / -1;
 }
 
 .project-meta dt {

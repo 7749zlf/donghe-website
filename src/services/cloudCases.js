@@ -53,12 +53,13 @@ function safePathPart(value) {
     .replace(/^-+|-+$/g, '') || 'case'
 }
 
-export async function uploadCaseImage(file, caseId = 'case') {
+async function uploadStorageImage(file, caseId = 'case', variant = '') {
   const client = await requireClient()
 
   const fileName = safePathPart(file.name || 'image')
   const folder = safePathPart(caseId)
-  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${fileName}`
+  const variantPrefix = variant ? `${safePathPart(variant)}-` : ''
+  const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${variantPrefix}${fileName}`
   const { error } = await client.storage
     .from(CASE_IMAGES_BUCKET)
     .upload(path, file, {
@@ -75,8 +76,53 @@ export async function uploadCaseImage(file, caseId = 'case') {
   return data.publicUrl
 }
 
+export function uploadCaseImage(file, caseId = 'case') {
+  return uploadStorageImage(file, caseId)
+}
+
+export function uploadCaseCoverImage(file, caseId = 'case') {
+  return uploadStorageImage(file, caseId, 'cover')
+}
+
 export function uploadAwardImage(file, awardId = 'award') {
   return uploadCaseImage(file, `awards-${awardId}`)
+}
+
+function getStoragePathFromPublicUrl(value) {
+  try {
+    const url = new URL(String(value || ''))
+    const marker = `/storage/v1/object/public/${CASE_IMAGES_BUCKET}/`
+    const markerIndex = url.pathname.indexOf(marker)
+
+    if (markerIndex < 0) {
+      return ''
+    }
+
+    return decodeURIComponent(url.pathname.slice(markerIndex + marker.length))
+  } catch (error) {
+    return ''
+  }
+}
+
+export async function deleteCloudImages(urls) {
+  const paths = [...new Set(
+    (Array.isArray(urls) ? urls : [urls])
+      .map(getStoragePathFromPublicUrl)
+      .filter(Boolean)
+  )]
+
+  if (!paths.length) {
+    return
+  }
+
+  const client = await requireClient()
+  const { error } = await client.storage
+    .from(CASE_IMAGES_BUCKET)
+    .remove(paths)
+
+  if (error) {
+    throw error
+  }
 }
 
 export async function getManagerSession() {
@@ -184,6 +230,7 @@ export function rowToCase(row) {
     id: String(row.id),
     name: row.name || '',
     category: row.category || '商业空间',
+    style: row.style || '',
     type: row.type || '',
     year: row.year || '',
     url: row.url || '',
@@ -203,6 +250,7 @@ function caseToRow(caseItem) {
     id: String(caseItem.id || `case-${Date.now()}`),
     name: String(caseItem.name || '').trim(),
     category: String(caseItem.category || '商业空间'),
+    style: String(caseItem.style || '').trim(),
     type: String(caseItem.type || ''),
     year: String(caseItem.year || ''),
     url: String(caseItem.url || ''),

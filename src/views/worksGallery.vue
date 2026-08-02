@@ -5,7 +5,7 @@
         <div class="works-title">
           <span>PROJECT INDEX</span>
           <h1>项目索引</h1>
-          <p>按空间类型、名称和年份查找项目，再进入完整画册阅读。</p>
+          <p>按空间类型、设计风格、名称和年份查找项目，再进入完整画册阅读。</p>
         </div>
 
         <label class="works-search">
@@ -13,20 +13,35 @@
           <input
             v-model.trim="searchQuery"
             type="search"
-            placeholder="输入名称、空间或年份"
+            placeholder="输入名称、空间、风格或年份"
             aria-label="搜索作品"
           />
         </label>
 
-        <div class="filter-row">
-          <button
-            v-for="option in filterOptions"
-            :key="option.label"
-            :class="['filter-btn', { active: option.value === activeCategory }]"
-            @click="setCategory(option.value)"
-          >
-            {{ option.label }}
-          </button>
+        <div class="filter-groups">
+          <div class="filter-row">
+            <span class="filter-label">空间</span>
+            <button
+              v-for="option in spaceOptions"
+              :key="option.value"
+              :class="['filter-btn', { active: option.value === activeCategory }]"
+              @click="setCategory(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+
+          <div v-if="styleOptions.length > 1" class="filter-row">
+            <span class="filter-label">风格</span>
+            <button
+              v-for="option in styleOptions"
+              :key="option.value || 'all-styles'"
+              :class="['filter-btn', { active: option.value === activeStyle }]"
+              @click="setStyle(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -44,9 +59,9 @@
             <img :src="item.cover" :alt="item.name" loading="lazy" decoding="async" />
           </div>
           <div class="card-caption">
-          <span>{{ item.category }}</span>
+          <span>{{ formatProjectLabel(item) }}</span>
           <h2>{{ item.name }}</h2>
-          <p>{{ item.type }} / {{ item.year }}</p>
+          <p>{{ formatProjectMeta(item) }}</p>
           <button class="card-link" type="button" @click.stop="openDetail(item.id)">
             阅读项目
             <span>↗</span>
@@ -76,43 +91,90 @@ const route = useRoute()
 const displayWorks = ref(getDisplayWorksList())
 const searchQuery = ref('')
 
-const filterOptions = [
-  { label: '全部', value: tags[0] },
+const spaceOptions = [
+  { label: '全部空间', value: tags[0] },
   { label: '商业空间', value: tags[1] },
   { label: '办公空间', value: tags[2] },
   { label: '居住空间', value: tags[3] }
 ]
 
+const styleOptions = computed(() => {
+  const styles = new Set()
+
+  displayWorks.value.forEach((item) => {
+    if (item.style) {
+      styles.add(item.style)
+    }
+  })
+
+  return [
+    { label: '全部风格', value: '' },
+    ...[...styles].map((style) => ({ label: style, value: style }))
+  ]
+})
+
 function normalizeCategory(category) {
   const value = String(category || tags[0])
-  return filterOptions.some((option) => option.value === value) ? value : tags[0]
+  return spaceOptions.some((option) => option.value === value) ? value : tags[0]
+}
+
+function normalizeStyle(style) {
+  return String(style || '').trim()
 }
 
 const activeCategory = ref(normalizeCategory(route.query.category))
+const activeStyle = ref(normalizeStyle(route.query.style))
 
 const filteredWorks = computed(() => {
   const query = searchQuery.value.trim().toLowerCase()
   const categoryWorks = activeCategory.value === tags[0]
     ? displayWorks.value
     : displayWorks.value.filter((item) => item.category === activeCategory.value)
+  const styleWorks = activeStyle.value
+    ? categoryWorks.filter((item) => item.style === activeStyle.value)
+    : categoryWorks
 
   if (!query) {
-    return categoryWorks
+    return styleWorks
   }
 
-  return categoryWorks.filter((item) => {
-    return [item.name, item.category, item.type, item.year]
+  return styleWorks.filter((item) => {
+    return [item.name, item.category, item.style, item.type, item.year]
       .some((value) => String(value || '').toLowerCase().includes(query))
   })
 })
 
 function setCategory(category) {
-  const nextCategory = normalizeCategory(category)
-  activeCategory.value = nextCategory
+  activeCategory.value = normalizeCategory(category)
+  updateQuery()
+}
+
+function setStyle(style) {
+  activeStyle.value = normalizeStyle(style)
+  updateQuery()
+}
+
+function updateQuery() {
+  const query = {}
+  if (activeCategory.value !== tags[0]) {
+    query.category = activeCategory.value
+  }
+  if (activeStyle.value) {
+    query.style = activeStyle.value
+  }
+
   router.replace({
     name: 'worksGallery',
-    query: nextCategory === tags[0] ? {} : { category: nextCategory }
+    query
   })
+}
+
+function formatProjectLabel(item) {
+  return [item.category, item.style].filter(Boolean).join(' · ')
+}
+
+function formatProjectMeta(item) {
+  return [item.type, item.year].filter(Boolean).join(' / ')
 }
 
 function openDetail(id) {
@@ -128,9 +190,10 @@ onMounted(() => {
 })
 
 watch(
-  () => route.query.category,
-  (category) => {
+  () => [route.query.category, route.query.style],
+  ([category, style]) => {
     activeCategory.value = normalizeCategory(category)
+    activeStyle.value = normalizeStyle(style)
   }
 )
 
@@ -216,11 +279,23 @@ onBeforeUnmount(() => {
   color: var(--color-muted);
 }
 
-.filter-row {
+.filter-groups {
   grid-column: 1 / -1;
+  display: grid;
+  gap: 14px;
+}
+
+.filter-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
+}
+
+.filter-label {
+  flex: 0 0 34px;
+  color: var(--color-muted);
+  font-size: 13px;
 }
 
 .filter-btn {

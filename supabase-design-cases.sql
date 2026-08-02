@@ -2,6 +2,7 @@ create table if not exists public.design_cases (
   id text primary key,
   name text not null,
   category text not null default '商业空间',
+  style text not null default '',
   type text not null default '',
   year text not null default '',
   url text not null default '',
@@ -11,6 +12,9 @@ create table if not exists public.design_cases (
   hidden boolean not null default false,
   created_at timestamptz not null default now()
 );
+
+alter table public.design_cases
+add column if not exists style text not null default '';
 
 alter table public.design_cases enable row level security;
 

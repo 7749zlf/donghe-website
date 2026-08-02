@@ -82,10 +82,18 @@
 
             <div class="form-grid">
               <label class="field">
-                <span>分类</span>
+                <span>空间类型</span>
                 <select v-model="form.category">
                   <option v-for="tag in caseTags" :key="tag" :value="tag">{{ tag }}</option>
                 </select>
+              </label>
+
+              <label class="field">
+                <span>设计风格</span>
+                <input v-model.trim="form.style" type="text" list="design-style-options" placeholder="例如：现代简约" />
+                <datalist id="design-style-options">
+                  <option v-for="style in caseStylePresets" :key="style" :value="style"></option>
+                </datalist>
               </label>
 
               <label class="field">
@@ -111,6 +119,17 @@
                 <strong>{{ uploading ? '正在上传图片' : '选择图片上传' }}</strong>
                 <small>{{ cloudEnabled ? '图片会上传到云端图库，第一张作为封面' : '本地模式会保存到当前浏览器，第一张作为封面' }}</small>
               </label>
+
+              <div class="external-image-entry">
+                <input
+                  v-model.trim="externalImageUrl"
+                  type="url"
+                  placeholder="https:// 外部图片链接"
+                  aria-label="外部作品图片链接"
+                  @keyup.enter.prevent="addExternalImage"
+                />
+                <button type="button" @click="addExternalImage">添加链接</button>
+              </div>
 
               <div v-if="form.images.length" class="upload-preview-grid">
                 <article
@@ -177,7 +196,7 @@
                   <h3>{{ item.name }}</h3>
                   <span>{{ caseLabel(item) }}</span>
                 </div>
-                <p>{{ item.type }} · {{ item.year }}</p>
+                <p>{{ formatCaseMeta(item) }}</p>
                 <p class="item-note">{{ item.hidden ? '已隐藏，不会在前台展示。' : item.note }}</p>
                 <div class="item-actions">
                   <button type="button" @click="editCase(item)">编辑</button>
@@ -230,6 +249,17 @@
                 <strong>{{ awardUploading ? '正在上传图片' : '选择奖项图片' }}</strong>
                 <small>{{ cloudEnabled ? '图片会上传到云端图库' : '本地模式会保存到当前浏览器' }}</small>
               </label>
+
+              <div class="external-image-entry">
+                <input
+                  v-model.trim="externalAwardImageUrl"
+                  type="url"
+                  placeholder="https:// 外部图片链接"
+                  aria-label="外部奖项图片链接"
+                  @keyup.enter.prevent="addExternalAwardImage"
+                />
+                <button type="button" @click="addExternalAwardImage">添加链接</button>
+              </div>
 
               <div v-if="awardForm.image" class="upload-preview-grid award-preview-grid">
                 <article class="upload-preview">
@@ -336,6 +366,7 @@ import {
   showBaseCase,
   setCloudAwards,
   setCloudCases,
+  stylePresets,
   tags
 } from '@/mock/data'
 import {
@@ -349,13 +380,16 @@ import {
   onManagerAuthChange,
   signInManager,
   signOutManager,
+  deleteCloudImages,
   uploadAwardImage,
+  uploadCaseCoverImage,
   uploadCaseImage,
   upsertCloudAward,
   upsertCloudCase
 } from '@/services/cloudCases'
 
 const caseTags = tags.slice(1)
+const caseStylePresets = stylePresets
 const cloudEnabled = isCloudCasesEnabled()
 const managerMode = ref('cases')
 const managedCases = ref(getManagedCases())
@@ -378,6 +412,12 @@ const draftAwardId = ref(createAwardId())
 const imagePreview = ref(null)
 const caseFormScroll = ref(null)
 const awardFormScroll = ref(null)
+const externalImageUrl = ref('')
+const externalAwardImageUrl = ref('')
+let originalCaseMedia = new Set()
+let uploadedCaseMedia = new Set()
+let originalAwardMedia = new Set()
+let uploadedAwardMedia = new Set()
 let stopAuthListener = null
 
 const loginForm = reactive({
@@ -388,10 +428,12 @@ const loginForm = reactive({
 const form = reactive({
   name: '',
   category: caseTags[0],
+  style: '',
   type: '',
   year: `${new Date().getFullYear()}年`,
   url: '',
   images: [],
+  coverImage: '',
   note: ''
 })
 
@@ -406,11 +448,15 @@ const awardForm = reactive({
 const isEditing = computed(() => Boolean(editingCase.value))
 const managerEmail = computed(() => managerSession.value?.user?.email || '')
 const MAX_IMAGE_UPLOAD_BYTES = 9 * 1024 * 1024
-const IMAGE_OPTIMIZE_BYTES = 3 * 1024 * 1024
-const IMAGE_MAX_EDGE = 2400
-const IMAGE_QUALITY = 0.86
+const MAX_SOURCE_IMAGE_BYTES = 25 * 1024 * 1024
+const GALLERY_MAX_EDGE = 1920
+const GALLERY_MAX_BYTES = 1.5 * 1024 * 1024
+const GALLERY_QUALITY = 0.84
+const COVER_MAX_EDGE = 960
+const COVER_MAX_BYTES = 280 * 1024
+const COVER_QUALITY = 0.78
 const MIN_IMAGE_QUALITY = 0.62
-const COMPRESSIBLE_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const SUPPORTED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
 
 function createCaseId() {
   return `case-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
@@ -439,16 +485,79 @@ function imagesToList(list) {
     .filter(Boolean)
 }
 
+function uniqueMediaUrls(values) {
+  return [...new Set(
+    values
+      .flat()
+      .map((value) => String(value || '').trim())
+      .filter(Boolean)
+  )]
+}
+
+function getCaseMedia(item) {
+  return uniqueMediaUrls([item?.list || item?.images || [], item?.image])
+}
+
+function getCurrentCaseMedia() {
+  return uniqueMediaUrls([form.images, form.coverImage])
+}
+
+function getUnusedMediaUrls(urls) {
+  const referenced = new Set([
+    ...managedCases.value.flatMap(getCaseMedia),
+    ...managedAwards.value.map((item) => item.image)
+  ])
+
+  return uniqueMediaUrls(urls).filter((url) => !referenced.has(url))
+}
+
+async function cleanUnusedCloudMedia(urls) {
+  const unusedUrls = getUnusedMediaUrls(urls)
+
+  if (unusedUrls.length) {
+    await deleteCloudImages(unusedUrls)
+  }
+
+  return unusedUrls.length
+}
+
+async function discardUploadedCaseMedia() {
+  if (cloudEnabled && uploadedCaseMedia.size) {
+    try {
+      await deleteCloudImages([...uploadedCaseMedia])
+    } catch (error) {
+      console.warn('Failed to discard unsaved case images:', error)
+    }
+  }
+
+  uploadedCaseMedia = new Set()
+}
+
+async function discardUploadedAwardMedia() {
+  if (cloudEnabled && uploadedAwardMedia.size) {
+    try {
+      await deleteCloudImages([...uploadedAwardMedia])
+    } catch (error) {
+      console.warn('Failed to discard unsaved award image:', error)
+    }
+  }
+
+  uploadedAwardMedia = new Set()
+}
+
 function resetForm() {
   editingCase.value = null
   draftCaseId.value = createCaseId()
   form.name = ''
   form.category = caseTags[0]
+  form.style = ''
   form.type = ''
   form.year = `${new Date().getFullYear()}年`
   form.url = ''
   form.images = []
+  form.coverImage = ''
   form.note = ''
+  externalImageUrl.value = ''
 }
 
 function resetAwardForm() {
@@ -459,6 +568,7 @@ function resetAwardForm() {
   awardForm.year = `${new Date().getFullYear()}年`
   awardForm.image = ''
   awardForm.imageAlt = ''
+  externalAwardImageUrl.value = ''
 }
 
 function refreshList() {
@@ -510,39 +620,51 @@ async function refreshAdminStatus() {
   return managerIsAdmin.value
 }
 
-function startCreate() {
+async function startCreate() {
+  await discardUploadedCaseMedia()
+  originalCaseMedia = new Set()
   resetForm()
   statusText.value = '正在新增作品。'
   resetCaseFormScroll()
 }
 
-function editCase(item) {
+async function editCase(item) {
+  await discardUploadedCaseMedia()
   editingCase.value = item
   form.name = item.name
   form.category = item.category
+  form.style = item.style || ''
   form.type = item.type
   form.year = item.year
   form.url = item.url
   form.images = imagesToList(item.list)
+  form.coverImage = item.image || form.images[0] || ''
   form.note = item.note
+  originalCaseMedia = new Set(getCaseMedia(item))
+  uploadedCaseMedia = new Set()
   statusText.value = `正在编辑《${item.name}》。`
   resetCaseFormScroll()
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
-function startCreateAward() {
+async function startCreateAward() {
+  await discardUploadedAwardMedia()
+  originalAwardMedia = new Set()
   resetAwardForm()
   awardStatusText.value = '正在新增奖项。'
   resetAwardFormScroll()
 }
 
-function editAward(item) {
+async function editAward(item) {
+  await discardUploadedAwardMedia()
   editingAward.value = item
   awardForm.title = item.title
   awardForm.desc = item.desc
   awardForm.year = item.year
   awardForm.image = item.image
   awardForm.imageAlt = item.imageAlt || item.title
+  originalAwardMedia = new Set(uniqueMediaUrls([item.image]))
+  uploadedAwardMedia = new Set()
   awardStatusText.value = `正在编辑《${item.title}》。`
   resetAwardFormScroll()
   window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -556,6 +678,10 @@ function uploadFileName(file) {
   return String(file.name || 'image.jpg').replace(/\.[^.]+$/, '') + '.jpg'
 }
 
+function isSupportedImage(file) {
+  return SUPPORTED_IMAGE_TYPES.has(file.type)
+}
+
 function loadImageFromFile(file) {
   return new Promise((resolve, reject) => {
     const image = new Image()
@@ -567,7 +693,7 @@ function loadImageFromFile(file) {
     }
     image.onerror = () => {
       URL.revokeObjectURL(objectUrl)
-      reject(new Error('图片读取失败，请换成 JPG、PNG 或 WebP 后重试。'))
+      reject(new Error('图片读取失败，请换成 JPG、PNG、WebP 或 GIF 后重试。'))
     }
     image.src = objectUrl
   })
@@ -585,57 +711,89 @@ function canvasToBlob(canvas, type, quality) {
   })
 }
 
-async function optimizeImageFile(file) {
-  if (file.size <= IMAGE_OPTIMIZE_BYTES && COMPRESSIBLE_IMAGE_TYPES.has(file.type)) {
-    return { file, optimized: false }
+async function createImageVariant(file, options) {
+  if (!isSupportedImage(file)) {
+    throw new Error('仅支持 JPG、PNG、WebP 或 GIF 图片。')
   }
 
-  if (!COMPRESSIBLE_IMAGE_TYPES.has(file.type)) {
-    if (file.size <= MAX_IMAGE_UPLOAD_BYTES) {
-      return { file, optimized: false }
+  if (file.size > MAX_SOURCE_IMAGE_BYTES) {
+    throw new Error(`原图过大（${fileSizeLabel(file.size)}），请先导出为 25MB 以下的图片。`)
+  }
+
+  if (file.type === 'image/gif' && options.keepGif) {
+    if (file.size > MAX_IMAGE_UPLOAD_BYTES) {
+      throw new Error(`GIF 过大（${fileSizeLabel(file.size)}），请先压缩到 ${fileSizeLabel(MAX_IMAGE_UPLOAD_BYTES)} 以下。`)
     }
 
-    throw new Error(`图片过大（${fileSizeLabel(file.size)}），请先导出为 JPG、PNG 或 WebP。`)
+    return { file, optimized: false }
   }
 
   const image = await loadImageFromFile(file)
   if (!image.naturalWidth || !image.naturalHeight) {
     throw new Error('图片尺寸读取失败，请换一张图片重试。')
   }
-  const scale = Math.min(1, IMAGE_MAX_EDGE / Math.max(image.naturalWidth, image.naturalHeight))
-  const width = Math.max(1, Math.round(image.naturalWidth * scale))
-  const height = Math.max(1, Math.round(image.naturalHeight * scale))
+
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d')
-
-  canvas.width = width
-  canvas.height = height
   if (!context) {
     throw new Error('当前浏览器无法处理图片，请换用新版浏览器重试。')
   }
-  context.fillStyle = '#fff'
-  context.fillRect(0, 0, width, height)
-  context.drawImage(image, 0, 0, width, height)
 
-  let quality = IMAGE_QUALITY
-  let blob = await canvasToBlob(canvas, 'image/jpeg', quality)
+  let scale = Math.min(1, options.maxEdge / Math.max(image.naturalWidth, image.naturalHeight))
 
-  while (blob.size > MAX_IMAGE_UPLOAD_BYTES && quality > MIN_IMAGE_QUALITY) {
-    quality = Math.max(MIN_IMAGE_QUALITY, quality - 0.08)
-    blob = await canvasToBlob(canvas, 'image/jpeg', quality)
+  while (scale > 0.1) {
+    const width = Math.max(1, Math.round(image.naturalWidth * scale))
+    const height = Math.max(1, Math.round(image.naturalHeight * scale))
+    canvas.width = width
+    canvas.height = height
+    context.fillStyle = '#fff'
+    context.fillRect(0, 0, width, height)
+    context.drawImage(image, 0, 0, width, height)
+
+    let quality = options.quality
+    let blob = await canvasToBlob(canvas, 'image/jpeg', quality)
+
+    while (blob.size > options.maxBytes && quality > MIN_IMAGE_QUALITY) {
+      quality = Math.max(MIN_IMAGE_QUALITY, quality - 0.06)
+      blob = await canvasToBlob(canvas, 'image/jpeg', quality)
+    }
+
+    if (blob.size <= options.maxBytes || Math.max(width, height) <= 720) {
+      if (blob.size > MAX_IMAGE_UPLOAD_BYTES) {
+        throw new Error(`图片处理后仍超过 ${fileSizeLabel(MAX_IMAGE_UPLOAD_BYTES)}，请先裁剪后重试。`)
+      }
+
+      return {
+        file: new File([blob], uploadFileName(file), {
+          type: 'image/jpeg',
+          lastModified: Date.now()
+        }),
+        optimized: true
+      }
+    }
+
+    scale *= 0.82
   }
 
-  if (blob.size > MAX_IMAGE_UPLOAD_BYTES) {
-    throw new Error(`图片压缩后仍超过 ${fileSizeLabel(MAX_IMAGE_UPLOAD_BYTES)}，请先裁剪或降低分辨率。`)
-  }
+  throw new Error('图片压缩失败，请换一张图片重试。')
+}
 
-  return {
-    file: new File([blob], uploadFileName(file), {
-      type: 'image/jpeg',
-      lastModified: Date.now()
-    }),
-    optimized: true
-  }
+function optimizeGalleryImage(file) {
+  return createImageVariant(file, {
+    maxEdge: GALLERY_MAX_EDGE,
+    maxBytes: GALLERY_MAX_BYTES,
+    quality: GALLERY_QUALITY,
+    keepGif: true
+  })
+}
+
+function createCoverImageFile(file) {
+  return createImageVariant(file, {
+    maxEdge: COVER_MAX_EDGE,
+    maxBytes: COVER_MAX_BYTES,
+    quality: COVER_QUALITY,
+    keepGif: false
+  })
 }
 
 function readImageAsDataUrl(file) {
@@ -647,9 +805,65 @@ function readImageAsDataUrl(file) {
   })
 }
 
+function normalizeExternalImageUrl(value) {
+  try {
+    const url = new URL(String(value || '').trim())
+
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      return ''
+    }
+
+    return url.href
+  } catch (error) {
+    return ''
+  }
+}
+
+function addExternalImage() {
+  try {
+    const imageUrl = normalizeExternalImageUrl(externalImageUrl.value)
+
+    if (!imageUrl) {
+      throw new Error('请输入以 http:// 或 https:// 开头的有效图片链接。')
+    }
+
+    if (form.images.includes(imageUrl)) {
+      statusText.value = '这张外部图片已经添加。'
+      return
+    }
+
+    form.images = [...form.images, imageUrl]
+    if (!form.coverImage) {
+      form.coverImage = imageUrl
+    }
+    externalImageUrl.value = ''
+    statusText.value = '已添加外部图片链接。'
+  } catch (error) {
+    statusText.value = `图片链接无效：${error.message}`
+  }
+}
+
+function addExternalAwardImage() {
+  try {
+    const imageUrl = normalizeExternalImageUrl(externalAwardImageUrl.value)
+    if (!imageUrl) {
+      throw new Error('请输入以 http:// 或 https:// 开头的有效图片链接。')
+    }
+
+    awardForm.image = imageUrl
+    externalAwardImageUrl.value = ''
+    if (!awardForm.imageAlt) {
+      awardForm.imageAlt = awardForm.title || '奖项图片'
+    }
+    awardStatusText.value = '已添加外部图片链接。'
+  } catch (error) {
+    awardStatusText.value = `图片链接无效：${error.message}`
+  }
+}
+
 async function handleImageUpload(event) {
   const input = event.target
-  const files = Array.from(input.files || []).filter((file) => file.type.startsWith('image/'))
+  const files = Array.from(input.files || []).filter(isSupportedImage)
 
   if (!files.length) {
     statusText.value = '请选择图片文件。'
@@ -659,20 +873,58 @@ async function handleImageUpload(event) {
   uploading.value = true
   statusText.value = `正在处理并上传 ${files.length} 张图片。`
 
-  try {
-    const preparedImages = await Promise.all(files.map(optimizeImageFile))
-    const uploadFiles = preparedImages.map((item) => item.file)
-    const optimizedCount = preparedImages.filter((item) => item.optimized).length
-    const images = cloudEnabled
-      ? await Promise.all(uploadFiles.map((file) => uploadCaseImage(file, currentCaseId())))
-      : await Promise.all(uploadFiles.map(readImageAsDataUrl))
+  const newImages = []
+  const needsCover = !form.images.length
+  let optimizedCount = 0
 
-    form.images = [...form.images, ...images]
-    statusText.value = optimizedCount
-      ? `已添加 ${images.length} 张图片，其中 ${optimizedCount} 张已自动压缩，第一张会作为封面。`
-      : `已添加 ${images.length} 张图片，第一张会作为封面。`
+  try {
+    let firstPreparedFile = null
+
+    for (let index = 0; index < files.length; index += 1) {
+      statusText.value = `正在处理并上传第 ${index + 1}/${files.length} 张图片。`
+      const preparedImage = await optimizeGalleryImage(files[index])
+      const imageUrl = cloudEnabled
+        ? await uploadCaseImage(preparedImage.file, currentCaseId())
+        : await readImageAsDataUrl(preparedImage.file)
+
+      if (!firstPreparedFile) {
+        firstPreparedFile = preparedImage.file
+      }
+      if (preparedImage.optimized) {
+        optimizedCount += 1
+      }
+      if (cloudEnabled) {
+        uploadedCaseMedia.add(imageUrl)
+      }
+      newImages.push(imageUrl)
+    }
+
+    form.images = [...form.images, ...newImages]
+
+    if (needsCover && firstPreparedFile) {
+      statusText.value = '正在生成列表封面。'
+      const coverFile = await createCoverImageFile(firstPreparedFile)
+      const coverUrl = cloudEnabled
+        ? await uploadCaseCoverImage(coverFile.file, currentCaseId())
+        : await readImageAsDataUrl(coverFile.file)
+
+      form.coverImage = coverUrl
+      if (cloudEnabled) {
+        uploadedCaseMedia.add(coverUrl)
+      }
+    }
+
+    statusText.value = `已添加 ${newImages.length} 张图片，${optimizedCount} 张已转为网页展示图，并生成了轻量列表封面。`
   } catch (error) {
-    statusText.value = `图片上传失败：${error.message}`
+    if (newImages.length) {
+      form.images = [...form.images, ...newImages]
+      if (!form.coverImage) {
+        form.coverImage = form.images[0]
+      }
+    }
+    statusText.value = newImages.length
+      ? `图片处理未完成，已保留 ${newImages.length} 张：${error.message}`
+      : `图片上传失败：${error.message}`
   } finally {
     uploading.value = false
     input.value = ''
@@ -681,7 +933,7 @@ async function handleImageUpload(event) {
 
 async function handleAwardImageUpload(event) {
   const input = event.target
-  const file = Array.from(input.files || []).find((item) => item.type.startsWith('image/'))
+  const file = Array.from(input.files || []).find(isSupportedImage)
 
   if (!file) {
     awardStatusText.value = '请选择图片文件。'
@@ -692,15 +944,18 @@ async function handleAwardImageUpload(event) {
   awardStatusText.value = '正在处理并上传奖项图片。'
 
   try {
-    const preparedImage = await optimizeImageFile(file)
+    const preparedImage = await optimizeGalleryImage(file)
     awardForm.image = cloudEnabled
       ? await uploadAwardImage(preparedImage.file, currentAwardId())
       : await readImageAsDataUrl(preparedImage.file)
+    if (cloudEnabled) {
+      uploadedAwardMedia.add(awardForm.image)
+    }
     if (!awardForm.imageAlt) {
       awardForm.imageAlt = awardForm.title || '奖项图片'
     }
     awardStatusText.value = preparedImage.optimized
-      ? '奖项图片已添加，并已自动压缩。'
+      ? '奖项图片已添加，并已转为网页展示图。'
       : '奖项图片已添加。'
   } catch (error) {
     awardStatusText.value = `奖项图片上传失败：${error.message}`
@@ -710,14 +965,70 @@ async function handleAwardImageUpload(event) {
   }
 }
 
-function setCoverImage(index) {
+async function refreshCoverImage() {
+  const firstImage = form.images[0]
+
+  if (!firstImage) {
+    form.coverImage = ''
+    return
+  }
+
+  if (!cloudEnabled) {
+    form.coverImage = firstImage
+    return
+  }
+
+  const response = await fetch(firstImage)
+  if (!response.ok) {
+    throw new Error('封面图片读取失败，请稍后重试。')
+  }
+
+  const sourceBlob = await response.blob()
+  const sourceFile = new File([sourceBlob], 'cover-source.jpg', {
+    type: sourceBlob.type || 'image/jpeg',
+    lastModified: Date.now()
+  })
+  const coverFile = await createCoverImageFile(sourceFile)
+  const coverUrl = await uploadCaseCoverImage(coverFile.file, currentCaseId())
+  form.coverImage = coverUrl
+  uploadedCaseMedia.add(coverUrl)
+}
+
+async function setCoverImage(index) {
+  if (index <= 0 || !form.images[index]) {
+    return
+  }
+
   const images = [...form.images]
   const [cover] = images.splice(index, 1)
   form.images = [cover, ...images]
+
+  statusText.value = '正在更新列表封面。'
+  try {
+    await refreshCoverImage()
+    statusText.value = '封面已更新。'
+  } catch (error) {
+    form.coverImage = form.images[0]
+    statusText.value = `封面已更新，轻量封面生成失败：${error.message}`
+  }
 }
 
-function removeImage(index) {
+async function removeImage(index) {
+  const removedWasCover = index === 0
   form.images = form.images.filter((_, imageIndex) => imageIndex !== index)
+
+  if (removedWasCover && form.images.length) {
+    statusText.value = '正在更新列表封面。'
+    try {
+      await refreshCoverImage()
+      statusText.value = '图片已移除，封面已更新。'
+    } catch (error) {
+      form.coverImage = form.images[0]
+      statusText.value = `图片已移除，轻量封面生成失败：${error.message}`
+    }
+  } else if (!form.images.length) {
+    form.coverImage = ''
+  }
 }
 
 function removeAwardImage() {
@@ -748,6 +1059,12 @@ function caseLabel(item) {
   }
 
   return item.source === 'base' ? '原有作品' : '新增作品'
+}
+
+function formatCaseMeta(item) {
+  return [item.style || '风格待补充', item.type, item.year]
+    .filter(Boolean)
+    .join(' · ')
 }
 
 function canToggleVisibility(item) {
@@ -787,11 +1104,12 @@ function formPayload() {
     id: currentCaseId(),
     name: form.name,
     category: form.category,
+    style: form.style,
     type: form.type,
     year: form.year,
     url: form.url,
     images: form.images,
-    image: form.images[0] || '',
+    image: form.coverImage || form.images[0] || '',
     note: form.note,
     createdAt: editingCase.value?.createdAt || Date.now(),
     hidden: Boolean(editingCase.value?.hidden)
@@ -813,6 +1131,7 @@ function awardPayload() {
 
 async function handleSubmit() {
   let saved = null
+  let cleanupMessage = ''
 
   if (uploading.value) {
     statusText.value = '图片还在上传，请稍等。'
@@ -830,6 +1149,21 @@ async function handleSubmit() {
     if (cloudEnabled) {
       saved = await upsertCloudCase(formPayload())
       await refreshCloudList()
+      const retainedMedia = new Set(getCurrentCaseMedia())
+      const removedMedia = uniqueMediaUrls([
+        [...originalCaseMedia],
+        [...uploadedCaseMedia]
+      ]).filter((url) => !retainedMedia.has(url))
+
+      try {
+        const cleanedCount = await cleanUnusedCloudMedia(removedMedia)
+        if (cleanedCount) {
+          cleanupMessage = `，并清理了 ${cleanedCount} 张旧图片`
+        }
+      } catch (cleanupError) {
+        cleanupMessage = '；旧图片暂未清理，可稍后再次保存处理'
+        console.warn('Failed to clean unused case images:', cleanupError)
+      }
     } else {
       saved = isEditing.value
         ? saveCaseOverride(formPayload())
@@ -841,7 +1175,9 @@ async function handleSubmit() {
       return
     }
 
-    statusText.value = `已保存《${saved.name}》。`
+    statusText.value = `已保存《${saved.name}》${cleanupMessage}。`
+    originalCaseMedia = new Set()
+    uploadedCaseMedia = new Set()
     resetForm()
     refreshList()
   } catch (error) {
@@ -853,6 +1189,7 @@ async function handleSubmit() {
 
 async function handleAwardSubmit() {
   let saved = null
+  let cleanupMessage = ''
 
   if (awardUploading.value) {
     awardStatusText.value = '奖项图片还在上传，请稍等。'
@@ -870,6 +1207,21 @@ async function handleAwardSubmit() {
     if (cloudEnabled) {
       saved = await upsertCloudAward(awardPayload())
       await refreshCloudList()
+      const retainedMedia = new Set(uniqueMediaUrls([awardForm.image]))
+      const removedMedia = uniqueMediaUrls([
+        [...originalAwardMedia],
+        [...uploadedAwardMedia]
+      ]).filter((url) => !retainedMedia.has(url))
+
+      try {
+        const cleanedCount = await cleanUnusedCloudMedia(removedMedia)
+        if (cleanedCount) {
+          cleanupMessage = '，并清理了旧图片'
+        }
+      } catch (cleanupError) {
+        cleanupMessage = '；旧图片暂未清理，可稍后再次保存处理'
+        console.warn('Failed to clean unused award image:', cleanupError)
+      }
     } else {
       saved = editingAward.value
         ? saveAwardOverride(awardPayload())
@@ -881,7 +1233,9 @@ async function handleAwardSubmit() {
       return
     }
 
-    awardStatusText.value = `已保存《${saved.title}》。`
+    awardStatusText.value = `已保存《${saved.title}》${cleanupMessage}。`
+    originalAwardMedia = new Set()
+    uploadedAwardMedia = new Set()
     resetAwardForm()
     refreshAwardsList()
   } catch (error) {
@@ -982,32 +1336,59 @@ function resetAward(id) {
 }
 
 async function removeCustom(id) {
+  let mediaCleanupFailed = false
+
   try {
     if (cloudEnabled) {
+      const target = managedCases.value.find((item) => String(item.id) === String(id))
+      const mediaToClean = uniqueMediaUrls([
+        getCaseMedia(target),
+        [...uploadedCaseMedia]
+      ])
       await deleteCloudCase(id)
       await refreshCloudList()
+      try {
+        await cleanUnusedCloudMedia(mediaToClean)
+      } catch (cleanupError) {
+        console.warn('Failed to clean deleted case images:', cleanupError)
+        mediaCleanupFailed = true
+      }
+      originalCaseMedia = new Set()
+      uploadedCaseMedia = new Set()
     } else {
       deleteCustomCase(id)
       refreshList()
     }
     resetForm()
-    statusText.value = '已删除新增作品。'
+    statusText.value = mediaCleanupFailed ? '作品已删除，旧图片暂未清理。' : '已删除作品。'
   } catch (error) {
     statusText.value = `删除失败：${error.message}`
   }
 }
 
 async function removeAward(id) {
+  let mediaCleanupFailed = false
+
   try {
     if (cloudEnabled) {
+      const target = managedAwards.value.find((item) => String(item.id) === String(id))
+      const mediaToClean = uniqueMediaUrls([target?.image, [...uploadedAwardMedia]])
       await deleteCloudAward(id)
       await refreshCloudList()
+      try {
+        await cleanUnusedCloudMedia(mediaToClean)
+      } catch (cleanupError) {
+        console.warn('Failed to clean deleted award image:', cleanupError)
+        mediaCleanupFailed = true
+      }
+      originalAwardMedia = new Set()
+      uploadedAwardMedia = new Set()
     } else {
       deleteCustomAward(id)
       refreshAwardsList()
     }
     resetAwardForm()
-    awardStatusText.value = '已删除奖项。'
+    awardStatusText.value = mediaCleanupFailed ? '奖项已删除，旧图片暂未清理。' : '已删除奖项。'
   } catch (error) {
     awardStatusText.value = `删除奖项失败：${error.message}`
   }
@@ -1036,9 +1417,13 @@ async function handleLogin() {
 
 async function handleLogout() {
   try {
+    await discardUploadedCaseMedia()
+    await discardUploadedAwardMedia()
     await signOutManager()
     managerSession.value = null
     managerIsAdmin.value = false
+    originalCaseMedia = new Set()
+    originalAwardMedia = new Set()
     resetForm()
     resetAwardForm()
     loginStatus.value = '已退出，请重新登录。'
@@ -1314,7 +1699,7 @@ onUnmounted(() => {
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -1378,6 +1763,35 @@ onUnmounted(() => {
 .upload-box small {
   color: #69717d;
   font-size: 13px;
+}
+
+.external-image-entry {
+  display: flex;
+  gap: 8px;
+}
+
+.external-image-entry input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #d8dde4;
+  background: #fff;
+  color: #11161d;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.external-image-entry input:focus {
+  outline: 2px solid rgba(17, 22, 29, 0.16);
+  border-color: #11161d;
+}
+
+.external-image-entry button {
+  flex: 0 0 auto;
+  border: 1px solid #11161d;
+  background: #11161d;
+  color: #fff;
+  padding: 0 14px;
+  cursor: pointer;
 }
 
 .upload-preview-grid {
@@ -1685,9 +2099,14 @@ onUnmounted(() => {
   .form-actions,
   .manager-header,
   .saved-head,
-  .item-head {
+  .item-head,
+  .external-image-entry {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .external-image-entry button {
+    min-height: 42px;
   }
 
   .saved-item img {

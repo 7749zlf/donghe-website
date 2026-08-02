@@ -8,15 +8,34 @@
       <p>不按热闹排序，只保留能说明尺度、材质和落地能力的项目。</p>
     </div>
 
-    <div class="container work-tags" v-reveal="{ delay: 120 }">
-      <button
-        v-for="option in displayFilterOptions"
-        :key="option.value"
-        :class="['tag', { active: option.value === activeTag }]"
-        @click="$emit('change-tag', option.value)"
-      >
-        {{ option.label }}
-      </button>
+    <div class="container work-filters" v-reveal="{ delay: 120 }">
+      <div v-if="styleOptions.length > 1" class="filter-set">
+        <span class="filter-label">空间</span>
+        <div class="filter-options">
+          <button
+            v-for="option in spaceOptions"
+            :key="option.value"
+            :class="['tag', { active: option.value === activeSpace }]"
+            @click="$emit('change-space', option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-set">
+        <span class="filter-label">风格</span>
+        <div class="filter-options">
+          <button
+            v-for="option in styleOptions"
+            :key="option.value || 'all-styles'"
+            :class="['tag', { active: option.value === activeStyle }]"
+            @click="$emit('change-style', option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <div v-if="projects.length" class="container work-grid">
@@ -35,9 +54,9 @@
           <img :src="item.image" :alt="item.name" loading="lazy" decoding="async" />
         </div>
         <div class="work-content">
-          <span>{{ item.category }}</span>
+          <span>{{ formatProjectLabel(item) }}</span>
           <h3>{{ item.name }}</h3>
-          <p>{{ item.type }} / {{ item.year }}</p>
+          <p>{{ formatProjectMeta(item) }}</p>
           <button class="work-detail-btn" @click.stop="$emit('view-detail', item.id)">
             阅读项目
             <span>↗</span>
@@ -56,18 +75,20 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
-const props = defineProps({
-  tags: {
+defineProps({
+  spaceOptions: {
     type: Array,
     default: () => []
   },
-  filterOptions: {
+  styleOptions: {
     type: Array,
     default: () => []
   },
-  activeTag: {
+  activeSpace: {
+    type: String,
+    default: ''
+  },
+  activeStyle: {
     type: String,
     default: ''
   },
@@ -77,18 +98,15 @@ const props = defineProps({
   }
 })
 
-defineEmits(['change-tag', 'view-detail', 'view-more'])
+defineEmits(['change-space', 'change-style', 'view-detail', 'view-more'])
 
-const displayFilterOptions = computed(() => {
-  if (props.filterOptions.length) {
-    return props.filterOptions
-  }
+function formatProjectLabel(item) {
+  return [item.category, item.style].filter(Boolean).join(' · ')
+}
 
-  return props.tags.map((tag) => ({
-    label: tag,
-    value: tag
-  }))
-})
+function formatProjectMeta(item) {
+  return [item.type, item.year].filter(Boolean).join(' / ')
+}
 </script>
 
 <style scoped lang="scss">
@@ -140,8 +158,25 @@ const displayFilterOptions = computed(() => {
   line-height: 1.8;
 }
 
-.work-tags {
+.work-filters {
   margin-bottom: 34px;
+  display: grid;
+  gap: 14px;
+}
+
+.filter-set {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.filter-label {
+  flex: 0 0 34px;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.filter-options {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -354,6 +389,12 @@ const displayFilterOptions = computed(() => {
 
   .section-head h2 {
     font-size: 36px;
+  }
+
+  .filter-set {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .work-grid {

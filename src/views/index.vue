@@ -14,10 +14,13 @@
     <HomeMaterialsSection />
 
     <HomeWorksSection
-      :tags="tags"
-      :filter-options="workFilterOptions"
+      :space-options="workSpaceOptions"
+      :style-options="workStyleOptions"
+      :active-space="activeSpace"
+      :active-style="activeStyle"
       :projects="filteredProjects"
-      @change-tag="goWorksGallery"
+      @change-space="setHomeSpace"
+      @change-style="setHomeStyle"
       @view-detail="viewMoreCases"
       @view-more="goWorksGallery"
     />
@@ -57,23 +60,50 @@ const displayProjects = ref(cloudEnabled ? [] : getDisplayProjects())
 const displayAwards = ref(cloudEnabled ? [] : getDisplayAwards())
 const heroSlides = computed(() => displayDesignCases.value.slice(0, 3))
 const currentSlideIndex = ref(0)
-const workFilterOptions = [
+const activeSpace = ref(tags[0])
+const activeStyle = ref('')
+const workSpaceOptions = [
+  { label: '全部空间', value: tags[0] },
   { label: '商业空间', value: tags[1] },
   { label: '办公空间', value: tags[2] },
   { label: '居住空间', value: tags[3] }
 ]
+const workStyleOptions = computed(() => {
+  const styles = new Set()
+
+  displayProjects.value.forEach((item) => {
+    if (item.style) {
+      styles.add(item.style)
+    }
+  })
+
+  return [
+    { label: '全部风格', value: '' },
+    ...[...styles].map((style) => ({ label: style, value: style }))
+  ]
+})
 
 let autoTimer = null
 
 const currentSlide = computed(() => heroSlides.value[currentSlideIndex.value] || null)
 
 const representativeProjects = computed(() => {
-  return workFilterOptions
+  return workSpaceOptions
+    .slice(1)
     .map((option) => displayProjects.value.find((item) => item.category === option.value))
     .filter(Boolean)
 })
 
-const filteredProjects = computed(() => representativeProjects.value)
+const filteredProjects = computed(() => {
+  if (activeSpace.value === tags[0] && !activeStyle.value) {
+    return representativeProjects.value
+  }
+
+  return displayProjects.value
+    .filter((item) => activeSpace.value === tags[0] || item.category === activeSpace.value)
+    .filter((item) => !activeStyle.value || item.style === activeStyle.value)
+    .slice(0, 3)
+})
 
 function nextSlide() {
   if (!heroSlides.value.length) return
@@ -116,8 +146,22 @@ function viewMoreCases(id = currentSlide.value?.id) {
   router.push({ name: 'designDetail', params: { id } })
 }
 
-function goWorksGallery(category = tags[0]) {
-  const query = category && category !== tags[0] ? { category } : {}
+function setHomeSpace(space) {
+  activeSpace.value = space || tags[0]
+}
+
+function setHomeStyle(style) {
+  activeStyle.value = style || ''
+}
+
+function goWorksGallery() {
+  const query = {}
+  if (activeSpace.value !== tags[0]) {
+    query.category = activeSpace.value
+  }
+  if (activeStyle.value) {
+    query.style = activeStyle.value
+  }
   router.push({ name: 'worksGallery', query })
 }
 

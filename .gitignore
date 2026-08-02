@@ -12,8 +12,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-dev-server.log
-dev-server.err.log
+dev-server*.log
 tmp-mobile-check/
 
 # Editor directories and files
