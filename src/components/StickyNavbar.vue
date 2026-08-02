@@ -3,7 +3,7 @@
     <div class="navbar-inner">
       <button class="brand" type="button" @click="toHome">
         <span>东禾</span>
-        <small>DH</small>
+        <span>DH</span>
       </button>
 
       <div class="nav-container">
