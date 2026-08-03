@@ -1,9 +1,9 @@
 ﻿<template>
   <div id="app" @pointermove="handlePointerMove">
     <div v-if="!$route.meta.hideNavigation" class="site-atmosphere" aria-hidden="true"></div>
-    <Transition name="studio-intro">
+    <Transition v-if="!$route.meta.skipIntro" name="studio-intro">
       <section
-        v-if="showIntro && !$route.meta.skipIntro"
+        v-if="showIntro"
         class="studio-intro"
         :class="{ 'is-leaving': introLeaving }"
         aria-label="东禾空间设计进场动画"

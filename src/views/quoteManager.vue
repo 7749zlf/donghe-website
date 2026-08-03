@@ -75,9 +75,11 @@
               </label>
               <label class="field">
                 <span>空间类型</span>
-                <select v-model="editor.category">
-                  <option v-for="tag in categoryOptions" :key="tag" :value="tag">{{ tag }}</option>
-                </select>
+                <div class="select-control">
+                  <select v-model="editor.category">
+                    <option v-for="tag in categoryOptions" :key="tag" :value="tag">{{ tag }}</option>
+                  </select>
+                </div>
               </label>
               <label class="field">
                 <span>设计风格</span>
@@ -92,11 +94,13 @@
               </label>
               <label class="field">
                 <span>报价状态</span>
-                <select v-model="editor.status">
-                  <option v-for="option in quoteStatusOptions" :key="option.value" :value="option.value">
-                    {{ option.label }}
-                  </option>
-                </select>
+                <div class="select-control">
+                  <select v-model="editor.status">
+                    <option v-for="option in quoteStatusOptions" :key="option.value" :value="option.value">
+                      {{ option.label }}
+                    </option>
+                  </select>
+                </div>
               </label>
               <label class="field">
                 <span>报价日期</span>
@@ -119,9 +123,11 @@
               <article v-for="(item, index) in editor.items" :key="item.id" class="line-item">
                 <label class="line-field section-field">
                   <span>分类</span>
-                  <select v-model="item.section">
-                    <option v-for="section in quoteSectionOptions" :key="section" :value="section">{{ section }}</option>
-                  </select>
+                  <div class="select-control">
+                    <select v-model="item.section">
+                      <option v-for="section in quoteSectionOptions" :key="section" :value="section">{{ section }}</option>
+                    </select>
+                  </div>
                 </label>
                 <label class="line-field name-field">
                   <span>项目名称</span>
@@ -133,9 +139,11 @@
                 </label>
                 <label class="line-field unit-field">
                   <span>单位</span>
-                  <select v-model="item.unit">
-                    <option v-for="unit in quoteUnitOptions" :key="unit" :value="unit">{{ unit }}</option>
-                  </select>
+                  <div class="select-control">
+                    <select v-model="item.unit">
+                      <option v-for="unit in quoteUnitOptions" :key="unit" :value="unit">{{ unit }}</option>
+                    </select>
+                  </div>
                 </label>
                 <label class="line-field number-field">
                   <span>数量</span>
@@ -495,7 +503,7 @@ async function handleLogin() {
 }
 
 /**
- * 注销管理员会话并清空当前权限状态。
+ * 注销管理员会话并返回统一的内容后台登录入口。
  * @returns {Promise<void>}
  */
 async function handleLogout() {
@@ -505,6 +513,7 @@ async function handleLogout() {
     managerIsAdmin.value = false
     quotes.value = []
     statusText.value = '已退出登录。'
+    await router.replace({ name: 'contentManager' })
   } catch (error) {
     statusText.value = `退出失败：${error.message}`
   }
@@ -722,6 +731,47 @@ onBeforeUnmount(() => {
 
 .field textarea {
   resize: vertical;
+}
+
+.select-control {
+  position: relative;
+  min-width: 0;
+}
+
+.select-control::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid #69717d;
+  border-bottom: 1.5px solid #69717d;
+  pointer-events: none;
+  transform: translateY(-70%) rotate(45deg);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.select-control select {
+  display: block;
+  appearance: none;
+  padding: 0 42px 0 12px;
+  cursor: pointer;
+}
+
+.select-control:focus-within::after {
+  border-color: #11161d;
+  transform: translateY(-35%) rotate(225deg);
+}
+
+.line-field .select-control::after {
+  right: 10px;
+  width: 6px;
+  height: 6px;
+}
+
+.line-field .select-control select {
+  padding-right: 28px;
 }
 
 .field input:focus,
