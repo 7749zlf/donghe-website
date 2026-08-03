@@ -330,7 +330,7 @@ async function handleManagerAccessChange(accessState) {
 
   if (!accessState.session) {
     quotes.value = []
-    statusText.value = '已退出登录。'
+    statusText.value = '请输入管理员账号。'
     return
   }
 
