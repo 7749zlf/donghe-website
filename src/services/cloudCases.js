@@ -282,18 +282,19 @@ export async function signOutManager() {
 }
 
 /**
- * 校验当前登录邮箱是否存在于管理员授权表。
+ * 校验指定或当前登录邮箱是否存在于管理员授权表。
+ * @param {Object|null|undefined} session 指定会话；省略时读取当前会话。
  * @returns {Promise<boolean>} 具有后台权限时返回 true。
  */
-export async function isManagerAdmin() {
+export async function isManagerAdmin(session = undefined) {
   const client = await getClient()
 
   if (!client) {
     return false
   }
 
-  const session = await getManagerSession()
-  const email = session?.user?.email
+  const resolvedSession = session === undefined ? await getManagerSession() : session
+  const email = resolvedSession?.user?.email
 
   if (!email) {
     return false
@@ -310,6 +311,46 @@ export async function isManagerAdmin() {
   }
 
   return Boolean(data)
+}
+
+/**
+ * 一次性读取后台会话和对应管理员权限，避免页面短暂使用旧权限状态。
+ * @param {Object|null|undefined} session 指定会话；省略时读取当前会话。
+ * @returns {Promise<{session: Object|null, isAdmin: boolean}>} 统一后台访问状态。
+ */
+export async function getManagerAccessState(session = undefined) {
+  const resolvedSession = session === undefined ? await getManagerSession() : session
+  const isAdmin = resolvedSession ? await isManagerAdmin(resolvedSession) : false
+  return { session: resolvedSession, isAdmin }
+}
+
+/**
+ * 订阅经过管理员权限复核的后台访问状态，并忽略过期的异步检查结果。
+ * @param {Function} callback 状态完成复核后执行的回调。
+ * @returns {Function} 取消认证与权限监听的函数。
+ */
+export function onManagerAccessChange(callback) {
+  let disposed = false
+  let requestVersion = 0
+  const stopAuthListener = onManagerAuthChange((session) => {
+    const currentVersion = ++requestVersion
+
+    getManagerAccessState(session).then((accessState) => {
+      if (!disposed && currentVersion === requestVersion) {
+        callback({ ...accessState, error: null })
+      }
+    }).catch((error) => {
+      if (!disposed && currentVersion === requestVersion) {
+        callback({ session, isAdmin: false, error })
+      }
+    })
+  })
+
+  return () => {
+    disposed = true
+    requestVersion += 1
+    stopAuthListener()
+  }
 }
 
 /**

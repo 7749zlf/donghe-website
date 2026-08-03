@@ -1,11 +1,12 @@
 {
-  "name": "",
+  "name": "design-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint && eslint src/services/quoteDomain.mjs",
+    "test": "node tests/quoteDomain.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
@@ -27,6 +28,8 @@
   "eslintConfig": {
     "root": true,
     "env": {
+      "browser": true,
+      "es2021": true,
       "node": true,
       "vue/setup-compiler-macros": true
     },

@@ -1,39 +1,28 @@
 import { getCloudClient, isCloudCasesEnabled } from './cloudCases'
+import {
+  calculateQuoteTotals,
+  createSecureRandomId,
+  formatCurrency,
+  quoteSectionOptions,
+  quoteStatusLabel,
+  quoteStatusOptions,
+  quoteUnitOptions,
+  toNonNegativeNumber
+} from './quoteDomain.mjs'
+
+export {
+  calculateQuoteTotals,
+  formatCurrency,
+  quoteSectionOptions,
+  quoteStatusLabel,
+  quoteStatusOptions,
+  quoteUnitOptions
+}
 
 const QUOTES_TABLE = process.env.VUE_APP_SUPABASE_QUOTES_TABLE || 'design_quotes'
 const LOCAL_QUOTES_KEY = 'donghe-design-quotes'
 const QUOTE_EVENT = 'donghe-quotes-updated'
 const VALID_STATUSES = new Set(['draft', 'sent', 'accepted', 'expired', 'void'])
-
-export const quoteStatusOptions = [
-  { label: '草稿', value: 'draft' },
-  { label: '已发送', value: 'sent' },
-  { label: '已确认', value: 'accepted' },
-  { label: '已过期', value: 'expired' },
-  { label: '已作废', value: 'void' }
-]
-
-export const quoteSectionOptions = ['设计服务', '施工服务', '主材', '软装', '其他']
-export const quoteUnitOptions = ['项', '平方米', '米', '套', '个', '天']
-
-/**
- * 将任意数字输入转换为不小于零的有限数值。
- * @param {*} value 原始数字输入。
- * @returns {number} 可用于金额计算的数值。
- */
-function toNonNegativeNumber(value) {
-  const number = Number(value)
-  return Number.isFinite(number) ? Math.max(0, number) : 0
-}
-
-/**
- * 将金额四舍五入到分，避免连续计算产生浮点尾差。
- * @param {number} value 原始金额。
- * @returns {number} 保留两位小数的金额。
- */
-function roundCurrency(value) {
-  return Math.round((Number(value) + Number.EPSILON) * 100) / 100
-}
 
 /**
  * 将日期转换为浏览器本地时区的 YYYY-MM-DD 字符串。
@@ -53,11 +42,7 @@ function formatLocalDate(date) {
  * @returns {string} 随机标识。
  */
 function createRandomId(prefix) {
-  const randomValue = typeof window !== 'undefined' && window.crypto?.randomUUID
-    ? window.crypto.randomUUID().replace(/-/g, '')
-    : `${Date.now().toString(36)}${Math.random().toString(36).slice(2)}`
-
-  return `${prefix}-${randomValue}`
+  return createSecureRandomId(prefix)
 }
 
 /**
@@ -66,7 +51,7 @@ function createRandomId(prefix) {
  */
 function createQuoteNumber() {
   const date = formatLocalDate(new Date()).replace(/-/g, '')
-  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase()
+  const suffix = createSecureRandomId('number').slice(-6).toUpperCase()
   return `DH-${date}-${suffix}`
 }
 
@@ -99,25 +84,6 @@ export function normalizeQuoteItem(item = {}, index = 0) {
       ? Number(item.sortOrder ?? item.sort_order)
       : index
   }
-}
-
-/**
- * 计算报价单小计、优惠、税费、总价和预付款。
- * @param {Object} quote 报价单数据。
- * @returns {Object} 全部金额汇总。
- */
-export function calculateQuoteTotals(quote = {}) {
-  const items = Array.isArray(quote.items) ? quote.items : []
-  const subtotal = roundCurrency(items.reduce((sum, item) => {
-    return sum + toNonNegativeNumber(item.quantity) * toNonNegativeNumber(item.unitPrice)
-  }, 0))
-  const discount = Math.min(subtotal, roundCurrency(toNonNegativeNumber(quote.discount)))
-  const taxableAmount = Math.max(0, subtotal - discount)
-  const tax = roundCurrency(taxableAmount * toNonNegativeNumber(quote.taxRate ?? quote.tax_rate) / 100)
-  const total = roundCurrency(taxableAmount + tax)
-  const deposit = roundCurrency(total * Math.min(100, toNonNegativeNumber(quote.depositRate ?? quote.deposit_rate)) / 100)
-
-  return { subtotal, discount, taxableAmount, tax, total, deposit }
 }
 
 /**
@@ -381,26 +347,4 @@ export async function fetchQuoteByToken(token) {
   }
 
   return adminQuote ? rowToQuote(adminQuote) : null
-}
-
-/**
- * 格式化人民币金额。
- * @param {*} value 金额数值。
- * @returns {string} 带人民币符号的金额文本。
- */
-export function formatCurrency(value) {
-  return new Intl.NumberFormat('zh-CN', {
-    style: 'currency',
-    currency: 'CNY',
-    minimumFractionDigits: 2
-  }).format(toNonNegativeNumber(value))
-}
-
-/**
- * 获取报价状态的中文标签。
- * @param {string} status 状态值。
- * @returns {string} 状态中文标签。
- */
-export function quoteStatusLabel(status) {
-  return quoteStatusOptions.find((option) => option.value === status)?.label || '未知状态'
 }

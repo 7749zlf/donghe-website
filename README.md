@@ -92,9 +92,17 @@ npm run build
 npm run lint
 ```
 
+自动化测试：
+
+```bash
+npm test
+```
+
 ## GitHub Pages 部署
 
 项目已包含 `.github/workflows/pages.yml`。推送到 `main` 或 `master` 后会自动打包并发布。
+
+自定义域名必须在 GitHub Pages 设置中启用 `Enforce HTTPS`。后台登录和客户报价包含敏感信息，不应通过 HTTP 使用。
 
 需要在 GitHub 仓库的 Secrets 中配置：
 

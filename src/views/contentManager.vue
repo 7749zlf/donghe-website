@@ -410,10 +410,9 @@ import {
   deleteCloudCase,
   fetchCloudAwards,
   fetchCloudCases,
-  getManagerSession,
-  isManagerAdmin,
+  getManagerAccessState,
   isCloudCasesEnabled,
-  onManagerAuthChange,
+  onManagerAccessChange,
   signInManager,
   signOutManager,
   deleteCloudImages,
@@ -771,8 +770,48 @@ async function refreshAdminStatus() {
     return false
   }
 
-  managerIsAdmin.value = await isManagerAdmin()
+  const accessState = await getManagerAccessState(managerSession.value)
+  managerSession.value = accessState.session
+  managerIsAdmin.value = accessState.isAdmin
   return managerIsAdmin.value
+}
+
+/**
+ * 应用经过权限复核的认证事件，并在账号切换后刷新云端内容。
+ * @param {Object} accessState 统一后台访问状态。
+ * @returns {Promise<void>}
+ */
+async function handleManagerAccessChange(accessState) {
+  const previousUserId = managerSession.value?.user?.id || ''
+  managerSession.value = accessState.session
+  managerIsAdmin.value = accessState.isAdmin
+
+  if (accessState.error) {
+    loginStatus.value = `权限检查失败：${accessState.error.message}`
+    return
+  }
+
+  if (!accessState.session) {
+    loginStatus.value = '请输入管理员账号。'
+    return
+  }
+
+  if (!accessState.isAdmin) {
+    loginStatus.value = '当前账号没有管理权限。'
+    return
+  }
+
+  if (accessState.session.user?.id === previousUserId) {
+    return
+  }
+
+  try {
+    await refreshCloudList()
+    loginStatus.value = '登录成功。'
+    statusText.value = '已连接云端数据库。'
+  } catch (error) {
+    statusText.value = `云端数据刷新失败：${error.message}`
+  }
 }
 
 /**
@@ -1828,22 +1867,17 @@ onMounted(async () => {
   }
 
   try {
-    managerSession.value = await getManagerSession()
-    stopAuthListener = onManagerAuthChange((session) => {
-      managerSession.value = session
-      if (!session) {
-        managerIsAdmin.value = false
-      }
-    })
-    authReady.value = true
+    const accessState = await getManagerAccessState()
+    managerSession.value = accessState.session
+    managerIsAdmin.value = accessState.isAdmin
+    stopAuthListener = onManagerAccessChange(handleManagerAccessChange)
 
     if (!managerSession.value) {
       loginStatus.value = '请输入管理员账号。'
       return
     }
 
-    const hasAccess = await refreshAdminStatus()
-    if (!hasAccess) {
+    if (!managerIsAdmin.value) {
       loginStatus.value = '当前账号没有管理权限。'
       return
     }
@@ -1851,9 +1885,10 @@ onMounted(async () => {
     await refreshCloudList()
     statusText.value = '已连接云端数据库。'
   } catch (error) {
-    authReady.value = true
     statusText.value = `云端数据库连接失败：${error.message}`
     loginStatus.value = `权限检查失败：${error.message}`
+  } finally {
+    authReady.value = true
   }
 })
 

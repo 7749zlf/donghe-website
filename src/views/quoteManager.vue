@@ -257,7 +257,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { isCloudCasesEnabled, getManagerSession, isManagerAdmin, onManagerAuthChange, signInManager, signOutManager } from '@/services/cloudCases'
+import { getManagerAccessState, isCloudCasesEnabled, onManagerAccessChange, signInManager, signOutManager } from '@/services/cloudCases'
 import {
   calculateQuoteTotals,
   createQuoteDraft,
@@ -311,6 +311,40 @@ async function handleQuotesUpdated() {
   } catch (error) {
     statusText.value = `刷新报价列表失败：${error.message}`
   }
+}
+
+/**
+ * 应用经过权限复核的认证事件，并在账号切换后刷新报价列表。
+ * @param {Object} accessState 统一后台访问状态。
+ * @returns {Promise<void>}
+ */
+async function handleManagerAccessChange(accessState) {
+  const previousUserId = managerSession.value?.user?.id || ''
+  managerSession.value = accessState.session
+  managerIsAdmin.value = accessState.isAdmin
+
+  if (accessState.error) {
+    statusText.value = `权限检查失败：${accessState.error.message}`
+    return
+  }
+
+  if (!accessState.session) {
+    quotes.value = []
+    statusText.value = '已退出登录。'
+    return
+  }
+
+  if (!accessState.isAdmin) {
+    quotes.value = []
+    statusText.value = '当前账号没有管理权限。'
+    return
+  }
+
+  if (accessState.session.user?.id === previousUserId) {
+    return
+  }
+
+  await handleQuotesUpdated()
 }
 
 /**
@@ -486,8 +520,10 @@ function goContentManager() {
 async function handleLogin() {
   authLoading.value = true
   try {
-    managerSession.value = await signInManager(loginForm.email, loginForm.password)
-    managerIsAdmin.value = await isManagerAdmin()
+    const session = await signInManager(loginForm.email, loginForm.password)
+    const accessState = await getManagerAccessState(session)
+    managerSession.value = accessState.session
+    managerIsAdmin.value = accessState.isAdmin
     if (managerIsAdmin.value) {
       await loadQuotes()
       statusText.value = '登录成功。'
@@ -528,24 +564,20 @@ onMounted(async () => {
   }
 
   try {
-    managerSession.value = await getManagerSession()
-    stopAuthListener = onManagerAuthChange((session) => {
-      managerSession.value = session
-      if (!session) {
-        managerIsAdmin.value = false
-      }
-    })
-    authReady.value = true
+    const accessState = await getManagerAccessState()
+    managerSession.value = accessState.session
+    managerIsAdmin.value = accessState.isAdmin
+    stopAuthListener = onManagerAccessChange(handleManagerAccessChange)
 
     if (managerSession.value) {
-      managerIsAdmin.value = await isManagerAdmin()
       if (managerIsAdmin.value) {
         await loadQuotes()
       }
     }
   } catch (error) {
-    authReady.value = true
     statusText.value = `初始化失败：${error.message}`
+  } finally {
+    authReady.value = true
   }
 })
 
