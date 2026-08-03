@@ -93,11 +93,19 @@
               <label class="field">
                 <span>设计风格</span>
                 <div class="select-control">
-                  <input v-model.trim="form.style" type="text" list="design-style-options" placeholder="请选择或输入风格" />
+                  <select :value="selectedStyleOption" @change="handleStyleOptionChange">
+                    <option value="">请选择设计风格</option>
+                    <option v-for="style in caseStylePresets" :key="style" :value="style">{{ style }}</option>
+                    <option :value="CUSTOM_STYLE_VALUE">自定义风格</option>
+                  </select>
                 </div>
-                <datalist id="design-style-options">
-                  <option v-for="style in caseStylePresets" :key="style" :value="style"></option>
-                </datalist>
+                <input
+                  v-if="customStyleEnabled"
+                  v-model.trim="form.style"
+                  class="custom-style-input"
+                  type="text"
+                  placeholder="输入自定义风格"
+                />
               </label>
 
               <label class="field">
@@ -183,7 +191,7 @@
 
           <div class="saved-list">
             <article
-              v-for="item in managedCases"
+              v-for="item in paginatedManagedCases"
               :key="item.id"
               class="saved-item"
               :class="{ muted: item.hidden }"
@@ -193,7 +201,7 @@
                 type="button"
                 @click="openImagePreview(item.image, item.name)"
               >
-                <img :src="item.image" :alt="item.name" loading="lazy" decoding="async" />
+                <img v-lazy-image="item.image" :alt="item.name" />
               </button>
               <div class="saved-copy">
                 <div class="item-head">
@@ -212,6 +220,26 @@
               </div>
             </article>
           </div>
+
+          <nav v-if="caseListPageCount > 1" class="manager-pagination" aria-label="后台作品列表分页">
+            <button
+              type="button"
+              :disabled="caseListPage === 1"
+              aria-label="上一页"
+              @click="setCaseListPage(caseListPage - 1)"
+            >
+              ←
+            </button>
+            <span>第 {{ caseListPage }} / {{ caseListPageCount }} 页</span>
+            <button
+              type="button"
+              :disabled="caseListPage === caseListPageCount"
+              aria-label="下一页"
+              @click="setCaseListPage(caseListPage + 1)"
+            >
+              →
+            </button>
+          </nav>
         </section>
       </div>
 
@@ -353,6 +381,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
+import vLazyImage from '@/directives/lazyImage'
 import {
   deleteCustomAward,
   deleteCustomCase,
@@ -394,6 +423,8 @@ import {
 
 const caseTags = tags.slice(1)
 const caseStylePresets = stylePresets
+const CUSTOM_STYLE_VALUE = '__custom__'
+const MANAGER_CASE_PAGE_SIZE = 6
 const cloudEnabled = isCloudCasesEnabled()
 const managerMode = ref('cases')
 const managedCases = ref(getManagedCases())
@@ -418,6 +449,8 @@ const caseFormScroll = ref(null)
 const awardFormScroll = ref(null)
 const externalImageUrl = ref('')
 const externalAwardImageUrl = ref('')
+const customStyleEnabled = ref(false)
+const caseListPage = ref(1)
 let originalCaseMedia = new Set()
 let uploadedCaseMedia = new Set()
 let originalAwardMedia = new Set()
@@ -451,6 +484,12 @@ const awardForm = reactive({
 
 const isEditing = computed(() => Boolean(editingCase.value))
 const managerEmail = computed(() => managerSession.value?.user?.email || '')
+const selectedStyleOption = computed(() => customStyleEnabled.value ? CUSTOM_STYLE_VALUE : form.style)
+const caseListPageCount = computed(() => Math.max(1, Math.ceil(managedCases.value.length / MANAGER_CASE_PAGE_SIZE)))
+const paginatedManagedCases = computed(() => {
+  const start = (caseListPage.value - 1) * MANAGER_CASE_PAGE_SIZE
+  return managedCases.value.slice(start, start + MANAGER_CASE_PAGE_SIZE)
+})
 const MAX_IMAGE_UPLOAD_BYTES = 9 * 1024 * 1024
 const MAX_SOURCE_IMAGE_BYTES = 25 * 1024 * 1024
 const GALLERY_MAX_EDGE = 1920
@@ -492,6 +531,28 @@ function currentCaseId() {
  */
 function currentAwardId() {
   return editingAward.value?.id || draftAwardId.value
+}
+
+/**
+ * 将风格下拉选项同步到表单，并切换自定义风格输入状态。
+ * @param {Event} event 风格下拉框 change 事件。
+ * @returns {void}
+ */
+function handleStyleOptionChange(event) {
+  const value = event.target.value
+  customStyleEnabled.value = value === CUSTOM_STYLE_VALUE
+  form.style = customStyleEnabled.value ? '' : value
+}
+
+/**
+ * 切换后台作品列表页码，并限制在当前有效页数内。
+ * @param {*} page 目标页码。
+ * @returns {void}
+ */
+function setCaseListPage(page) {
+  const value = Number.parseInt(String(page || '1'), 10)
+  const normalizedPage = Number.isFinite(value) && value > 0 ? value : 1
+  caseListPage.value = Math.min(caseListPageCount.value, normalizedPage)
 }
 
 /**
@@ -609,6 +670,7 @@ async function discardUploadedAwardMedia() {
 function resetForm() {
   editingCase.value = null
   draftCaseId.value = createCaseId()
+  customStyleEnabled.value = false
   form.name = ''
   form.category = caseTags[0]
   form.style = ''
@@ -642,6 +704,7 @@ function resetAwardForm() {
  */
 function refreshList() {
   managedCases.value = getManagedCases()
+  caseListPage.value = Math.min(caseListPage.value, caseListPageCount.value)
 }
 
 /**
@@ -729,6 +792,7 @@ async function startCreate() {
 async function editCase(item) {
   await discardUploadedCaseMedia()
   editingCase.value = item
+  customStyleEnabled.value = Boolean(item.style && !caseStylePresets.includes(item.style))
   form.name = item.name
   form.category = item.category
   form.style = item.style || ''
@@ -2074,18 +2138,10 @@ onUnmounted(() => {
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
-.select-control select,
-.select-control input[list] {
+.select-control select {
   display: block;
   padding: 0 42px 0 13px;
-}
-
-.select-control select {
   appearance: none;
-}
-
-.select-control input[list]::-webkit-calendar-picker-indicator {
-  opacity: 0;
 }
 
 .select-control:focus-within::after {
@@ -2338,8 +2394,14 @@ onUnmounted(() => {
 .saved-item img {
   width: 150px;
   aspect-ratio: 4 / 3;
+  opacity: 1;
   object-fit: cover;
   background: #ddd;
+  transition: opacity 0.3s ease;
+}
+
+.saved-item img.lazy-image:not(.is-loaded) {
+  opacity: 0;
 }
 
 .saved-image-button {
@@ -2381,6 +2443,58 @@ onUnmounted(() => {
 
 .item-actions .danger {
   background: #8b2f2f;
+}
+
+.manager-pagination {
+  flex: 0 0 auto;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  border-top: 1px solid #eef0f3;
+  padding: 10px 26px;
+  background: #fff;
+}
+
+.manager-pagination span {
+  min-width: 92px;
+  color: #69717d;
+  font-size: 14px;
+  text-align: center;
+}
+
+.manager-pagination button {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #d8dde4;
+  background: #fff;
+  color: #11161d;
+  font: inherit;
+  cursor: pointer;
+}
+
+.manager-pagination button:hover,
+.manager-pagination button:focus-visible {
+  border-color: #11161d;
+  background: #11161d;
+  color: #fff;
+}
+
+.manager-pagination button:focus-visible {
+  outline: 2px solid rgba(17, 22, 29, 0.16);
+  outline-offset: 2px;
+}
+
+.manager-pagination button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.manager-pagination button:disabled:hover {
+  border-color: #d8dde4;
+  background: #fff;
+  color: #11161d;
 }
 
 .image-lightbox {
@@ -2480,6 +2594,10 @@ onUnmounted(() => {
 
   .saved-image-button {
     width: 100%;
+  }
+
+  .manager-pagination {
+    padding-inline: 18px;
   }
 }
 </style>

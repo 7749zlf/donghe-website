@@ -41,7 +41,7 @@
 
       <section v-if="filteredWorks.length" class="works-grid">
         <article
-          v-for="item in filteredWorks"
+          v-for="item in paginatedWorks"
           :key="item.id"
           class="work-card"
           role="button"
@@ -50,21 +50,55 @@
           @keyup.enter="openDetail(item.id)"
         >
           <div class="card-media">
-            <img :src="item.cover" :alt="item.name" loading="lazy" decoding="async" />
+            <img v-lazy-image="item.cover" :alt="item.name" />
           </div>
           <div class="card-caption">
-          <span>{{ formatProjectLabel(item) }}</span>
-          <h2>{{ item.name }}</h2>
-          <p>{{ formatProjectMeta(item) }}</p>
-          <button class="card-link" type="button" @click.stop="openDetail(item.id)">
-            阅读项目
-            <span>↗</span>
-          </button>
-        </div>
-      </article>
+            <span>{{ formatProjectLabel(item) }}</span>
+            <h2>{{ item.name }}</h2>
+            <p>{{ formatProjectMeta(item) }}</p>
+            <button class="card-link" type="button" @click.stop="openDetail(item.id)">
+              阅读项目
+              <span>↗</span>
+            </button>
+          </div>
+        </article>
       </section>
 
       <p v-else class="works-empty">暂无匹配作品</p>
+
+      <nav v-if="totalPages > 1" class="pagination" aria-label="项目列表分页">
+        <button
+          class="pagination-arrow"
+          type="button"
+          :disabled="currentPage === 1"
+          aria-label="上一页"
+          @click="setPage(currentPage - 1)"
+        >
+          ←
+        </button>
+        <template v-for="(page, index) in paginationItems" :key="page || `ellipsis-${index}`">
+          <button
+            v-if="page"
+            class="pagination-page"
+            :class="{ active: page === currentPage }"
+            type="button"
+            :aria-current="page === currentPage ? 'page' : undefined"
+            @click="setPage(page)"
+          >
+            {{ page }}
+          </button>
+          <span v-else class="pagination-ellipsis" aria-hidden="true">...</span>
+        </template>
+        <button
+          class="pagination-arrow"
+          type="button"
+          :disabled="currentPage === totalPages"
+          aria-label="下一页"
+          @click="setPage(currentPage + 1)"
+        >
+          →
+        </button>
+      </nav>
     </div>
   </div>
 </template>
@@ -76,14 +110,16 @@ export default {
 </script>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getDisplayWorksList, tags } from '@/mock/data'
+import vLazyImage from '@/directives/lazyImage'
 
 const router = useRouter()
 const route = useRoute()
 const displayWorks = ref(getDisplayWorksList())
 const searchQuery = ref('')
+const PAGE_SIZE = 9
 
 const spaceOptions = [
   { label: '全部空间', value: tags[0] },
@@ -127,6 +163,16 @@ function normalizeStyle(style) {
   return String(style || '').trim()
 }
 
+/**
+ * 将路由页码转换为不小于 1 的整数。
+ * @param {*} page 路由参数或目标页码。
+ * @returns {number} 标准化页码。
+ */
+function normalizePage(page) {
+  const value = Number.parseInt(String(page || '1'), 10)
+  return Number.isFinite(value) && value > 0 ? value : 1
+}
+
 const activeCategory = ref(normalizeCategory(route.query.category))
 const activeStyle = ref(normalizeStyle(route.query.style))
 
@@ -150,6 +196,39 @@ const filteredWorks = computed(() => {
   })
 })
 
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredWorks.value.length / PAGE_SIZE)))
+const initialPage = normalizePage(route.query.page)
+const currentPage = ref(filteredWorks.value.length ? Math.min(totalPages.value, initialPage) : initialPage)
+const paginatedWorks = computed(() => {
+  const start = (currentPage.value - 1) * PAGE_SIZE
+  return filteredWorks.value.slice(start, start + PAGE_SIZE)
+})
+const paginationItems = computed(() => createPaginationItems(currentPage.value, totalPages.value))
+
+/**
+ * 生成包含首尾页、当前页邻近页和省略号的紧凑页码列表。
+ * @param {number} current 当前页码。
+ * @param {number} total 总页数。
+ * @returns {Array<number|null>} 页码列表，null 表示省略号。
+ */
+function createPaginationItems(current, total) {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, index) => index + 1)
+  }
+
+  const pages = [...new Set([1, total, current - 1, current, current + 1])]
+    .filter((page) => page >= 1 && page <= total)
+    .sort((left, right) => left - right)
+
+  return pages.reduce((items, page, index) => {
+    if (index > 0 && page - pages[index - 1] > 1) {
+      items.push(null)
+    }
+    items.push(page)
+    return items
+  }, [])
+}
+
 /**
  * 更新当前空间筛选，并将结果同步到页面网址。
  * @param {*} category 用户选择的空间值。
@@ -157,6 +236,7 @@ const filteredWorks = computed(() => {
  */
 function setCategory(category) {
   activeCategory.value = normalizeCategory(category)
+  currentPage.value = 1
   updateQuery()
 }
 
@@ -167,7 +247,27 @@ function setCategory(category) {
  */
 function setStyle(style) {
   activeStyle.value = normalizeStyle(style)
+  currentPage.value = 1
   updateQuery()
+}
+
+/**
+ * 切换项目列表页码、同步 URL，并将新结果滚动到可视区域。
+ * @param {*} page 目标页码。
+ * @returns {void}
+ */
+function setPage(page) {
+  const nextPage = Math.min(totalPages.value, normalizePage(page))
+
+  if (nextPage === currentPage.value) {
+    return
+  }
+
+  currentPage.value = nextPage
+  updateQuery()
+  nextTick(() => {
+    document.querySelector('.works-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
 }
 
 /**
@@ -181,6 +281,9 @@ function updateQuery() {
   }
   if (activeStyle.value) {
     query.style = activeStyle.value
+  }
+  if (currentPage.value > 1) {
+    query.page = String(currentPage.value)
   }
 
   router.replace({
@@ -229,12 +332,27 @@ onMounted(() => {
 })
 
 watch(
-  () => [route.query.category, route.query.style],
-  ([category, style]) => {
+  () => [route.query.category, route.query.style, route.query.page],
+  ([category, style, page]) => {
     activeCategory.value = normalizeCategory(category)
     activeStyle.value = normalizeStyle(style)
+    currentPage.value = Math.min(totalPages.value, normalizePage(page))
   }
 )
+
+watch(searchQuery, () => {
+  if (currentPage.value > 1) {
+    currentPage.value = 1
+    updateQuery()
+  }
+})
+
+watch(totalPages, (total) => {
+  if (currentPage.value > total) {
+    currentPage.value = total
+    updateQuery()
+  }
+})
 
 onBeforeUnmount(() => {
   window.removeEventListener('donghe-custom-cases-updated', refreshWorks)
@@ -390,9 +508,14 @@ onBeforeUnmount(() => {
   display: block;
   width: 100%;
   height: 100%;
+  opacity: 1;
   object-fit: cover;
   filter: saturate(0.9) contrast(1.02);
-  transition: transform 0.8s var(--ease-smooth), filter 0.35s ease;
+  transition: opacity 0.4s ease, transform 0.8s var(--ease-smooth), filter 0.35s ease;
+}
+
+.card-media img.lazy-image:not(.is-loaded) {
+  opacity: 0;
 }
 
 .work-card:hover img,
@@ -452,6 +575,57 @@ onBeforeUnmount(() => {
   transform: translate(2px, -2px);
 }
 
+.pagination {
+  min-height: 44px;
+  margin-top: 48px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pagination button {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-line);
+  background: transparent;
+  color: var(--color-ink);
+  font: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.pagination button:hover,
+.pagination button:focus-visible,
+.pagination-page.active {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: #fff;
+}
+
+.pagination button:focus-visible {
+  outline: 2px solid rgba(42, 39, 31, 0.18);
+  outline-offset: 2px;
+}
+
+.pagination button:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
+.pagination button:disabled:hover {
+  border-color: var(--color-line);
+  background: transparent;
+  color: var(--color-ink);
+}
+
+.pagination-ellipsis {
+  width: 28px;
+  color: var(--color-muted);
+  text-align: center;
+}
+
 @media (max-width: 1100px) {
   .works-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -484,6 +658,16 @@ onBeforeUnmount(() => {
     margin-top: 34px;
     grid-template-columns: 1fr;
     gap: 28px;
+  }
+
+  .pagination {
+    margin-top: 38px;
+    gap: 6px;
+  }
+
+  .pagination button {
+    width: 40px;
+    height: 40px;
   }
 }
 </style>
