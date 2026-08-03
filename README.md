@@ -1,12 +1,13 @@
 # 东禾官网
 
-这是东禾官网前端项目，包含首页、作品列表、作品详情、荣誉奖项和内容管理后台。工作室日常维护主要通过后台完成，不需要改代码。
+这是东禾官网前端项目，包含首页、作品列表、作品详情、荣誉奖项、报价单和内容管理后台。工作室日常维护主要通过后台完成，不需要改代码。
 
 ## 工作室使用入口
 
 - 官网首页：`/#/`
 - 作品列表：`/#/works`
 - 内容后台：`/#/manager`
+- 报价管理：`/#/manager/quotes`
 
 后台支持：
 
@@ -16,6 +17,8 @@
 - 新增、编辑、隐藏、删除荣誉奖项
 - 管理员邮箱登录
 - 图片上传到 Supabase 云端图库
+- 创建、编辑和归档客户报价单
+- 生成客户专属查看链接，并支持浏览器打印或另存 PDF
 
 ## 上线前必须完成
 
@@ -26,7 +29,7 @@
 5. 在 `supabase-design-cases.sql` 里把管理员邮箱改成工作室实际邮箱，或在 `design_admins` 表里新增管理员邮箱。
 6. 在部署平台配置环境变量。
 
-已有 Supabase 项目在发布本次“空间 + 风格”功能前，也需要再运行一次 `supabase-design-cases.sql`。脚本会补充风格字段，不会删除现有作品、图片或管理员数据。
+已有 Supabase 项目在发布报价单功能前，也需要再运行一次 `supabase-design-cases.sql`。脚本会补充报价表、访问权限和客户查看方法，不会删除现有作品、图片、报价或管理员数据。
 
 ## 环境变量
 
@@ -37,6 +40,7 @@ VUE_APP_SUPABASE_URL=https://your-project.supabase.co
 VUE_APP_SUPABASE_ANON_KEY=your-anon-key
 VUE_APP_SUPABASE_CASES_TABLE=design_cases
 VUE_APP_SUPABASE_AWARDS_TABLE=design_awards
+VUE_APP_SUPABASE_QUOTES_TABLE=design_quotes
 VUE_APP_SUPABASE_CASE_IMAGES_BUCKET=case-images
 ```
 
@@ -61,6 +65,13 @@ VUE_APP_SUPABASE_CASE_IMAGES_BUCKET=case-images
 4. 选择图片并填写内容。
 5. 保存后刷新官网前台确认展示效果。
 6. 不想公开的内容用“隐藏”，确认不用后再删除。
+
+## 报价单流程
+
+1. 打开 `/#/manager/quotes`，新建报价并填写客户、项目和报价明细。
+2. 保存后点击“复制链接”。草稿会自动调整为“已发送”，客户链接随即生效。
+3. 将链接发给客户。客户只能查看这份报价，无法进入后台或查看其他报价。
+4. 客户可点击“打印 / 存为 PDF”留档；报价确认后，管理员可将状态改为“已确认”。
 
 ## 本地开发
 

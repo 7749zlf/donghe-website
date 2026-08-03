@@ -22,5 +22,23 @@ export default [
     path: '/manager',
     name: 'contentManager',
     component: () => import('@/views/contentManager.vue')
+  },
+  {
+    path: '/manager/quotes',
+    name: 'quoteManager',
+    component: () => import('@/views/quoteManager.vue'),
+    meta: {
+      hideNavigation: true,
+      skipIntro: true
+    }
+  },
+  {
+    path: '/quote/:token',
+    name: 'quoteView',
+    component: () => import('@/views/quoteView.vue'),
+    meta: {
+      hideNavigation: true,
+      skipIntro: true
+    }
   }
 ]

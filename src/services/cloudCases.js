@@ -26,6 +26,14 @@ async function getClient() {
 }
 
 /**
+ * 向其他业务服务提供当前项目共享的 Supabase 客户端。
+ * @returns {Promise<Object|null>} Supabase 客户端或未配置标记。
+ */
+export function getCloudClient() {
+  return getClient()
+}
+
+/**
  * 获取已配置的 Supabase 客户端，否则抛出明确错误。
  * @returns {Promise<Object>} 可用的 Supabase 客户端。
  * @throws {Error} 云端服务未配置时抛出。

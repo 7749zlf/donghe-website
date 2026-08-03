@@ -58,6 +58,9 @@
             >
               荣誉奖项
             </button>
+            <button type="button" @click="$router.push({ name: 'quoteManager' })">
+              报价单
+            </button>
           </div>
         </div>
         <div v-if="cloudEnabled" class="manager-account">

@@ -1,9 +1,9 @@
 ﻿<template>
   <div id="app" @pointermove="handlePointerMove">
-    <div class="site-atmosphere" aria-hidden="true"></div>
+    <div v-if="!$route.meta.hideNavigation" class="site-atmosphere" aria-hidden="true"></div>
     <Transition name="studio-intro">
       <section
-        v-if="showIntro"
+        v-if="showIntro && !$route.meta.skipIntro"
         class="studio-intro"
         :class="{ 'is-leaving': introLeaving }"
         aria-label="东禾空间设计进场动画"
@@ -23,7 +23,7 @@
         <button class="intro-skip" type="button" @click.stop="skipIntro">跳过</button>
       </section>
     </Transition>
-    <StickyNavbar />
+    <StickyNavbar v-if="!$route.meta.hideNavigation" />
     <router-view />
   </div>
 </template>
@@ -103,7 +103,7 @@ export default {
      * @returns {void}
      */
     startIntro() {
-      if (this.wasIntroPlayed()) {
+      if (this.$route.meta.skipIntro || this.wasIntroPlayed()) {
         return
       }
 
