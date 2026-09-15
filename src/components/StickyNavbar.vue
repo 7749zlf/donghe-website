@@ -2,7 +2,7 @@
   <nav class="sticky-navbar">
     <div class="navbar-inner">
       <button class="brand" type="button" @click="toHome">
-        <span>东禾</span>
+        <span>東禾</span>
         <span>DH</span>
       </button>
 

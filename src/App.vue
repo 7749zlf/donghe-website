@@ -2,18 +2,13 @@
   <div id="app" @pointermove="handlePointerMove">
     <div v-if="!$route.meta.hideNavigation" class="site-atmosphere" aria-hidden="true"></div>
     <Transition v-if="!$route.meta.skipIntro" name="studio-intro">
-      <section
-        v-if="showIntro"
-        class="studio-intro"
-        :class="{ 'is-leaving': introLeaving }"
-        aria-label="东禾空间设计进场动画"
-        @click="skipIntro"
-      >
+      <section v-if="showIntro" class="studio-intro" :class="{ 'is-leaving': introLeaving }" aria-label="东禾空间设计进场动画"
+        @click="skipIntro">
         <div class="intro-grid" aria-hidden="true"></div>
         <div class="intro-light" aria-hidden="true"></div>
         <div class="intro-mark">
-          <span>东禾</span>
-          <span>DH</span>
+          <span>東禾</span>
+          <span class="intro-subtitle">东启万象，禾筑匠心</span>
         </div>
         <div class="intro-copy">
           <span>LIGHT</span>
@@ -202,7 +197,7 @@ export default {
   overflow-x: hidden;
 }
 
-#app > :not(.site-atmosphere):not(.studio-intro) {
+#app> :not(.site-atmosphere):not(.studio-intro) {
   position: relative;
   z-index: 1;
 }
@@ -298,6 +293,12 @@ export default {
   text-align: center;
   transform: translateY(18px);
   animation: introMarkIn 1.35s var(--ease-smooth) 0.28s both;
+
+  .intro-subtitle {
+    display: flex;
+    font-size: 36px;
+    margin-top: 36px;
+  }
 }
 
 .intro-mark span {
@@ -749,6 +750,7 @@ export default {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   :global(html),
   :global(body) {
     scroll-behavior: auto;
