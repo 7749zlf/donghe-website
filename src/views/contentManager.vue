@@ -127,6 +127,11 @@
               <input v-model.trim="form.url" type="url" placeholder="https://..." />
             </label>
 
+            <label class="field">
+              <span>水电底图</span>
+              <input v-model.trim="form.blueprintUrl" type="url" placeholder="https://..." />
+            </label>
+
             <div class="field upload-field">
               <span>作品图片</span>
               <label class="upload-box">
@@ -471,6 +476,7 @@ const form = reactive({
   type: '',
   year: `${new Date().getFullYear()}年`,
   url: '',
+  blueprintUrl: '',
   images: [],
   coverImage: '',
   note: ''
@@ -679,6 +685,7 @@ function resetForm() {
   form.type = ''
   form.year = `${new Date().getFullYear()}年`
   form.url = ''
+  form.blueprintUrl = ''
   form.images = []
   form.coverImage = ''
   form.note = ''
@@ -841,6 +848,7 @@ async function editCase(item) {
   form.type = item.type
   form.year = item.year
   form.url = item.url
+  form.blueprintUrl = item.blueprintUrl || ''
   form.images = imagesToList(item.list)
   form.coverImage = item.image || form.images[0] || ''
   form.note = item.note
@@ -1475,6 +1483,7 @@ function formPayload() {
     type: form.type,
     year: form.year,
     url: form.url,
+    blueprintUrl: form.blueprintUrl,
     images: form.images,
     image: form.coverImage || form.images[0] || '',
     note: form.note,

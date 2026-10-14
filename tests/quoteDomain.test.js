@@ -117,6 +117,19 @@ async function registerQuoteDomainTests() {
     assert.equal(quoteStatusLabel('accepted'), '已确认')
     assert.equal(quoteStatusLabel('unexpected'), '未知状态')
   })
+
+  test('normalizeCaseLinks keeps the 3D URL and blueprint URL trimmed and stable', async () => {
+    const { normalizeCaseLinks } = await import('../src/services/caseLinks.mjs')
+
+    assert.deepEqual(normalizeCaseLinks({
+      url: ' https://example.com/3d ',
+      blueprintUrl: ' https://example.com/water-plan.pdf ',
+      blueprint_url: 'https://should-not-win.example.com'
+    }), {
+      url: 'https://example.com/3d',
+      blueprintUrl: 'https://example.com/water-plan.pdf'
+    })
+  })
 }
 
 registerQuoteDomainTests().catch((error) => {

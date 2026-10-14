@@ -65,6 +65,10 @@
           <span class="dh-action__label">打开3D</span>
           <span class="dh-action__mark">↗</span>
         </button>
+        <button v-if="blueprintURL" type="button" class="dh-action" @click="goBlueprint">
+          <span class="dh-action__label">水电底图</span>
+          <span class="dh-action__mark">↗</span>
+        </button>
       </footer>
     </main>
 
@@ -125,6 +129,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getDisplayDesignCases, getDisplayWorksList } from '@/mock/data'
+import { normalizeCaseLinks, openExternalLink } from '@/services/caseLinks.mjs'
 
 const route = useRoute()
 const router = useRouter()
@@ -153,16 +158,22 @@ const currentCase = computed(() => {
   const designCase = displayDesignCases.value.find((item) => String(item.id) === String(work.id || routeId)) || {}
   const list = work.list || designCase.list || []
 
+  const links = normalizeCaseLinks({
+    url: designCase.url || work.url || '',
+    blueprintUrl: designCase.blueprintUrl || work.blueprintUrl || ''
+  })
+
   return {
     ...designCase,
     ...work,
-    url: designCase.url || work.url || '',
+    ...links,
     list,
     image: work.image || work.cover || designCase.image || list[0] || ''
   }
 })
 
 const URL = computed(() => currentCase.value.url)
+const blueprintURL = computed(() => currentCase.value.blueprintUrl || '')
 
 const galleryItems = computed(() => {
   return (currentCase.value.list || []).map((url, index) => ({
@@ -223,9 +234,15 @@ function goWorks() {
  * @returns {void}
  */
 function go3D() {
-  if (URL.value) {
-    window.open(URL.value, '_blank')
-  }
+  openExternalLink(URL.value)
+}
+
+/**
+ * 在新标签页打开当前项目配置的水电底图链接。
+ * @returns {void}
+ */
+function goBlueprint() {
+  openExternalLink(blueprintURL.value)
 }
 
 /**

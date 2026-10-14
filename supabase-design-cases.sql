@@ -6,6 +6,7 @@ create table if not exists public.design_cases (
   type text not null default '',
   year text not null default '',
   url text not null default '',
+  blueprint_url text not null default '',
   images text[] not null default '{}',
   image text not null default '',
   note text not null default '',
@@ -15,6 +16,9 @@ create table if not exists public.design_cases (
 
 alter table public.design_cases
 add column if not exists style text not null default '';
+
+alter table public.design_cases
+add column if not exists blueprint_url text not null default '';
 
 alter table public.design_cases enable row level security;
 

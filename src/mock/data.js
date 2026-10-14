@@ -1,3 +1,5 @@
+import { normalizeCaseLinks } from '@/services/caseLinks.mjs'
+
 const ABOUT_IMAGE = 'https://prototype-prod-1254106194.cos.ap-beijing.myqcloud.com/calicat/file/ai/canvas/image/2031359355234365440.jpg'
 export const aboutImage = ABOUT_IMAGE
 
@@ -52,6 +54,8 @@ function normalizeCustomCase(caseItem) {
     return null
   }
 
+  const links = normalizeCaseLinks(caseItem)
+
   return {
     id: String(caseItem.id || `custom-${Date.now()}`),
     name,
@@ -59,7 +63,8 @@ function normalizeCustomCase(caseItem) {
     style: String(caseItem.style || '').trim(),
     type: String(caseItem.type || '商业空间 / 上饶'),
     year: String(caseItem.year || `${new Date().getFullYear()}年`),
-    url: String(caseItem.url || '').trim(),
+    url: links.url,
+    blueprintUrl: links.blueprintUrl,
     list,
     image: String(caseItem.image || list[0]),
     note: String(caseItem.note || '新增案例，等待补充更完整的空间说明。').trim(),
@@ -544,7 +549,8 @@ function toDesignCase(caseItem) {
     id: caseItem.id,
     name: caseItem.name,
     list: caseItem.list,
-    url: caseItem.url
+    url: caseItem.url,
+    blueprintUrl: caseItem.blueprintUrl
   }
 }
 
@@ -575,7 +581,9 @@ function toWork(caseItem) {
     ...toProject(caseItem),
     cover: caseItem.image || caseItem.list[0],
     list: caseItem.list,
-    note: caseItem.note
+    note: caseItem.note,
+    url: caseItem.url,
+    blueprintUrl: caseItem.blueprintUrl
   }
 }
 
