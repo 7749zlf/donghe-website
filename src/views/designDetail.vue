@@ -61,14 +61,18 @@
           <span class="dh-action__label">返回索引</span>
           <span class="dh-action__mark">←</span>
         </button>
-        <button v-if="URL" type="button" class="dh-action dh-action--solid" @click="go3D">
-          <span class="dh-action__label">打开3D</span>
-          <span class="dh-action__mark">↗</span>
-        </button>
-        <button v-if="blueprintURL" type="button" class="dh-action" @click="goBlueprint">
-          <span class="dh-action__label">水电底图</span>
-          <span class="dh-action__mark">↗</span>
-        </button>
+
+        <div class="dh-action-group">
+          <button v-if="URL" type="button" class="dh-action dh-action--solid" @click="go3D">
+            <span class="dh-action__label">打开3D</span>
+            <span class="dh-action__mark">↗</span>
+          </button>
+
+          <button v-if="blueprintURL" type="button" class="dh-action" @click="goBlueprint">
+            <span class="dh-action__label">水电底图</span>
+            <span class="dh-action__mark">↗</span>
+          </button>
+        </div>
       </footer>
     </main>
 
@@ -591,10 +595,20 @@ onBeforeUnmount(() => {
 .page-nav {
   margin-top: 52px;
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
   border-top: 1px solid var(--color-line);
   padding-top: 24px;
+}
+
+.dh-action-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-left: auto;
 }
 
 .image-preview {
@@ -773,6 +787,12 @@ onBeforeUnmount(() => {
   .page-nav {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .dh-action-group {
+    width: 100%;
+    justify-content: flex-start;
+    margin-left: 0;
   }
 
   .image-preview {
