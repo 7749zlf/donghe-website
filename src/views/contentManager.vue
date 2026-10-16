@@ -901,12 +901,12 @@ function fileSizeLabel(bytes) {
 }
 
 /**
- * 为转码后的 JPEG 文件生成上传文件名。
+ * 为转码后的 WebP 文件生成上传文件名。
  * @param {File} file 原始文件。
- * @returns {string} 使用 jpg 扩展名的文件名。
+ * @returns {string} 使用 webp 扩展名的文件名。
  */
 function uploadFileName(file) {
-  return String(file.name || 'image.jpg').replace(/\.[^.]+$/, '') + '.jpg'
+  return String(file.name || 'image.webp').replace(/\.[^.]+$/, '') + '.webp'
 }
 
 /**
@@ -960,7 +960,7 @@ function canvasToBlob(canvas, type, quality) {
 }
 
 /**
- * 按尺寸和体积限制生成网页 JPEG；允许配置保留合规 GIF。
+ * 按尺寸和体积限制生成网页 WebP；允许配置保留合规 GIF。
  * @param {File} file 原始图片文件。
  * @param {Object} options 最大边长、体积、质量及 GIF 策略。
  * @returns {Promise<{file: File, optimized: boolean}>} 可上传文件和是否转码标记。
@@ -1001,16 +1001,20 @@ async function createImageVariant(file, options) {
     const height = Math.max(1, Math.round(image.naturalHeight * scale))
     canvas.width = width
     canvas.height = height
-    context.fillStyle = '#fff'
-    context.fillRect(0, 0, width, height)
     context.drawImage(image, 0, 0, width, height)
 
     let quality = options.quality
-    let blob = await canvasToBlob(canvas, 'image/jpeg', quality)
+    let blob = await canvasToBlob(canvas, 'image/webp', quality)
+    if (blob.type !== 'image/webp') {
+      throw new Error('当前浏览器不支持 WebP 图片转换，请换用新版浏览器重试。')
+    }
 
     while (blob.size > options.maxBytes && quality > MIN_IMAGE_QUALITY) {
       quality = Math.max(MIN_IMAGE_QUALITY, quality - 0.06)
-      blob = await canvasToBlob(canvas, 'image/jpeg', quality)
+      blob = await canvasToBlob(canvas, 'image/webp', quality)
+      if (blob.type !== 'image/webp') {
+        throw new Error('当前浏览器不支持 WebP 图片转换，请换用新版浏览器重试。')
+      }
     }
 
     if (blob.size <= options.maxBytes || Math.max(width, height) <= 720) {
@@ -1020,7 +1024,7 @@ async function createImageVariant(file, options) {
 
       return {
         file: new File([blob], uploadFileName(file), {
-          type: 'image/jpeg',
+          type: 'image/webp',
           lastModified: Date.now()
         }),
         optimized: true
@@ -1043,12 +1047,12 @@ function optimizeGalleryImage(file) {
     maxEdge: GALLERY_MAX_EDGE,
     maxBytes: GALLERY_MAX_BYTES,
     quality: GALLERY_QUALITY,
-    keepGif: true
+    keepGif: !cloudEnabled
   })
 }
 
 /**
- * 按轻量列表封面规格生成 JPEG 文件。
+ * 按轻量列表封面规格生成 WebP 文件。
  * @param {File} file 原始或已处理图片文件。
  * @returns {Promise<{file: File, optimized: boolean}>} 封面图片处理结果。
  */
@@ -1202,7 +1206,7 @@ async function handleImageUpload(event) {
       }
     }
 
-    statusText.value = `已添加 ${newImages.length} 张图片，${optimizedCount} 张已转为网页展示图，并生成了轻量列表封面。`
+    statusText.value = `已添加 ${newImages.length} 张图片，${optimizedCount} 张已转为 WebP，并生成了轻量列表封面。`
   } catch (error) {
     if (newImages.length) {
       form.images = [...form.images, ...newImages]
@@ -1248,7 +1252,7 @@ async function handleAwardImageUpload(event) {
       awardForm.imageAlt = awardForm.title || '奖项图片'
     }
     awardStatusText.value = preparedImage.optimized
-      ? '奖项图片已添加，并已转为网页展示图。'
+      ? '奖项图片已添加，并已转为 WebP。'
       : '奖项图片已添加。'
   } catch (error) {
     awardStatusText.value = `奖项图片上传失败：${error.message}`

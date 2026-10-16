@@ -85,6 +85,69 @@ function safePathPart(value) {
 }
 
 /**
+ * 将待上传图片转换为 WebP，并确保文件名使用对应扩展名。
+ * @param {File|Blob} file 待处理图片。
+ * @returns {Promise<File|Blob>} WebP 图片文件；非图片内容保持原样。
+ */
+async function prepareStorageImage(file) {
+  if (!String(file.type || '').startsWith('image/')) {
+    return file
+  }
+
+  const originalName = String(file.name || 'image')
+  const baseName = originalName.replace(/\.[^.]+$/, '') || 'image'
+  if (file.type === 'image/webp') {
+    return new File([file], `${baseName}.webp`, {
+      type: 'image/webp',
+      lastModified: Date.now()
+    })
+  }
+
+  const image = await new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file)
+    const element = new Image()
+
+    element.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      resolve(element)
+    }
+    element.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('图片读取失败，无法转换为 WebP。'))
+    }
+    element.src = objectUrl
+  })
+
+  const canvas = document.createElement('canvas')
+  canvas.width = image.naturalWidth
+  canvas.height = image.naturalHeight
+  const context = canvas.getContext('2d')
+  if (!context) {
+    throw new Error('当前浏览器无法处理图片，请换用新版浏览器重试。')
+  }
+  context.drawImage(image, 0, 0)
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((result) => {
+      if (!result) {
+        reject(new Error('图片转换为 WebP 失败，请换一张图片重试。'))
+        return
+      }
+      if (result.type !== 'image/webp') {
+        reject(new Error('当前浏览器不支持 WebP 图片转换，请换用新版浏览器重试。'))
+        return
+      }
+      resolve(result)
+    }, 'image/webp', 0.84)
+  })
+
+  return new File([blob], `${baseName}.webp`, {
+    type: 'image/webp',
+    lastModified: Date.now()
+  })
+}
+
+/**
  * 上传图片到项目存储桶并返回公开访问地址。
  * @param {File|Blob} file 待上传图片文件。
  * @param {string|number} caseId 所属项目或荣誉标识。
@@ -94,15 +157,16 @@ function safePathPart(value) {
 async function uploadStorageImage(file, caseId = 'case', variant = '') {
   const client = await requireClient()
 
-  const fileName = safePathPart(file.name || 'image')
+  const storageFile = await prepareStorageImage(file)
+  const fileName = safePathPart(storageFile.name || 'image')
   const folder = safePathPart(caseId)
   const variantPrefix = variant ? `${safePathPart(variant)}-` : ''
   const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-${variantPrefix}${fileName}`
   const { error } = await client.storage
     .from(CASE_IMAGES_BUCKET)
-    .upload(path, file, {
+    .upload(path, storageFile, {
       cacheControl: '31536000',
-      contentType: file.type || 'application/octet-stream',
+      contentType: storageFile.type || 'application/octet-stream',
       upsert: true
     })
 
