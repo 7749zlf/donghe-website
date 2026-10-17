@@ -194,10 +194,10 @@ export default {
   background: var(--color-paper);
   min-height: 100%;
   isolation: isolate;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
-#app> :not(.site-atmosphere):not(.studio-intro) {
+#app> :not(.site-atmosphere):not(.studio-intro):not(.sticky-navbar) {
   position: relative;
   z-index: 1;
 }
@@ -708,8 +708,23 @@ export default {
   }
 
   .intro-mark {
+    width: calc(100% - 40px);
+    gap: 8px;
     animation-duration: 1s;
     animation-delay: 0.18s;
+  }
+
+  .intro-mark > span:not(.intro-subtitle) {
+    font-size: clamp(56px, 18vw, 72px);
+  }
+
+  .intro-mark .intro-subtitle {
+    justify-content: center;
+    margin-top: 0;
+    font-size: clamp(18px, 5.8vw, 24px);
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
   }
 
   .intro-copy {
