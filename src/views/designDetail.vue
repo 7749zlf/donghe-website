@@ -42,7 +42,7 @@
           </button>
         </div>
 
-        <div class="thumb-block">
+        <div class="thumb-block desktop-thumbs">
           <button
             v-for="(item, index) in galleryItems"
             :key="item.id"
@@ -53,6 +53,27 @@
           >
             <img :src="item.thumb" :alt="item.alt" class="thumb-image" loading="lazy" decoding="async" />
           </button>
+        </div>
+
+        <div class="mobile-thumbs">
+          <div class="thumb-block">
+            <button
+              v-for="(item, index) in mobileGalleryItems"
+              :key="item.id"
+              type="button"
+              class="thumb-btn"
+              :class="{ active: index + mobilePageStart === activeIndex }"
+              @click="activeIndex = index + mobilePageStart"
+              :aria-label="`查看第 ${index + mobilePageStart + 1} 张图片`"
+            >
+              <img :src="item.thumb" :alt="item.alt" class="thumb-image" loading="lazy" decoding="async" />
+            </button>
+          </div>
+          <div v-if="mobilePageCount > 1" class="thumb-pagination" aria-label="缩略图分页">
+            <button type="button" :disabled="mobilePage === 0" @click="mobilePage -= 1">上一页</button>
+            <span>{{ mobilePage + 1 }} / {{ mobilePageCount }}</span>
+            <button type="button" :disabled="mobilePage >= mobilePageCount - 1" @click="mobilePage += 1">下一页</button>
+          </div>
         </div>
       </section>
 
@@ -141,6 +162,8 @@ const router = useRouter()
 const displayWorks = ref(getDisplayWorksList())
 const displayDesignCases = ref(getDisplayDesignCases())
 const activeIndex = ref(0)
+const mobilePage = ref(0)
+const MOBILE_THUMB_PAGE_SIZE = 8
 const isPreviewOpen = ref(false)
 const MIN_PREVIEW_ZOOM = 1
 const MAX_PREVIEW_ZOOM = 4
@@ -188,6 +211,13 @@ const galleryItems = computed(() => {
   }))
 })
 
+const mobilePageCount = computed(() => Math.ceil(galleryItems.value.length / MOBILE_THUMB_PAGE_SIZE))
+const mobilePageStart = computed(() => mobilePage.value * MOBILE_THUMB_PAGE_SIZE)
+const mobileGalleryItems = computed(() => galleryItems.value.slice(
+  mobilePageStart.value,
+  mobilePageStart.value + MOBILE_THUMB_PAGE_SIZE
+))
+
 const activeItem = computed(() => galleryItems.value[activeIndex.value] || galleryItems.value[0] || {
   id: '',
   alt: '',
@@ -205,6 +235,10 @@ const prevImageIndex = computed(() => {
 const nextImageIndex = computed(() => {
   if (!galleryItems.value.length) return 0
   return (activeIndex.value + 1) % galleryItems.value.length
+})
+
+watch(activeIndex, (index) => {
+  mobilePage.value = Math.floor(index / MOBILE_THUMB_PAGE_SIZE)
 })
 
 /**
@@ -406,6 +440,7 @@ watch(
     displayWorks.value = getDisplayWorksList()
     displayDesignCases.value = getDisplayDesignCases()
     activeIndex.value = 0
+    mobilePage.value = 0
     isPreviewOpen.value = false
   }
 )
@@ -418,6 +453,7 @@ function refreshDetail() {
   displayWorks.value = getDisplayWorksList()
   displayDesignCases.value = getDisplayDesignCases()
   activeIndex.value = 0
+  mobilePage.value = 0
 }
 
 onMounted(() => {
@@ -565,6 +601,14 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
+  max-height: 74vh;
+  overflow-y: auto;
+  align-content: start;
+  padding-right: 4px;
+}
+
+.mobile-thumbs {
+  display: none;
 }
 
 .thumb-btn {
@@ -758,6 +802,9 @@ onBeforeUnmount(() => {
 
   .thumb-block {
     grid-template-columns: repeat(6, minmax(0, 1fr));
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
   }
 }
 
@@ -782,6 +829,40 @@ onBeforeUnmount(() => {
   .thumb-block {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  .desktop-thumbs {
+    display: none;
+  }
+
+  .mobile-thumbs {
+    display: block;
+  }
+
+  .thumb-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-top: 14px;
+    color: var(--color-muted);
+    font-size: 13px;
+  }
+
+  .thumb-pagination button {
+    border: 1px solid var(--color-line);
+    padding: 8px 12px;
+    background: transparent;
+    color: var(--color-ink);
+    cursor: pointer;
+  }
+
+  .thumb-pagination button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 
   .page-nav {

@@ -2,13 +2,9 @@
   <section id="contact" class="section contact">
     <div class="container contact-layout">
       <div class="contact-copy" v-reveal="{ variant: 'left' }">
-        <span class="section-kicker">SITE VISIT</span>
+        <span class="section-kicker">CONTACT</span>
         <h2>把项目聊清楚，再决定风格该往哪边走。</h2>
         <p>如果你手上已经有现场照片、平面图或预算范围，发给我们，判断会更快。</p>
-        <a class="dh-action dh-action--light contact-cta" href="mailto:info@luxedesign.com">
-          <span class="dh-action__label">预约现场沟通</span>
-          <span class="dh-action__mark">↗</span>
-        </a>
       </div>
 
       <address class="contact-info" v-reveal="{ variant: 'right', delay: 120 }">
@@ -18,15 +14,11 @@
         </div>
         <div v-reveal="{ delay: 230 }">
           <span>电话</span>
-          <strong>400-888-9999</strong>
-        </div>
-        <div v-reveal="{ delay: 280 }">
-          <span>邮箱</span>
-          <strong>info@luxedesign.com</strong>
+          <strong>18070538188程先生</strong>
         </div>
         <div v-reveal="{ delay: 330 }">
           <span>时间</span>
-          <strong>周一至周五 9:00 - 18:00</strong>
+          <strong>全天候</strong>
         </div>
       </address>
     </div>
@@ -79,10 +71,6 @@
   color: rgba(255, 255, 255, 0.72);
   font-size: 16px;
   line-height: 1.8;
-}
-
-.contact-cta {
-  margin-top: 30px;
 }
 
 .contact-info {
