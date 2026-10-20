@@ -10,7 +10,7 @@
       <address class="contact-info" v-reveal="{ variant: 'right', delay: 120 }">
         <div v-reveal="{ delay: 180 }">
           <span>工作室</span>
-          <strong>上饶市信州区洋码头B座13A1307</strong>
+          <strong>上饶市信州区洋码头B座13A1407</strong>
         </div>
         <div v-reveal="{ delay: 230 }">
           <span>电话</span>
