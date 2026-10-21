@@ -93,6 +93,20 @@
             <span class="dh-action__label">水电底图</span>
             <span class="dh-action__mark">↗</span>
           </button>
+
+          <button
+            v-if="managerIsAdmin && currentCase.cadFilePath"
+            type="button"
+            class="dh-action"
+            :disabled="cadDownloading"
+            @click="downloadCadDrawing"
+          >
+            <span class="dh-action__label">{{ cadDownloading ? '正在准备下载' : '下载 CAD 图纸' }}</span>
+            <span class="dh-action__mark">↓</span>
+          </button>
+          <p v-if="currentCase.cadFilePath && cadDownloadStatus" class="cad-download-status" role="status">
+            {{ cadDownloadStatus }}
+          </p>
         </div>
       </footer>
     </main>
@@ -155,6 +169,11 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getDisplayDesignCases, getDisplayWorksList } from '@/mock/data'
 import { normalizeCaseLinks, openExternalLink } from '@/services/caseLinks.mjs'
+import {
+  createCaseCadDownloadUrl,
+  getManagerAccessState,
+  onManagerAccessChange
+} from '@/services/cloudCases'
 
 const route = useRoute()
 const router = useRouter()
@@ -171,6 +190,9 @@ const PREVIEW_ZOOM_STEP = 0.25
 const previewZoom = ref(MIN_PREVIEW_ZOOM)
 const previewPan = reactive({ x: 0, y: 0 })
 const isPreviewDragging = ref(false)
+const managerIsAdmin = ref(false)
+const cadDownloading = ref(false)
+const cadDownloadStatus = ref('')
 const previewDragStart = reactive({
   pointerId: null,
   x: 0,
@@ -178,6 +200,8 @@ const previewDragStart = reactive({
   panX: 0,
   panY: 0
 })
+let stopManagerAccessListener = null
+let managerAccessRequestVersion = 0
 
 const currentCase = computed(() => {
   const routeId = String(route.params.id || '')
@@ -281,6 +305,34 @@ function go3D() {
  */
 function goBlueprint() {
   openExternalLink(blueprintURL.value)
+}
+
+/**
+ * 为管理员下载当前作品 CAD 图纸，并保留上传时的原始文件名。
+ * @returns {Promise<void>}
+ */
+async function downloadCadDrawing() {
+  if (!managerIsAdmin.value || !currentCase.value.cadFilePath || cadDownloading.value) {
+    return
+  }
+
+  cadDownloading.value = true
+  cadDownloadStatus.value = ''
+  try {
+    const fileName = currentCase.value.cadFileName || 'drawing'
+    const url = await createCaseCadDownloadUrl(currentCase.value.cadFilePath, fileName)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = fileName
+    link.rel = 'noopener'
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+  } catch (error) {
+    cadDownloadStatus.value = `CAD 图纸下载失败：${error.message}`
+  } finally {
+    cadDownloading.value = false
+  }
 }
 
 /**
@@ -458,10 +510,36 @@ function refreshDetail() {
 
 onMounted(() => {
   window.addEventListener('donghe-custom-cases-updated', refreshDetail)
+  stopManagerAccessListener = onManagerAccessChange((accessState) => {
+    managerAccessRequestVersion += 1
+    managerIsAdmin.value = !accessState.error && accessState.isAdmin
+    if (accessState.error) {
+      cadDownloadStatus.value = currentCase.value.cadFilePath
+        ? `管理员权限检查失败：${accessState.error.message}`
+        : ''
+    } else {
+      cadDownloadStatus.value = ''
+    }
+  })
+
+  const requestVersion = ++managerAccessRequestVersion
+  getManagerAccessState().then((accessState) => {
+    if (requestVersion === managerAccessRequestVersion) {
+      managerIsAdmin.value = accessState.isAdmin
+    }
+  }).catch((error) => {
+    if (requestVersion === managerAccessRequestVersion) {
+      managerIsAdmin.value = false
+      cadDownloadStatus.value = currentCase.value.cadFilePath
+        ? `管理员权限检查失败：${error.message}`
+        : ''
+    }
+  })
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('donghe-custom-cases-updated', refreshDetail)
+  stopManagerAccessListener?.()
 })
 </script>
 

@@ -552,7 +552,9 @@ function toDesignCase(caseItem) {
     name: caseItem.name,
     list: caseItem.list,
     url: caseItem.url,
-    blueprintUrl: caseItem.blueprintUrl
+    blueprintUrl: caseItem.blueprintUrl,
+    cadFileName: caseItem.cadFileName,
+    cadFilePath: caseItem.cadFilePath
   }
 }
 

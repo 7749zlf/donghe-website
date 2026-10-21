@@ -227,13 +227,14 @@ export async function uploadCaseCadFile(file, caseId = 'case') {
 /**
  * 为管理员生成 CAD 文件的短期下载链接。
  * @param {string} path 私有存储路径。
+ * @param {string} fileName 下载时使用的原始文件名。
  * @returns {Promise<string>} 限时下载 URL。
  */
-export async function createCaseCadDownloadUrl(path) {
+export async function createCaseCadDownloadUrl(path, fileName = '') {
   const client = await requireClient()
   const { data, error } = await client.storage
     .from(CASE_CAD_BUCKET)
-    .createSignedUrl(path, 60, { download: true })
+    .createSignedUrl(path, 60, { download: fileName || true })
 
   if (error) {
     throw error
