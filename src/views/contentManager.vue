@@ -132,6 +132,28 @@
               <input v-model.trim="form.blueprintUrl" type="url" placeholder="https://..." />
             </label>
 
+            <div class="field upload-field cad-upload-field">
+              <span>CAD 文件</span>
+              <label class="upload-box">
+                <input
+                  type="file"
+                  accept=".dwg,.dxf,.dwt,.dws,.dwf,.dgn"
+                  :disabled="!cloudEnabled || cadUploading"
+                  @change="handleCadUpload"
+                />
+                <strong>{{ cadUploading ? '正在上传 CAD 文件' : '选择 CAD 文件上传' }}</strong>
+                <small>支持 DWG、DXF、DWT、DWS、DWF、DGN，单个文件不超过 50MB。附件仅管理员可下载。</small>
+              </label>
+              <div v-if="form.cadFileName" class="cad-file-entry">
+                <span>{{ form.cadFileName }}</span>
+                <div>
+                  <button type="button" :disabled="!form.cadFilePath" @click="downloadCaseCadFile">下载</button>
+                  <button type="button" @click="removeCaseCadFile">移除</button>
+                </div>
+              </div>
+              <small v-if="!cloudEnabled" class="cad-local-notice">本地浏览器模式不支持 CAD 文件上传，请配置云端存储后使用。</small>
+            </div>
+
             <div class="field upload-field">
               <span>作品图片</span>
               <label class="upload-box">
@@ -182,8 +204,8 @@
 
           <div class="form-actions">
             <p>{{ statusText }}</p>
-            <button type="submit" :disabled="saving || uploading">
-              {{ uploading ? '上传图片中' : (saving ? '保存中' : (isEditing ? '保存修改' : '保存作品')) }}
+            <button type="submit" :disabled="saving || uploading || cadUploading">
+              {{ uploading || cadUploading ? '上传中' : (saving ? '保存中' : (isEditing ? '保存修改' : '保存作品')) }}
             </button>
           </div>
         </form>
@@ -420,9 +442,12 @@ import {
   onManagerAccessChange,
   signInManager,
   signOutManager,
+  createCaseCadDownloadUrl,
+  deleteCaseCadFiles,
   deleteCloudImages,
   uploadAwardImage,
   uploadCaseCoverImage,
+  uploadCaseCadFile,
   uploadCaseImage,
   upsertCloudAward,
   upsertCloudCase
@@ -447,6 +472,7 @@ const managerIsAdmin = ref(false)
 const loginStatus = ref('请输入管理员账号。')
 const saving = ref(false)
 const uploading = ref(false)
+const cadUploading = ref(false)
 const awardSaving = ref(false)
 const awardUploading = ref(false)
 const draftCaseId = ref(createCaseId())
@@ -460,6 +486,8 @@ const customStyleEnabled = ref(false)
 const caseListPage = ref(1)
 let originalCaseMedia = new Set()
 let uploadedCaseMedia = new Set()
+let originalCaseCadPath = ''
+let uploadedCaseCadPaths = new Set()
 let originalAwardMedia = new Set()
 let uploadedAwardMedia = new Set()
 let stopAuthListener = null
@@ -477,6 +505,8 @@ const form = reactive({
   year: `${new Date().getFullYear()}年`,
   url: '',
   blueprintUrl: '',
+  cadFileName: '',
+  cadFilePath: '',
   images: [],
   coverImage: '',
   note: ''
@@ -656,6 +686,34 @@ async function discardUploadedCaseMedia() {
 }
 
 /**
+ * 清理当前编辑器已上传但尚未保存的 CAD 文件。
+ * @returns {Promise<void>}
+ */
+async function discardUploadedCaseCadFiles() {
+  if (cloudEnabled && uploadedCaseCadPaths.size) {
+    try {
+      await deleteCaseCadFiles([...uploadedCaseCadPaths])
+    } catch (error) {
+      console.warn('Failed to discard unsaved case CAD files:', error)
+    }
+  }
+
+  uploadedCaseCadPaths = new Set()
+}
+
+/**
+ * 筛出未被任一已加载作品继续引用的 CAD 文件。
+ * @param {string[]} paths 候选存储路径。
+ * @returns {string[]} 可删除的存储路径。
+ */
+function getUnusedCaseCadPaths(paths) {
+  const referenced = new Set(
+    managedCases.value.map((item) => item.cadFilePath).filter(Boolean)
+  )
+  return [...new Set(paths)].filter((path) => path && !referenced.has(path))
+}
+
+/**
  * 清理当前荣誉表单已上传但尚未保存的云端图片。
  * @returns {Promise<void>}
  */
@@ -686,6 +744,9 @@ function resetForm() {
   form.year = `${new Date().getFullYear()}年`
   form.url = ''
   form.blueprintUrl = ''
+  form.cadFileName = ''
+  form.cadFilePath = ''
+  originalCaseCadPath = ''
   form.images = []
   form.coverImage = ''
   form.note = ''
@@ -826,8 +887,14 @@ async function handleManagerAccessChange(accessState) {
  * @returns {Promise<void>}
  */
 async function startCreate() {
+  if (cadUploading.value) {
+    statusText.value = 'CAD 文件还在上传，请稍候。'
+    return
+  }
   await discardUploadedCaseMedia()
+  await discardUploadedCaseCadFiles()
   originalCaseMedia = new Set()
+  originalCaseCadPath = ''
   resetForm()
   statusText.value = '正在新增作品。'
   resetCaseFormScroll()
@@ -839,7 +906,12 @@ async function startCreate() {
  * @returns {Promise<void>}
  */
 async function editCase(item) {
+  if (cadUploading.value) {
+    statusText.value = 'CAD 文件还在上传，请稍候。'
+    return
+  }
   await discardUploadedCaseMedia()
+  await discardUploadedCaseCadFiles()
   editingCase.value = item
   customStyleEnabled.value = Boolean(item.style && !caseStylePresets.includes(item.style))
   form.name = item.name
@@ -849,10 +921,13 @@ async function editCase(item) {
   form.year = item.year
   form.url = item.url
   form.blueprintUrl = item.blueprintUrl || ''
+  form.cadFileName = item.cadFileName || ''
+  form.cadFilePath = item.cadFilePath || ''
   form.images = imagesToList(item.list)
   form.coverImage = item.image || form.images[0] || ''
   form.note = item.note
   originalCaseMedia = new Set(getCaseMedia(item))
+  originalCaseCadPath = form.cadFilePath
   uploadedCaseMedia = new Set()
   statusText.value = `正在编辑《${item.name}》。`
   resetCaseFormScroll()
@@ -1224,6 +1299,60 @@ async function handleImageUpload(event) {
 }
 
 /**
+ * 上传 CAD 文件并写入当前作品附件字段。
+ * @param {Event} event 文件输入框 change 事件。
+ * @returns {Promise<void>}
+ */
+async function handleCadUpload(event) {
+  const input = event.target
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) {
+    return
+  }
+  if (!cloudEnabled) {
+    statusText.value = '本地浏览器模式不支持 CAD 文件上传，请配置云端存储后使用。'
+    return
+  }
+
+  cadUploading.value = true
+  statusText.value = `正在上传 CAD 文件：${file.name}`
+  try {
+    const filePath = await uploadCaseCadFile(file, currentCaseId())
+    form.cadFileName = file.name
+    form.cadFilePath = filePath
+    uploadedCaseCadPaths.add(filePath)
+    statusText.value = 'CAD 文件上传完成，请保存作品。'
+  } catch (error) {
+    statusText.value = `CAD 文件上传失败：${error.message}`
+  } finally {
+    cadUploading.value = false
+  }
+}
+
+/**
+ * 创建 CAD 文件的限时下载链接并打开。
+ * @returns {Promise<void>}
+ */
+async function downloadCaseCadFile() {
+  try {
+    const url = await createCaseCadDownloadUrl(form.cadFilePath)
+    window.open(url, '_blank', 'noopener')
+  } catch (error) {
+    statusText.value = `CAD 文件下载失败：${error.message}`
+  }
+}
+
+/**
+ * 从作品草稿中移除 CAD 附件，保存成功后清理云端文件。
+ * @returns {void}
+ */
+function removeCaseCadFile() {
+  form.cadFileName = ''
+  form.cadFilePath = ''
+}
+
+/**
  * 优化并上传第一张有效荣誉图片。
  * @param {Event} event 文件输入框 change 事件。
  * @returns {Promise<void>}
@@ -1488,6 +1617,8 @@ function formPayload() {
     year: form.year,
     url: form.url,
     blueprintUrl: form.blueprintUrl,
+    cadFileName: form.cadFileName,
+    cadFilePath: form.cadFilePath,
     images: form.images,
     image: form.coverImage || form.images[0] || '',
     note: form.note,
@@ -1521,8 +1652,8 @@ async function handleSubmit() {
   let saved = null
   let cleanupMessage = ''
 
-  if (uploading.value) {
-    statusText.value = '图片还在上传，请稍等。'
+  if (uploading.value || cadUploading.value) {
+    statusText.value = '文件还在上传，请稍等。'
     return
   }
 
@@ -1552,6 +1683,18 @@ async function handleSubmit() {
         cleanupMessage = '；旧图片暂未清理，可稍后再次保存处理'
         console.warn('Failed to clean unused case images:', cleanupError)
       }
+      const removedCadPaths = getUnusedCaseCadPaths([
+        originalCaseCadPath,
+        ...uploadedCaseCadPaths
+      ])
+      if (removedCadPaths.length) {
+        try {
+          await deleteCaseCadFiles(removedCadPaths)
+        } catch (cleanupError) {
+          cleanupMessage += '；旧 CAD 文件暂未清理'
+          console.warn('Failed to clean unused case CAD files:', cleanupError)
+        }
+      }
     } else {
       saved = isEditing.value
         ? saveCaseOverride(formPayload())
@@ -1566,6 +1709,8 @@ async function handleSubmit() {
     statusText.value = `已保存《${saved.name}》${cleanupMessage}。`
     originalCaseMedia = new Set()
     uploadedCaseMedia = new Set()
+    originalCaseCadPath = saved.cadFilePath || ''
+    uploadedCaseCadPaths = new Set()
     resetForm()
     refreshList()
   } catch (error) {
@@ -1764,6 +1909,7 @@ function resetAward(id) {
  */
 async function removeCustom(id) {
   let mediaCleanupFailed = false
+  let cadCleanupFailed = false
 
   try {
     if (cloudEnabled) {
@@ -1772,6 +1918,7 @@ async function removeCustom(id) {
         getCaseMedia(target),
         [...uploadedCaseMedia]
       ])
+      const cadPathToClean = target?.cadFilePath
       await deleteCloudCase(id)
       await refreshCloudList()
       try {
@@ -1780,14 +1927,27 @@ async function removeCustom(id) {
         console.warn('Failed to clean deleted case images:', cleanupError)
         mediaCleanupFailed = true
       }
+      const unusedCadPaths = getUnusedCaseCadPaths([cadPathToClean])
+      if (unusedCadPaths.length) {
+        try {
+          await deleteCaseCadFiles(unusedCadPaths)
+        } catch (cleanupError) {
+          console.warn('Failed to clean deleted case CAD file:', cleanupError)
+          cadCleanupFailed = true
+        }
+      }
       originalCaseMedia = new Set()
       uploadedCaseMedia = new Set()
+      originalCaseCadPath = ''
+      uploadedCaseCadPaths = new Set()
     } else {
       deleteCustomCase(id)
       refreshList()
     }
     resetForm()
-    statusText.value = mediaCleanupFailed ? '作品已删除，旧图片暂未清理。' : '已删除作品。'
+    statusText.value = mediaCleanupFailed || cadCleanupFailed
+      ? '作品已删除，部分旧文件暂未清理。'
+      : '已删除作品。'
   } catch (error) {
     statusText.value = `删除失败：${error.message}`
   }
@@ -2233,6 +2393,49 @@ onUnmounted(() => {
 }
 
 .upload-box small {
+  color: #69717d;
+  font-size: 13px;
+}
+
+.cad-file-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #e2e5e9;
+  padding: 10px 12px;
+}
+
+.cad-file-entry span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cad-file-entry div {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.cad-file-entry button {
+  border: 0;
+  background: transparent;
+  color: #46515f;
+  padding: 4px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.cad-file-entry button:last-child {
+  color: #8b2f2f;
+}
+
+.cad-file-entry button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cad-local-notice {
   color: #69717d;
   font-size: 13px;
 }

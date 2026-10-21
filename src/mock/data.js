@@ -65,6 +65,8 @@ function normalizeCustomCase(caseItem) {
     year: String(caseItem.year || `${new Date().getFullYear()}年`),
     url: links.url,
     blueprintUrl: links.blueprintUrl,
+    cadFileName: String(caseItem.cadFileName || ''),
+    cadFilePath: String(caseItem.cadFilePath || ''),
     list,
     image: String(caseItem.image || list[0]),
     note: String(caseItem.note || '新增案例，等待补充更完整的空间说明。').trim(),

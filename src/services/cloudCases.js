@@ -3,6 +3,9 @@ const SUPABASE_ANON_KEY = process.env.VUE_APP_SUPABASE_ANON_KEY
 const CASES_TABLE = process.env.VUE_APP_SUPABASE_CASES_TABLE || 'design_cases'
 const AWARDS_TABLE = process.env.VUE_APP_SUPABASE_AWARDS_TABLE || 'design_awards'
 const CASE_IMAGES_BUCKET = process.env.VUE_APP_SUPABASE_CASE_IMAGES_BUCKET || 'case-images'
+const CASE_CAD_BUCKET = 'case-cad-files'
+const CAD_FILE_EXTENSIONS = new Set(['dwg', 'dxf', 'dwt', 'dws', 'dwf', 'dgn'])
+const MAX_CAD_FILE_SIZE = 50 * 1024 * 1024
 
 const enabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
 let clientPromise = null
@@ -186,6 +189,74 @@ async function uploadStorageImage(file, caseId = 'case', variant = '') {
  */
 export function uploadCaseImage(file, caseId = 'case') {
   return uploadStorageImage(file, caseId)
+}
+
+/**
+ * 上传 CAD 文件到管理员私有存储桶。
+ * @param {File} file 待上传 CAD 文件。
+ * @param {string|number} caseId 所属项目标识。
+ * @returns {Promise<string>} 私有存储路径。
+ */
+export async function uploadCaseCadFile(file, caseId = 'case') {
+  const extension = String(file.name || '').split('.').pop().toLowerCase()
+  if (!CAD_FILE_EXTENSIONS.has(extension)) {
+    throw new Error('仅支持 DWG、DXF、DWT、DWS、DWF 和 DGN 格式。')
+  }
+  if (file.size > MAX_CAD_FILE_SIZE) {
+    throw new Error('CAD 文件不能超过 50MB。')
+  }
+
+  const client = await requireClient()
+  const fileName = safePathPart(file.name || 'drawing')
+  const path = `${safePathPart(caseId)}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-cad-${fileName}`
+  const { error } = await client.storage
+    .from(CASE_CAD_BUCKET)
+    .upload(path, file, {
+      cacheControl: '3600',
+      contentType: file.type || 'application/octet-stream',
+      upsert: false
+    })
+
+  if (error) {
+    throw error
+  }
+
+  return path
+}
+
+/**
+ * 为管理员生成 CAD 文件的短期下载链接。
+ * @param {string} path 私有存储路径。
+ * @returns {Promise<string>} 限时下载 URL。
+ */
+export async function createCaseCadDownloadUrl(path) {
+  const client = await requireClient()
+  const { data, error } = await client.storage
+    .from(CASE_CAD_BUCKET)
+    .createSignedUrl(path, 60, { download: true })
+
+  if (error) {
+    throw error
+  }
+  return data.signedUrl
+}
+
+/**
+ * 删除一个或多个作品 CAD 附件。
+ * @param {string[]} paths 私有存储路径。
+ * @returns {Promise<void>}
+ */
+export async function deleteCaseCadFiles(paths) {
+  const uniquePaths = [...new Set((Array.isArray(paths) ? paths : [paths]).filter(Boolean))]
+  if (!uniquePaths.length) {
+    return
+  }
+
+  const client = await requireClient()
+  const { error } = await client.storage.from(CASE_CAD_BUCKET).remove(uniquePaths)
+  if (error) {
+    throw error
+  }
 }
 
 /**
@@ -434,6 +505,8 @@ export function rowToCase(row) {
     year: row.year || '',
     url: row.url || '',
     blueprintUrl: row.blueprint_url || row.blueprintUrl || '',
+    cadFileName: row.cad_file_name || row.cadFileName || '',
+    cadFilePath: row.cad_file_path || row.cadFilePath || '',
     list,
     image: row.image || list[0] || '',
     note: row.note || '',
@@ -460,6 +533,8 @@ function caseToRow(caseItem) {
     year: String(caseItem.year || ''),
     url: String(caseItem.url || ''),
     blueprint_url: String(caseItem.blueprintUrl || ''),
+    cad_file_name: String(caseItem.cadFileName || ''),
+    cad_file_path: String(caseItem.cadFilePath || ''),
     images,
     image: String(caseItem.image || images[0] || ''),
     note: String(caseItem.note || ''),

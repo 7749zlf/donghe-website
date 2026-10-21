@@ -7,6 +7,8 @@ create table if not exists public.design_cases (
   year text not null default '',
   url text not null default '',
   blueprint_url text not null default '',
+  cad_file_name text not null default '',
+  cad_file_path text not null default '',
   images text[] not null default '{}',
   image text not null default '',
   note text not null default '',
@@ -19,6 +21,12 @@ add column if not exists style text not null default '';
 
 alter table public.design_cases
 add column if not exists blueprint_url text not null default '';
+
+alter table public.design_cases
+add column if not exists cad_file_name text not null default '';
+
+alter table public.design_cases
+add column if not exists cad_file_path text not null default '';
 
 alter table public.design_cases enable row level security;
 
@@ -43,6 +51,14 @@ values (
   10485760,
   array['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 )
+on conflict (id) do update
+set
+  public = excluded.public,
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('case-cad-files', 'case-cad-files', false, 52428800, null)
 on conflict (id) do update
 set
   public = excluded.public,
@@ -173,6 +189,27 @@ on storage.objects
 for delete
 to authenticated
 using (bucket_id = 'case-images' and public.is_design_admin());
+
+drop policy if exists "Admin can read case CAD files" on storage.objects;
+create policy "Admin can read case CAD files"
+on storage.objects
+for select
+to authenticated
+using (bucket_id = 'case-cad-files' and public.is_design_admin());
+
+drop policy if exists "Admin can upload case CAD files" on storage.objects;
+create policy "Admin can upload case CAD files"
+on storage.objects
+for insert
+to authenticated
+with check (bucket_id = 'case-cad-files' and public.is_design_admin());
+
+drop policy if exists "Admin can delete case CAD files" on storage.objects;
+create policy "Admin can delete case CAD files"
+on storage.objects
+for delete
+to authenticated
+using (bucket_id = 'case-cad-files' and public.is_design_admin());
 
 -- 报价单使用单行 JSON 明细，保存时可保证整份报价原子更新。
 create table if not exists public.design_quotes (
