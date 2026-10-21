@@ -321,13 +321,20 @@ async function downloadCadDrawing() {
   try {
     const fileName = currentCase.value.cadFileName || 'drawing'
     const url = await createCaseCadDownloadUrl(currentCase.value.cadFilePath, fileName)
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`文件服务器返回错误（${response.status}）。`)
+    }
+
+    const fileBlob = await response.blob()
+    const downloadUrl = window.URL.createObjectURL(fileBlob)
     const link = document.createElement('a')
-    link.href = url
+    link.href = downloadUrl
     link.download = fileName
-    link.rel = 'noopener'
     document.body.appendChild(link)
     link.click()
     link.remove()
+    window.setTimeout(() => window.URL.revokeObjectURL(downloadUrl), 60000)
   } catch (error) {
     cadDownloadStatus.value = `CAD 图纸下载失败：${error.message}`
   } finally {
