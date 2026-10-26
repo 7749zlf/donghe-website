@@ -154,6 +154,25 @@
               <small v-if="!cloudEnabled" class="cad-local-notice">本地浏览器模式不支持 CAD 文件上传，请配置云端存储后使用。</small>
             </div>
 
+            <div class="field upload-field cad-upload-field">
+              <span>作品视频</span>
+              <label class="upload-box">
+                <input
+                  type="file"
+                  accept="video/mp4,video/webm,video/quicktime,video/ogg,.mp4,.webm,.mov,.ogv"
+                  :disabled="!cloudEnabled || videoUploading"
+                  @change="handleVideoUpload"
+                />
+                <strong>{{ videoUploading ? '正在上传视频' : (form.videoUrl ? '更换作品视频' : '选择视频上传') }}</strong>
+                <small>支持 MP4、WebM、MOV、OGV，单个视频不超过 100MB。视频会在作品详情页播放。</small>
+              </label>
+              <div v-if="form.videoUrl" class="case-video-entry">
+                <video :src="form.videoUrl" controls playsinline preload="metadata"></video>
+                <button type="button" @click="removeCaseVideo">移除视频</button>
+              </div>
+              <small v-if="!cloudEnabled" class="cad-local-notice">本地浏览器模式不支持视频上传，请配置云端存储后使用。</small>
+            </div>
+
             <div class="field upload-field">
               <span>作品图片</span>
               <label class="upload-box">
@@ -204,8 +223,8 @@
 
           <div class="form-actions">
             <p>{{ statusText }}</p>
-            <button type="submit" :disabled="saving || uploading || cadUploading">
-              {{ uploading || cadUploading ? '上传中' : (saving ? '保存中' : (isEditing ? '保存修改' : '保存作品')) }}
+            <button type="submit" :disabled="saving || uploading || cadUploading || videoUploading">
+              {{ uploading || cadUploading || videoUploading ? '上传中' : (saving ? '保存中' : (isEditing ? '保存修改' : '保存作品')) }}
             </button>
           </div>
         </form>
@@ -444,10 +463,12 @@ import {
   signOutManager,
   createCaseCadDownloadUrl,
   deleteCaseCadFiles,
+  deleteCaseVideos,
   deleteCloudImages,
   uploadAwardImage,
   uploadCaseCoverImage,
   uploadCaseCadFile,
+  uploadCaseVideo,
   uploadCaseImage,
   upsertCloudAward,
   upsertCloudCase
@@ -473,6 +494,7 @@ const loginStatus = ref('请输入管理员账号。')
 const saving = ref(false)
 const uploading = ref(false)
 const cadUploading = ref(false)
+const videoUploading = ref(false)
 const awardSaving = ref(false)
 const awardUploading = ref(false)
 const draftCaseId = ref(createCaseId())
@@ -488,6 +510,8 @@ let originalCaseMedia = new Set()
 let uploadedCaseMedia = new Set()
 let originalCaseCadPath = ''
 let uploadedCaseCadPaths = new Set()
+let originalCaseVideoUrl = ''
+let uploadedCaseVideoUrls = new Set()
 let originalAwardMedia = new Set()
 let uploadedAwardMedia = new Set()
 let stopAuthListener = null
@@ -507,6 +531,7 @@ const form = reactive({
   blueprintUrl: '',
   cadFileName: '',
   cadFilePath: '',
+  videoUrl: '',
   images: [],
   coverImage: '',
   note: ''
@@ -641,6 +666,16 @@ function getCurrentCaseMedia() {
 }
 
 /**
+ * 筛出未被已加载作品引用的视频地址。
+ * @param {string|string[]} urls 候选视频地址。
+ * @returns {string[]} 可删除的视频地址。
+ */
+function getUnusedCaseVideoUrls(urls) {
+  const referenced = new Set(managedCases.value.map((item) => item.videoUrl).filter(Boolean))
+  return uniqueMediaUrls(urls).filter((url) => !referenced.has(url))
+}
+
+/**
  * 从候选地址中筛出未被任何项目或荣誉引用的媒体。
  * @param {string|string[]} urls 候选媒体地址。
  * @returns {string[]} 可安全尝试清理的未引用地址。
@@ -702,6 +737,22 @@ async function discardUploadedCaseCadFiles() {
 }
 
 /**
+ * 清理当前编辑器已上传但尚未保存的视频。
+ * @returns {Promise<void>}
+ */
+async function discardUploadedCaseVideos() {
+  if (cloudEnabled && uploadedCaseVideoUrls.size) {
+    try {
+      await deleteCaseVideos([...uploadedCaseVideoUrls])
+    } catch (error) {
+      console.warn('Failed to discard unsaved case videos:', error)
+    }
+  }
+
+  uploadedCaseVideoUrls = new Set()
+}
+
+/**
  * 筛出未被任一已加载作品继续引用的 CAD 文件。
  * @param {string[]} paths 候选存储路径。
  * @returns {string[]} 可删除的存储路径。
@@ -746,7 +797,9 @@ function resetForm() {
   form.blueprintUrl = ''
   form.cadFileName = ''
   form.cadFilePath = ''
+  form.videoUrl = ''
   originalCaseCadPath = ''
+  originalCaseVideoUrl = ''
   form.images = []
   form.coverImage = ''
   form.note = ''
@@ -887,14 +940,16 @@ async function handleManagerAccessChange(accessState) {
  * @returns {Promise<void>}
  */
 async function startCreate() {
-  if (cadUploading.value) {
-    statusText.value = 'CAD 文件还在上传，请稍候。'
+  if (cadUploading.value || videoUploading.value) {
+    statusText.value = '文件还在上传，请稍候。'
     return
   }
   await discardUploadedCaseMedia()
   await discardUploadedCaseCadFiles()
+  await discardUploadedCaseVideos()
   originalCaseMedia = new Set()
   originalCaseCadPath = ''
+  originalCaseVideoUrl = ''
   resetForm()
   statusText.value = '正在新增作品。'
   resetCaseFormScroll()
@@ -906,12 +961,13 @@ async function startCreate() {
  * @returns {Promise<void>}
  */
 async function editCase(item) {
-  if (cadUploading.value) {
-    statusText.value = 'CAD 文件还在上传，请稍候。'
+  if (cadUploading.value || videoUploading.value) {
+    statusText.value = '文件还在上传，请稍候。'
     return
   }
   await discardUploadedCaseMedia()
   await discardUploadedCaseCadFiles()
+  await discardUploadedCaseVideos()
   editingCase.value = item
   customStyleEnabled.value = Boolean(item.style && !caseStylePresets.includes(item.style))
   form.name = item.name
@@ -923,11 +979,13 @@ async function editCase(item) {
   form.blueprintUrl = item.blueprintUrl || ''
   form.cadFileName = item.cadFileName || ''
   form.cadFilePath = item.cadFilePath || ''
+  form.videoUrl = item.videoUrl || ''
   form.images = imagesToList(item.list)
   form.coverImage = item.image || form.images[0] || ''
   form.note = item.note
   originalCaseMedia = new Set(getCaseMedia(item))
   originalCaseCadPath = form.cadFilePath
+  originalCaseVideoUrl = form.videoUrl
   uploadedCaseMedia = new Set()
   statusText.value = `正在编辑《${item.name}》。`
   resetCaseFormScroll()
@@ -1353,6 +1411,45 @@ function removeCaseCadFile() {
 }
 
 /**
+ * 从当前作品草稿中移除视频，保存成功后清理云端文件。
+ * @returns {void}
+ */
+function removeCaseVideo() {
+  form.videoUrl = ''
+}
+
+/**
+ * 上传作品视频并将其地址关联到当前作品草稿。
+ * @param {Event} event 文件输入框 change 事件。
+ * @returns {Promise<void>}
+ */
+async function handleVideoUpload(event) {
+  const input = event.target
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) {
+    return
+  }
+  if (!cloudEnabled) {
+    statusText.value = '本地浏览器模式不支持视频上传，请配置云端存储后使用。'
+    return
+  }
+
+  videoUploading.value = true
+  statusText.value = `正在上传视频：${file.name}`
+  try {
+    const videoUrl = await uploadCaseVideo(file, currentCaseId())
+    form.videoUrl = videoUrl
+    uploadedCaseVideoUrls.add(videoUrl)
+    statusText.value = '视频上传完成，请保存作品。'
+  } catch (error) {
+    statusText.value = `视频上传失败：${error.message}`
+  } finally {
+    videoUploading.value = false
+  }
+}
+
+/**
  * 优化并上传第一张有效荣誉图片。
  * @param {Event} event 文件输入框 change 事件。
  * @returns {Promise<void>}
@@ -1619,6 +1716,7 @@ function formPayload() {
     blueprintUrl: form.blueprintUrl,
     cadFileName: form.cadFileName,
     cadFilePath: form.cadFilePath,
+    videoUrl: form.videoUrl,
     images: form.images,
     image: form.coverImage || form.images[0] || '',
     note: form.note,
@@ -1652,7 +1750,7 @@ async function handleSubmit() {
   let saved = null
   let cleanupMessage = ''
 
-  if (uploading.value || cadUploading.value) {
+  if (uploading.value || cadUploading.value || videoUploading.value) {
     statusText.value = '文件还在上传，请稍等。'
     return
   }
@@ -1695,6 +1793,18 @@ async function handleSubmit() {
           console.warn('Failed to clean unused case CAD files:', cleanupError)
         }
       }
+      const removedVideoUrls = getUnusedCaseVideoUrls([
+        originalCaseVideoUrl,
+        ...uploadedCaseVideoUrls
+      ])
+      if (removedVideoUrls.length) {
+        try {
+          await deleteCaseVideos(removedVideoUrls)
+        } catch (cleanupError) {
+          cleanupMessage += '；旧视频暂未清理'
+          console.warn('Failed to clean unused case videos:', cleanupError)
+        }
+      }
     } else {
       saved = isEditing.value
         ? saveCaseOverride(formPayload())
@@ -1711,6 +1821,8 @@ async function handleSubmit() {
     uploadedCaseMedia = new Set()
     originalCaseCadPath = saved.cadFilePath || ''
     uploadedCaseCadPaths = new Set()
+    originalCaseVideoUrl = saved.videoUrl || ''
+    uploadedCaseVideoUrls = new Set()
     resetForm()
     refreshList()
   } catch (error) {
@@ -1919,6 +2031,7 @@ async function removeCustom(id) {
         [...uploadedCaseMedia]
       ])
       const cadPathToClean = target?.cadFilePath
+      const videoUrlsToClean = uniqueMediaUrls([target?.videoUrl, [...uploadedCaseVideoUrls]])
       await deleteCloudCase(id)
       await refreshCloudList()
       try {
@@ -1936,10 +2049,21 @@ async function removeCustom(id) {
           cadCleanupFailed = true
         }
       }
+      const unusedVideoUrls = getUnusedCaseVideoUrls(videoUrlsToClean)
+      if (unusedVideoUrls.length) {
+        try {
+          await deleteCaseVideos(unusedVideoUrls)
+        } catch (cleanupError) {
+          console.warn('Failed to clean deleted case videos:', cleanupError)
+          mediaCleanupFailed = true
+        }
+      }
       originalCaseMedia = new Set()
       uploadedCaseMedia = new Set()
       originalCaseCadPath = ''
       uploadedCaseCadPaths = new Set()
+      originalCaseVideoUrl = ''
+      uploadedCaseVideoUrls = new Set()
     } else {
       deleteCustomCase(id)
       refreshList()
@@ -2018,11 +2142,13 @@ async function handleLogin() {
 async function handleLogout() {
   try {
     await discardUploadedCaseMedia()
+    await discardUploadedCaseVideos()
     await discardUploadedAwardMedia()
     await signOutManager()
     managerSession.value = null
     managerIsAdmin.value = false
     originalCaseMedia = new Set()
+    originalCaseVideoUrl = ''
     originalAwardMedia = new Set()
     resetForm()
     resetAwardForm()
@@ -2433,6 +2559,28 @@ onUnmounted(() => {
 .cad-file-entry button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.case-video-entry {
+  display: grid;
+  gap: 8px;
+}
+
+.case-video-entry video {
+  display: block;
+  width: min(100%, 480px);
+  max-height: 270px;
+  background: #111;
+}
+
+.case-video-entry button {
+  justify-self: start;
+  border: 0;
+  background: transparent;
+  color: #8b2f2f;
+  padding: 4px;
+  font: inherit;
+  cursor: pointer;
 }
 
 .cad-local-notice {

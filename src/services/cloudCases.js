@@ -4,8 +4,16 @@ const CASES_TABLE = process.env.VUE_APP_SUPABASE_CASES_TABLE || 'design_cases'
 const AWARDS_TABLE = process.env.VUE_APP_SUPABASE_AWARDS_TABLE || 'design_awards'
 const CASE_IMAGES_BUCKET = process.env.VUE_APP_SUPABASE_CASE_IMAGES_BUCKET || 'case-images'
 const CASE_CAD_BUCKET = 'case-cad-files'
+const CASE_VIDEOS_BUCKET = 'case-videos'
 const CAD_FILE_EXTENSIONS = new Set(['dwg', 'dxf', 'dwt', 'dws', 'dwf', 'dgn'])
 const MAX_CAD_FILE_SIZE = 50 * 1024 * 1024
+const VIDEO_FILE_TYPES = new Map([
+  ['mp4', 'video/mp4'],
+  ['webm', 'video/webm'],
+  ['mov', 'video/quicktime'],
+  ['ogv', 'video/ogg']
+])
+const MAX_CASE_VIDEO_SIZE = 100 * 1024 * 1024
 
 const enabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
 let clientPromise = null
@@ -261,6 +269,75 @@ export async function deleteCaseCadFiles(paths) {
 }
 
 /**
+ * 上传作品视频到公开存储桶并返回可用于前台播放的地址。
+ * @param {File} file 待上传视频文件。
+ * @param {string|number} caseId 所属项目标识。
+ * @returns {Promise<string>} 上传后的公开视频地址。
+ */
+export async function uploadCaseVideo(file, caseId = 'case') {
+  const extension = String(file.name || '').split('.').pop().toLowerCase()
+  const contentType = VIDEO_FILE_TYPES.get(extension)
+  if (!contentType || (file.type && file.type !== contentType)) {
+    throw new Error('仅支持 MP4、WebM、MOV 和 OGV 格式视频。')
+  }
+  if (file.size > MAX_CASE_VIDEO_SIZE) {
+    throw new Error('视频文件不能超过 100MB。')
+  }
+
+  const client = await requireClient()
+  const fileName = safePathPart(file.name || `video.${extension}`)
+  const path = `${safePathPart(caseId)}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}-video-${fileName}`
+  const { error } = await client.storage
+    .from(CASE_VIDEOS_BUCKET)
+    .upload(path, file, {
+      cacheControl: '31536000',
+      contentType,
+      upsert: false
+    })
+
+  if (error) {
+    throw error
+  }
+
+  const { data } = client.storage.from(CASE_VIDEOS_BUCKET).getPublicUrl(path)
+  return data.publicUrl
+}
+
+/**
+ * 删除属于作品视频存储桶的公开视频地址，忽略外部地址。
+ * @param {string|string[]} urls 一个或多个公开视频地址。
+ * @returns {Promise<void>}
+ */
+export async function deleteCaseVideos(urls) {
+  const marker = `/storage/v1/object/public/${CASE_VIDEOS_BUCKET}/`
+  const paths = [...new Set(
+    (Array.isArray(urls) ? urls : [urls])
+      .map((value) => {
+        try {
+          const url = new URL(String(value || ''))
+          const markerIndex = url.pathname.indexOf(marker)
+          return markerIndex < 0
+            ? ''
+            : decodeURIComponent(url.pathname.slice(markerIndex + marker.length))
+        } catch (error) {
+          return ''
+        }
+      })
+      .filter(Boolean)
+  )]
+
+  if (!paths.length) {
+    return
+  }
+
+  const client = await requireClient()
+  const { error } = await client.storage.from(CASE_VIDEOS_BUCKET).remove(paths)
+  if (error) {
+    throw error
+  }
+}
+
+/**
  * 上传项目封面图片并在文件名中标记封面用途。
  * @param {File|Blob} file 待上传图片文件。
  * @param {string|number} caseId 项目标识。
@@ -508,6 +585,7 @@ export function rowToCase(row) {
     blueprintUrl: row.blueprint_url || row.blueprintUrl || '',
     cadFileName: row.cad_file_name || row.cadFileName || '',
     cadFilePath: row.cad_file_path || row.cadFilePath || '',
+    videoUrl: row.video_url || row.videoUrl || '',
     list,
     image: row.image || list[0] || '',
     note: row.note || '',
@@ -536,6 +614,7 @@ function caseToRow(caseItem) {
     blueprint_url: String(caseItem.blueprintUrl || ''),
     cad_file_name: String(caseItem.cadFileName || ''),
     cad_file_path: String(caseItem.cadFilePath || ''),
+    video_url: String(caseItem.videoUrl || ''),
     images,
     image: String(caseItem.image || images[0] || ''),
     note: String(caseItem.note || ''),

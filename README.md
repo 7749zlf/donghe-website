@@ -58,6 +58,7 @@ VUE_APP_SUPABASE_CASE_IMAGES_BUCKET=case-images
 - 如图片存放在外部对象存储或 CDN，可在上传区域粘贴公开的 `http` 或 `https` 图片直链；外部链接不会占用 Supabase 图库空间，也不会被系统删除。
 - 外部图片地址必须长期有效、允许官网直接访问。不要使用需要登录、会过期或限制外链的网盘分享地址。
 - 作品管理支持单独上传 DWG、DXF、DWT、DWS、DWF、DGN CAD 附件，单个文件不超过 50MB；CAD 附件与“水电底图”字段分开保存，仅管理员可下载。使用该功能前，请在 Supabase SQL Editor 重新运行 `supabase-design-cases.sql`，添加附件字段和私有存储桶。
+- 作品管理支持上传 MP4、WebM、MOV、OGV 视频，单个视频不超过 100MB；保存后会在作品详情页展示播放器。视频存放在公开的视频存储桶，上传、替换或删除后系统会清理未被作品引用的视频。启用前请在 Supabase SQL Editor 重新运行 `supabase-design-cases.sql`，添加视频字段、存储桶和访问策略。
 
 ## 日常维护流程
 

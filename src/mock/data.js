@@ -67,6 +67,7 @@ function normalizeCustomCase(caseItem) {
     blueprintUrl: links.blueprintUrl,
     cadFileName: String(caseItem.cadFileName || ''),
     cadFilePath: String(caseItem.cadFilePath || ''),
+    videoUrl: String(caseItem.videoUrl || ''),
     list,
     image: String(caseItem.image || list[0]),
     note: String(caseItem.note || '新增案例，等待补充更完整的空间说明。').trim(),
@@ -554,7 +555,8 @@ function toDesignCase(caseItem) {
     url: caseItem.url,
     blueprintUrl: caseItem.blueprintUrl,
     cadFileName: caseItem.cadFileName,
-    cadFilePath: caseItem.cadFilePath
+    cadFilePath: caseItem.cadFilePath,
+    videoUrl: caseItem.videoUrl
   }
 }
 
@@ -587,7 +589,8 @@ function toWork(caseItem) {
     list: caseItem.list,
     note: caseItem.note,
     url: caseItem.url,
-    blueprintUrl: caseItem.blueprintUrl
+    blueprintUrl: caseItem.blueprintUrl,
+    videoUrl: caseItem.videoUrl
   }
 }
 

@@ -77,6 +77,14 @@
         </div>
       </section>
 
+      <section v-if="currentCase.videoUrl" class="video-section">
+        <div class="video-section-heading">
+          <span class="section-kicker">PROJECT VIDEO</span>
+          <h2>项目视频</h2>
+        </div>
+        <video :src="currentCase.videoUrl" controls playsinline preload="metadata"></video>
+      </section>
+
       <footer class="page-nav">
         <button type="button" class="dh-action" @click="goWorks">
           <span class="dh-action__label">返回索引</span>
@@ -733,6 +741,26 @@ onBeforeUnmount(() => {
   grid-template-columns: minmax(0, 1fr) 168px;
   gap: 22px;
   align-items: start;
+}
+
+.video-section {
+  display: grid;
+  gap: 20px;
+  margin-top: 64px;
+}
+
+.video-section-heading h2 {
+  margin: 8px 0 0;
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 500;
+}
+
+.video-section video {
+  display: block;
+  width: 100%;
+  max-height: 720px;
+  background: #111;
+  object-fit: contain;
 }
 
 .gallery-main {
