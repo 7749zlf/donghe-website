@@ -44,18 +44,10 @@
         <div>
           <h1>{{ managerMode === 'cases' ? '管理官网作品' : '管理荣誉奖项' }}</h1>
           <div class="manager-tabs" role="tablist" aria-label="管理内容切换">
-            <button
-              type="button"
-              :class="{ active: managerMode === 'cases' }"
-              @click="managerMode = 'cases'"
-            >
+            <button type="button" :class="{ active: managerMode === 'cases' }" @click="managerMode = 'cases'">
               作品管理
             </button>
-            <button
-              type="button"
-              :class="{ active: managerMode === 'awards' }"
-              @click="managerMode = 'awards'"
-            >
+            <button type="button" :class="{ active: managerMode === 'awards' }" @click="managerMode = 'awards'">
               荣誉奖项
             </button>
             <button type="button" @click="$router.push({ name: 'quoteManager' })">
@@ -69,88 +61,32 @@
         </div>
       </header>
 
-      <CaseManagerPanel
-        v-if="managerMode === 'cases'"
-        ref="caseManagerPanel"
-        v-model:external-image-url.trim="externalImageUrl"
-        :form="form"
-        :editing-case="editingCase"
-        :cloud-enabled="cloudEnabled"
-        :uploading="uploading"
-        :cad-uploading="cadUploading"
-        :video-uploading="videoUploading"
-        :saving="saving"
-        :status-text="statusText"
-        :case-tags="caseTags"
-        :case-style-presets="caseStylePresets"
-        :custom-style-value="CUSTOM_STYLE_VALUE"
-        :selected-style-option="selectedStyleOption"
-        :custom-style-enabled="customStyleEnabled"
-        :items="paginatedManagedCases"
-        :page="caseListPage"
-        :page-count="caseListPageCount"
-        :case-label="caseLabel"
-        :format-case-meta="formatCaseMeta"
-        :can-toggle-visibility="canToggleVisibility"
-        :can-reset="canReset"
-        :can-delete="canDelete"
-        @submit="handleSubmit"
-        @create="startCreate"
-        @style-option-change="handleStyleOptionChange"
-        @cad-upload="handleCadUpload"
-        @download-cad="downloadCaseCadFile"
-        @remove-cad="removeCaseCadFile"
-        @video-upload="handleVideoUpload"
-        @remove-video="removeCaseVideo"
-        @image-upload="handleImageUpload"
-        @add-external-image="addExternalImage"
-        @preview-image="openImagePreview"
-        @set-cover="setCoverImage"
-        @remove-image="removeImage"
-        @edit="editCase"
-        @hide="hideCase"
-        @restore="restoreCase"
-        @reset="resetBase"
-        @delete="removeCustom"
-        @page-change="setCaseListPage"
-      />
+      <CaseManagerPanel v-if="managerMode === 'cases'" ref="caseManagerPanel"
+        v-model:external-image-url.trim="externalImageUrl" :form="form" :editing-case="editingCase"
+        :cloud-enabled="cloudEnabled" :uploading="uploading" :cad-uploading="cadUploading"
+        :video-uploading="videoUploading" :saving="saving" :status-text="statusText" :case-tags="caseTags"
+        :case-style-presets="caseStylePresets" :custom-style-value="CUSTOM_STYLE_VALUE"
+        :selected-style-option="selectedStyleOption" :custom-style-enabled="customStyleEnabled"
+        :items="paginatedManagedCases" :page="caseListPage" :page-count="caseListPageCount" :case-label="caseLabel"
+        :format-case-meta="formatCaseMeta" :can-toggle-visibility="canToggleVisibility" :can-reset="canReset"
+        :can-delete="canDelete" @submit="handleSubmit" @create="startCreate"
+        @style-option-change="handleStyleOptionChange" @cad-upload="handleCadUpload" @download-cad="downloadCaseCadFile"
+        @remove-cad="removeCaseCadFile" @video-upload="handleVideoUpload" @remove-video="removeCaseVideo"
+        @image-upload="handleImageUpload" @add-external-image="addExternalImage" @preview-image="openImagePreview"
+        @set-cover="setCoverImage" @remove-image="removeImage" @edit="editCase" @hide="hideCase" @restore="restoreCase"
+        @reset="resetBase" @delete="removeCustom" @page-change="setCaseListPage" />
 
-      <AwardManagerPanel
-        v-else
-        ref="awardManagerPanel"
-        v-model:external-image-url.trim="externalAwardImageUrl"
-        :award-form="awardForm"
-        :editing-award="editingAward"
-        :cloud-enabled="cloudEnabled"
-        :award-uploading="awardUploading"
-        :award-saving="awardSaving"
-        :status-text="awardStatusText"
-        :items="managedAwards"
-        :award-label="awardLabel"
-        :can-toggle-visibility="canToggleAwardVisibility"
-        :can-reset="canResetAward"
-        :can-delete="canDeleteAward"
-        @submit="handleAwardSubmit"
-        @create="startCreateAward"
-        @image-upload="handleAwardImageUpload"
-        @add-external-image="addExternalAwardImage"
-        @preview-image="openImagePreview"
-        @remove-image="removeAwardImage"
-        @edit="editAward"
-        @hide="hideAward"
-        @restore="restoreAward"
-        @reset="resetAward"
-        @delete="removeAward"
-      />
+      <AwardManagerPanel v-else ref="awardManagerPanel" v-model:external-image-url.trim="externalAwardImageUrl"
+        :award-form="awardForm" :editing-award="editingAward" :cloud-enabled="cloudEnabled"
+        :award-uploading="awardUploading" :award-saving="awardSaving" :status-text="awardStatusText"
+        :items="managedAwards" :award-label="awardLabel" :can-toggle-visibility="canToggleAwardVisibility"
+        :can-reset="canResetAward" :can-delete="canDeleteAward" @submit="handleAwardSubmit" @create="startCreateAward"
+        @image-upload="handleAwardImageUpload" @add-external-image="addExternalAwardImage"
+        @preview-image="openImagePreview" @remove-image="removeAwardImage" @edit="editAward" @hide="hideAward"
+        @restore="restoreAward" @reset="resetAward" @delete="removeAward" />
     </section>
 
-    <div
-      v-if="imagePreview"
-      class="image-lightbox"
-      role="dialog"
-      aria-modal="true"
-      @click.self="closeImagePreview"
-    >
+    <div v-if="imagePreview" class="image-lightbox" role="dialog" aria-modal="true" @click.self="closeImagePreview">
       <div class="lightbox-panel">
         <button class="lightbox-close" type="button" @click="closeImagePreview">关闭</button>
         <img :src="imagePreview.src" :alt="imagePreview.alt" loading="lazy" decoding="async" />
@@ -165,6 +101,7 @@ import AwardManagerPanel from '@/components/content/AwardManagerPanel.vue'
 import CaseManagerPanel from '@/components/content/CaseManagerPanel.vue'
 import { useContentManagerAuth } from '@/composables/useContentManagerAuth'
 import { useContentImageManager } from '@/composables/useContentImageManager'
+import { useContentRecordActions } from '@/composables/useContentRecordActions'
 import {
   awardLabel as getAwardLabel,
   canDelete as canDeleteContent,
@@ -180,28 +117,14 @@ import {
   uniqueMediaUrls
 } from '@/utils/contentRecords'
 import {
-  deleteCustomAward,
-  deleteCustomCase,
   getManagedAwards,
   getManagedCases,
-  hideBaseAward,
-  hideBaseCase,
-  resetAwardOverride,
-  resetCaseOverride,
-  saveAwardOverride,
-  saveCaseOverride,
-  saveCustomAward,
-  saveCustomCase,
-  showBaseAward,
-  showBaseCase,
   setCloudAwards,
   setCloudCases,
   stylePresets,
   tags
 } from '@/mock/data'
 import {
-  deleteCloudAward,
-  deleteCloudCase,
   fetchCloudAwards,
   fetchCloudCases,
   isCloudCasesEnabled,
@@ -210,9 +133,7 @@ import {
   deleteCaseVideos,
   deleteCloudImages,
   uploadCaseCadFile,
-  uploadCaseVideo,
-  upsertCloudAward,
-  upsertCloudCase
+  uploadCaseVideo
 } from '@/services/cloudCases'
 
 const caseTags = tags.slice(1)
@@ -243,13 +164,13 @@ const externalImageUrl = ref('')
 const externalAwardImageUrl = ref('')
 const customStyleEnabled = ref(false)
 const caseListPage = ref(1)
-let originalCaseMedia = new Set()
+const originalCaseMedia = new Set()
 const uploadedCaseMedia = new Set()
-let originalCaseCadPath = ''
-let uploadedCaseCadPaths = new Set()
-let originalCaseVideoUrl = ''
-let uploadedCaseVideoUrls = new Set()
-let originalAwardMedia = new Set()
+const originalCaseCadPath = ref('')
+const uploadedCaseCadPaths = new Set()
+const originalCaseVideoUrl = ref('')
+const uploadedCaseVideoUrls = new Set()
+const originalAwardMedia = new Set()
 const uploadedAwardMedia = new Set()
 
 const loginForm = reactive({
@@ -451,7 +372,7 @@ async function discardUploadedCaseCadFiles() {
     }
   }
 
-  uploadedCaseCadPaths = new Set()
+  uploadedCaseCadPaths.clear()
 }
 
 /**
@@ -467,7 +388,7 @@ async function discardUploadedCaseVideos() {
     }
   }
 
-  uploadedCaseVideoUrls = new Set()
+  uploadedCaseVideoUrls.clear()
 }
 
 /**
@@ -517,9 +438,9 @@ const {
   resetForm,
   resetAwardForm,
   resetOriginalMedia: () => {
-    originalCaseMedia = new Set()
-    originalCaseVideoUrl = ''
-    originalAwardMedia = new Set()
+    originalCaseMedia.clear()
+    originalCaseVideoUrl.value = ''
+    originalAwardMedia.clear()
   }
 })
 
@@ -541,8 +462,8 @@ function resetForm() {
   form.cadFileName = ''
   form.cadFilePath = ''
   form.videoUrl = ''
-  originalCaseCadPath = ''
-  originalCaseVideoUrl = ''
+  originalCaseCadPath.value = ''
+  originalCaseVideoUrl.value = ''
   form.images = []
   form.coverImage = ''
   form.note = ''
@@ -624,6 +545,55 @@ async function refreshCloudList() {
   refreshAwardsList()
 }
 
+const {
+  handleSubmit,
+  handleAwardSubmit,
+  hideCase,
+  restoreCase,
+  hideAward,
+  restoreAward,
+  resetBase,
+  resetAward,
+  removeCustom,
+  removeAward
+} = useContentRecordActions({
+  cloudEnabled,
+  form,
+  awardForm,
+  editingCase,
+  editingAward,
+  isEditing,
+  managedCases,
+  managedAwards,
+  statusText,
+  awardStatusText,
+  saving,
+  uploading,
+  cadUploading,
+  videoUploading,
+  awardSaving,
+  awardUploading,
+  originalCaseMedia,
+  uploadedCaseMedia,
+  originalCaseCadPath,
+  uploadedCaseCadPaths,
+  originalCaseVideoUrl,
+  uploadedCaseVideoUrls,
+  originalAwardMedia,
+  uploadedAwardMedia,
+  currentCaseId,
+  currentAwardId,
+  getCurrentCaseMedia,
+  getUnusedCaseVideoUrls,
+  getUnusedCaseCadPaths,
+  cleanUnusedCloudMedia,
+  resetForm,
+  resetAwardForm,
+  refreshList,
+  refreshAwardsList,
+  refreshCloudList
+})
+
 /**
  * 放弃未保存上传并切换项目编辑器到新增状态。
  * @returns {Promise<void>}
@@ -636,9 +606,9 @@ async function startCreate() {
   await discardUploadedCaseMedia()
   await discardUploadedCaseCadFiles()
   await discardUploadedCaseVideos()
-  originalCaseMedia = new Set()
-  originalCaseCadPath = ''
-  originalCaseVideoUrl = ''
+  originalCaseMedia.clear()
+  originalCaseCadPath.value = ''
+  originalCaseVideoUrl.value = ''
   resetForm()
   statusText.value = '正在新增作品。'
   resetCaseFormScroll()
@@ -672,9 +642,10 @@ async function editCase(item) {
   form.images = imagesToList(item.list)
   form.coverImage = item.image || form.images[0] || ''
   form.note = item.note
-  originalCaseMedia = new Set(getCaseMedia(item))
-  originalCaseCadPath = form.cadFilePath
-  originalCaseVideoUrl = form.videoUrl
+  originalCaseMedia.clear()
+  getCaseMedia(item).forEach((url) => originalCaseMedia.add(url))
+  originalCaseCadPath.value = form.cadFilePath
+  originalCaseVideoUrl.value = form.videoUrl
   uploadedCaseMedia.clear()
   statusText.value = `正在编辑《${item.name}》。`
   resetCaseFormScroll()
@@ -687,7 +658,7 @@ async function editCase(item) {
  */
 async function startCreateAward() {
   await discardUploadedAwardMedia()
-  originalAwardMedia = new Set()
+  originalAwardMedia.clear()
   resetAwardForm()
   awardStatusText.value = '正在新增奖项。'
   resetAwardFormScroll()
@@ -706,7 +677,8 @@ async function editAward(item) {
   awardForm.year = item.year
   awardForm.image = item.image
   awardForm.imageAlt = item.imageAlt || item.title
-  originalAwardMedia = new Set(uniqueMediaUrls([item.image]))
+  originalAwardMedia.clear()
+  uniqueMediaUrls([item.image]).forEach((url) => originalAwardMedia.add(url))
   uploadedAwardMedia.clear()
   awardStatusText.value = `正在编辑《${item.title}》。`
   resetAwardFormScroll()
@@ -843,412 +815,6 @@ function handlePreviewKeydown(event) {
  * 将当前项目表单组装为数据层可保存的完整载荷。
  * @returns {Object} 项目保存载荷。
  */
-function formPayload() {
-  return {
-    id: currentCaseId(),
-    name: form.name,
-    category: form.category,
-    style: form.style,
-    type: form.type,
-    year: form.year,
-    url: form.url,
-    blueprintUrl: form.blueprintUrl,
-    cadFileName: form.cadFileName,
-    cadFilePath: form.cadFilePath,
-    videoUrl: form.videoUrl,
-    images: form.images,
-    image: form.coverImage || form.images[0] || '',
-    note: form.note,
-    createdAt: editingCase.value?.createdAt || Date.now(),
-    hidden: Boolean(editingCase.value?.hidden)
-  }
-}
-
-/**
- * 将当前荣誉表单组装为数据层可保存的完整载荷。
- * @returns {Object} 荣誉保存载荷。
- */
-function awardPayload() {
-  return {
-    id: currentAwardId(),
-    title: awardForm.title,
-    desc: awardForm.desc,
-    year: awardForm.year,
-    image: awardForm.image,
-    imageAlt: awardForm.imageAlt || awardForm.title,
-    createdAt: editingAward.value?.createdAt || Date.now(),
-    hidden: Boolean(editingAward.value?.hidden)
-  }
-}
-
-/**
- * 校验并保存项目；云端成功后清理不再引用的旧图片。
- * @returns {Promise<void>}
- */
-async function handleSubmit() {
-  let saved = null
-  let cleanupMessage = ''
-
-  if (uploading.value || cadUploading.value || videoUploading.value) {
-    statusText.value = '文件还在上传，请稍等。'
-    return
-  }
-
-  if (!form.images.length) {
-    statusText.value = '请至少上传一张作品图片。'
-    return
-  }
-
-  saving.value = true
-
-  try {
-    if (cloudEnabled) {
-      saved = await upsertCloudCase(formPayload())
-      await refreshCloudList()
-      const retainedMedia = new Set(getCurrentCaseMedia())
-      const removedMedia = uniqueMediaUrls([
-        [...originalCaseMedia],
-        [...uploadedCaseMedia]
-      ]).filter((url) => !retainedMedia.has(url))
-
-      try {
-        const cleanedCount = await cleanUnusedCloudMedia(removedMedia)
-        if (cleanedCount) {
-          cleanupMessage = `，并清理了 ${cleanedCount} 张旧图片`
-        }
-      } catch (cleanupError) {
-        cleanupMessage = '；旧图片暂未清理，可稍后再次保存处理'
-        console.warn('Failed to clean unused case images:', cleanupError)
-      }
-      const removedCadPaths = getUnusedCaseCadPaths([
-        originalCaseCadPath,
-        ...uploadedCaseCadPaths
-      ])
-      if (removedCadPaths.length) {
-        try {
-          await deleteCaseCadFiles(removedCadPaths)
-        } catch (cleanupError) {
-          cleanupMessage += '；旧 CAD 文件暂未清理'
-          console.warn('Failed to clean unused case CAD files:', cleanupError)
-        }
-      }
-      const removedVideoUrls = getUnusedCaseVideoUrls([
-        originalCaseVideoUrl,
-        ...uploadedCaseVideoUrls
-      ])
-      if (removedVideoUrls.length) {
-        try {
-          await deleteCaseVideos(removedVideoUrls)
-        } catch (cleanupError) {
-          cleanupMessage += '；旧视频暂未清理'
-          console.warn('Failed to clean unused case videos:', cleanupError)
-        }
-      }
-    } else {
-      saved = isEditing.value
-        ? saveCaseOverride(formPayload())
-        : saveCustomCase(formPayload())
-    }
-
-    if (!saved) {
-      statusText.value = '请至少填写作品名称和上传一张作品图片。'
-      return
-    }
-
-    statusText.value = `已保存《${saved.name}》${cleanupMessage}。`
-    originalCaseMedia = new Set()
-    uploadedCaseMedia.clear()
-    originalCaseCadPath = saved.cadFilePath || ''
-    uploadedCaseCadPaths = new Set()
-    originalCaseVideoUrl = saved.videoUrl || ''
-    uploadedCaseVideoUrls = new Set()
-    resetForm()
-    refreshList()
-  } catch (error) {
-    statusText.value = `保存失败：${error.message}`
-  } finally {
-    saving.value = false
-  }
-}
-
-/**
- * 校验并保存荣誉；云端成功后清理不再引用的旧图片。
- * @returns {Promise<void>}
- */
-async function handleAwardSubmit() {
-  let saved = null
-  let cleanupMessage = ''
-
-  if (awardUploading.value) {
-    awardStatusText.value = '奖项图片还在上传，请稍等。'
-    return
-  }
-
-  if (!awardForm.image) {
-    awardStatusText.value = '请上传一张奖项图片。'
-    return
-  }
-
-  awardSaving.value = true
-
-  try {
-    if (cloudEnabled) {
-      saved = await upsertCloudAward(awardPayload())
-      await refreshCloudList()
-      const retainedMedia = new Set(uniqueMediaUrls([awardForm.image]))
-      const removedMedia = uniqueMediaUrls([
-        [...originalAwardMedia],
-        [...uploadedAwardMedia]
-      ]).filter((url) => !retainedMedia.has(url))
-
-      try {
-        const cleanedCount = await cleanUnusedCloudMedia(removedMedia)
-        if (cleanedCount) {
-          cleanupMessage = '，并清理了旧图片'
-        }
-      } catch (cleanupError) {
-        cleanupMessage = '；旧图片暂未清理，可稍后再次保存处理'
-        console.warn('Failed to clean unused award image:', cleanupError)
-      }
-    } else {
-      saved = editingAward.value
-        ? saveAwardOverride(awardPayload())
-        : saveCustomAward(awardPayload())
-    }
-
-    if (!saved) {
-      awardStatusText.value = '请至少填写奖项标题和上传一张图片。'
-      return
-    }
-
-    awardStatusText.value = `已保存《${saved.title}》${cleanupMessage}。`
-    originalAwardMedia = new Set()
-    uploadedAwardMedia.clear()
-    resetAwardForm()
-    refreshAwardsList()
-  } catch (error) {
-    awardStatusText.value = `奖项保存失败：${error.message}`
-  } finally {
-    awardSaving.value = false
-  }
-}
-
-/**
- * 隐藏指定项目；云端模式更新记录，本地模式写入隐藏列表。
- * @param {string|number} id 项目唯一标识。
- * @returns {Promise<void>}
- */
-async function hideCase(id) {
-  try {
-    const target = managedCases.value.find((item) => String(item.id) === String(id))
-    if (cloudEnabled && target) {
-      await upsertCloudCase({ ...target, hidden: true })
-      await refreshCloudList()
-    } else {
-      hideBaseCase(id)
-      refreshList()
-    }
-    statusText.value = '已隐藏作品。'
-  } catch (error) {
-    statusText.value = `隐藏失败：${error.message}`
-  }
-}
-
-/**
- * 恢复指定项目显示；云端模式更新记录，本地模式移出隐藏列表。
- * @param {string|number} id 项目唯一标识。
- * @returns {Promise<void>}
- */
-async function restoreCase(id) {
-  try {
-    const target = managedCases.value.find((item) => String(item.id) === String(id))
-    if (cloudEnabled && target) {
-      await upsertCloudCase({ ...target, hidden: false })
-      await refreshCloudList()
-    } else {
-      showBaseCase(id)
-      refreshList()
-    }
-    statusText.value = '作品已恢复显示。'
-  } catch (error) {
-    statusText.value = `恢复失败：${error.message}`
-  }
-}
-
-/**
- * 隐藏指定荣誉；云端模式更新记录，本地模式写入隐藏列表。
- * @param {string|number} id 荣誉唯一标识。
- * @returns {Promise<void>}
- */
-async function hideAward(id) {
-  try {
-    const target = managedAwards.value.find((item) => String(item.id) === String(id))
-    if (cloudEnabled && target) {
-      await upsertCloudAward({ ...target, hidden: true })
-      await refreshCloudList()
-    } else {
-      hideBaseAward(id)
-      refreshAwardsList()
-    }
-    awardStatusText.value = '已隐藏奖项。'
-  } catch (error) {
-    awardStatusText.value = `隐藏奖项失败：${error.message}`
-  }
-}
-
-/**
- * 恢复指定荣誉显示；云端模式更新记录，本地模式移出隐藏列表。
- * @param {string|number} id 荣誉唯一标识。
- * @returns {Promise<void>}
- */
-async function restoreAward(id) {
-  try {
-    const target = managedAwards.value.find((item) => String(item.id) === String(id))
-    if (cloudEnabled && target) {
-      await upsertCloudAward({ ...target, hidden: false })
-      await refreshCloudList()
-    } else {
-      showBaseAward(id)
-      refreshAwardsList()
-    }
-    awardStatusText.value = '奖项已恢复显示。'
-  } catch (error) {
-    awardStatusText.value = `恢复奖项失败：${error.message}`
-  }
-}
-
-/**
- * 删除本地项目覆盖和隐藏状态，恢复默认项目内容。
- * @param {string|number} id 项目唯一标识。
- * @returns {void}
- */
-function resetBase(id) {
-  if (cloudEnabled) {
-    statusText.value = '云端模式下没有本地默认内容可恢复。'
-    return
-  }
-
-  resetCaseOverride(id)
-  showBaseCase(id)
-  refreshList()
-  resetForm()
-  statusText.value = '已恢复默认内容。'
-}
-
-/**
- * 删除本地荣誉覆盖和隐藏状态，恢复默认荣誉内容。
- * @param {string|number} id 荣誉唯一标识。
- * @returns {void}
- */
-function resetAward(id) {
-  if (cloudEnabled) {
-    awardStatusText.value = '云端模式下没有本地默认内容可恢复。'
-    return
-  }
-
-  resetAwardOverride(id)
-  showBaseAward(id)
-  refreshAwardsList()
-  resetAwardForm()
-  awardStatusText.value = '已恢复默认奖项。'
-}
-
-/**
- * 永久删除项目；云端删除记录后再清理没有引用的媒体。
- * @param {string|number} id 项目唯一标识。
- * @returns {Promise<void>}
- */
-async function removeCustom(id) {
-  let mediaCleanupFailed = false
-  let cadCleanupFailed = false
-
-  try {
-    if (cloudEnabled) {
-      const target = managedCases.value.find((item) => String(item.id) === String(id))
-      const mediaToClean = uniqueMediaUrls([
-        getCaseMedia(target),
-        [...uploadedCaseMedia]
-      ])
-      const cadPathToClean = target?.cadFilePath
-      const videoUrlsToClean = uniqueMediaUrls([target?.videoUrl, [...uploadedCaseVideoUrls]])
-      await deleteCloudCase(id)
-      await refreshCloudList()
-      try {
-        await cleanUnusedCloudMedia(mediaToClean)
-      } catch (cleanupError) {
-        console.warn('Failed to clean deleted case images:', cleanupError)
-        mediaCleanupFailed = true
-      }
-      const unusedCadPaths = getUnusedCaseCadPaths([cadPathToClean])
-      if (unusedCadPaths.length) {
-        try {
-          await deleteCaseCadFiles(unusedCadPaths)
-        } catch (cleanupError) {
-          console.warn('Failed to clean deleted case CAD file:', cleanupError)
-          cadCleanupFailed = true
-        }
-      }
-      const unusedVideoUrls = getUnusedCaseVideoUrls(videoUrlsToClean)
-      if (unusedVideoUrls.length) {
-        try {
-          await deleteCaseVideos(unusedVideoUrls)
-        } catch (cleanupError) {
-          console.warn('Failed to clean deleted case videos:', cleanupError)
-          mediaCleanupFailed = true
-        }
-      }
-      originalCaseMedia = new Set()
-      uploadedCaseMedia.clear()
-      originalCaseCadPath = ''
-      uploadedCaseCadPaths = new Set()
-      originalCaseVideoUrl = ''
-      uploadedCaseVideoUrls = new Set()
-    } else {
-      deleteCustomCase(id)
-      refreshList()
-    }
-    resetForm()
-    statusText.value = mediaCleanupFailed || cadCleanupFailed
-      ? '作品已删除，部分旧文件暂未清理。'
-      : '已删除作品。'
-  } catch (error) {
-    statusText.value = `删除失败：${error.message}`
-  }
-}
-
-/**
- * 永久删除荣誉；云端删除记录后再清理没有引用的图片。
- * @param {string|number} id 荣誉唯一标识。
- * @returns {Promise<void>}
- */
-async function removeAward(id) {
-  let mediaCleanupFailed = false
-
-  try {
-    if (cloudEnabled) {
-      const target = managedAwards.value.find((item) => String(item.id) === String(id))
-      const mediaToClean = uniqueMediaUrls([target?.image, [...uploadedAwardMedia]])
-      await deleteCloudAward(id)
-      await refreshCloudList()
-      try {
-        await cleanUnusedCloudMedia(mediaToClean)
-      } catch (cleanupError) {
-        console.warn('Failed to clean deleted award image:', cleanupError)
-        mediaCleanupFailed = true
-      }
-      originalAwardMedia = new Set()
-      uploadedAwardMedia.clear()
-    } else {
-      deleteCustomAward(id)
-      refreshAwardsList()
-    }
-    resetAwardForm()
-    awardStatusText.value = mediaCleanupFailed ? '奖项已删除，旧图片暂未清理。' : '已删除奖项。'
-  } catch (error) {
-    awardStatusText.value = `删除奖项失败：${error.message}`
-  }
-}
-
 onMounted(() => {
   window.addEventListener('keydown', handlePreviewKeydown)
 })
@@ -1261,46 +827,236 @@ onUnmounted(() => {
 </script>
 
 <style scoped lang="scss">
-.manager-page { min-height: calc(100vh - var(--nav-height)); min-height: calc(100svh - var(--nav-height)); background: #f1f1f1; }
-.manager-shell { width: min(1280px, calc(100% - 40px)); margin: 0 auto; }
-.manager-page > .manager-shell:not(.compact-shell) { height: calc(100vh - var(--nav-height)); height: calc(100svh - var(--nav-height)); min-height: 0; display: flex; flex-direction: column; }
-.compact-shell { width: min(520px, calc(100% - 40px)); min-height: calc(100vh - var(--nav-height)); min-height: calc(100svh - var(--nav-height)); display: flex; align-items: center; justify-content: center; }
-.compact-shell > .auth-panel { width: 100%; }
-.manager-header { flex: 0 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 28px; }
-.manager-header p { margin: 0 0 8px; color: #69717d; letter-spacing: 2px; }
-.manager-header h1 { margin: 0; color: #11161d; font-size: 38px; font-weight: 500; }
-.manager-tabs { display: inline-flex; gap: 8px; margin-top: 14px; padding: 5px; background: #e7ebf0; }
-.manager-tabs button { border: 0; background: transparent; color: #46515f; padding: 9px 16px; cursor: pointer; }
-.manager-tabs button.active { background: #11161d; color: #fff; }
-.manager-account { display: flex; align-items: center; gap: 12px; color: #69717d; }
-.manager-account button { border: 1px solid #d8dde4; background: #fff; color: #11161d; padding: 9px 14px; cursor: pointer; }
-.auth-panel { display: grid; gap: 18px; border: 1px solid rgba(17, 22, 29, 0.1); background: #fff; padding: 34px; }
+.manager-page {
+  min-height: calc(100vh - var(--nav-height));
+  min-height: calc(100svh - var(--nav-height));
+  background: #f1f1f1;
+}
+
+.manager-shell {
+  width: min(1280px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.manager-page>.manager-shell:not(.compact-shell) {
+  height: calc(100vh - var(--nav-height));
+  height: calc(100svh - var(--nav-height));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.compact-shell {
+  width: min(520px, calc(100% - 40px));
+  min-height: calc(100vh - var(--nav-height));
+  min-height: calc(100svh - var(--nav-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compact-shell>.auth-panel {
+  width: 100%;
+}
+
+.manager-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.manager-header p {
+  margin: 0 0 8px;
+  color: #69717d;
+  letter-spacing: 2px;
+}
+
+.manager-header h1 {
+  margin: 0;
+  color: #11161d;
+  font-size: 38px;
+  font-weight: 500;
+}
+
+.manager-tabs {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 5px;
+  background: #e7ebf0;
+}
+
+.manager-tabs button {
+  border: 0;
+  background: transparent;
+  color: #46515f;
+  padding: 9px 16px;
+  cursor: pointer;
+}
+
+.manager-tabs button.active {
+  background: #11161d;
+  color: #fff;
+}
+
+.manager-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #69717d;
+}
+
+.manager-account button {
+  border: 1px solid #d8dde4;
+  background: #fff;
+  color: #11161d;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+
+.auth-panel {
+  display: grid;
+  gap: 18px;
+  border: 1px solid rgba(17, 22, 29, 0.1);
+  background: #fff;
+  padding: 34px;
+}
+
 .auth-panel p,
 .auth-panel h1,
-.auth-panel span { margin: 0; }
-.auth-panel > p { color: #69717d; letter-spacing: 2px; }
-.auth-panel h1 { color: #11161d; font-size: 34px; font-weight: 500; }
-.auth-actions { margin-top: 4px; }
-.auth-panel .field { min-width: 0; display: grid; gap: 8px; }
-.auth-panel .field span { color: #242a32; font-size: 15px; }
-.auth-panel .field input { box-sizing: border-box; width: 100%; height: 46px; border: 1px solid #d8dde4; background: #fbfbfb; color: #11161d; padding: 12px 13px; font: inherit; }
-.auth-panel .field input:focus { outline: 2px solid rgba(17, 22, 29, 0.16); border-color: #11161d; }
-.form-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.form-actions p { margin: 0; color: #69717d; }
-.form-actions button { border: 0; background: #11161d; color: #fff; padding: 11px 16px; cursor: pointer; }
-.form-actions button:disabled { opacity: 0.55; cursor: not-allowed; }
-.image-lightbox { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 24px; background: rgba(9, 12, 16, 0.82); }
-.lightbox-panel { position: relative; max-width: min(1080px, calc(100vw - 48px)); max-height: calc(100vh - 48px); }
-.lightbox-panel img { display: block; max-width: 100%; max-height: calc(100vh - 96px); object-fit: contain; background: #0f1318; }
-.lightbox-close { position: absolute; top: 12px; right: 12px; border: 0; background: rgba(255, 255, 255, 0.92); color: #11161d; padding: 9px 12px; cursor: pointer; }
+.auth-panel span {
+  margin: 0;
+}
+
+.auth-panel>p {
+  color: #69717d;
+  letter-spacing: 2px;
+}
+
+.auth-panel h1 {
+  color: #11161d;
+  font-size: 34px;
+  font-weight: 500;
+}
+
+.auth-actions {
+  margin-top: 4px;
+}
+
+.auth-panel .field {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.auth-panel .field span {
+  color: #242a32;
+  font-size: 15px;
+}
+
+.auth-panel .field input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 46px;
+  border: 1px solid #d8dde4;
+  background: #fbfbfb;
+  color: #11161d;
+  padding: 12px 13px;
+  font: inherit;
+}
+
+.auth-panel .field input:focus {
+  outline: 2px solid rgba(17, 22, 29, 0.16);
+  border-color: #11161d;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.form-actions p {
+  margin: 0;
+  color: #69717d;
+}
+
+.form-actions button {
+  border: 0;
+  background: #11161d;
+  color: #fff;
+  padding: 11px 16px;
+  cursor: pointer;
+}
+
+.form-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(9, 12, 16, 0.82);
+}
+
+.lightbox-panel {
+  position: relative;
+  max-width: min(1080px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+}
+
+.lightbox-panel img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(100vh - 96px);
+  object-fit: contain;
+  background: #0f1318;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.92);
+  color: #11161d;
+  padding: 9px 12px;
+  cursor: pointer;
+}
 
 @media (max-width: 1080px) {
-  .manager-page > .manager-shell:not(.compact-shell) { height: auto; min-height: 0; display: block; }
+  .manager-page>.manager-shell:not(.compact-shell) {
+    height: auto;
+    min-height: 0;
+    display: block;
+  }
 }
+
 @media (max-width: 760px) {
-  .manager-page { min-height: calc(100vh - var(--nav-height)); min-height: calc(100svh - var(--nav-height)); padding-top: 28px; }
-  .compact-shell { min-height: calc(100vh - var(--nav-height) - 28px); min-height: calc(100svh - var(--nav-height) - 28px); }
+  .manager-page {
+    min-height: calc(100vh - var(--nav-height));
+    min-height: calc(100svh - var(--nav-height));
+    padding-top: 28px;
+  }
+
+  .compact-shell {
+    min-height: calc(100vh - var(--nav-height) - 28px);
+    min-height: calc(100svh - var(--nav-height) - 28px);
+  }
+
   .form-actions,
-  .manager-header { align-items: stretch; flex-direction: column; }
+  .manager-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 </style>
