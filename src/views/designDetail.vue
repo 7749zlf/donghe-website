@@ -95,7 +95,7 @@
           </button>
 
           <button
-            v-if="managerIsAdmin && currentCase.cadFilePath"
+            v-if="currentCase.cadFilePath"
             type="button"
             class="dh-action"
             :disabled="cadDownloading"
@@ -157,7 +157,6 @@
           @pointermove="movePreviewDrag"
           @pointerup="stopPreviewDrag"
           @pointercancel="stopPreviewDrag"
-          @pointerleave="stopPreviewDrag"
         />
       </div>
     </div>
@@ -171,8 +170,7 @@ import { getDisplayDesignCases, getDisplayWorksList } from '@/mock/data'
 import { normalizeCaseLinks, openExternalLink } from '@/services/caseLinks.mjs'
 import {
   createCaseCadDownloadUrl,
-  getManagerAccessState,
-  onManagerAccessChange
+  getManagerAccessState
 } from '@/services/cloudCases'
 
 const route = useRoute()
@@ -190,7 +188,6 @@ const PREVIEW_ZOOM_STEP = 0.25
 const previewZoom = ref(MIN_PREVIEW_ZOOM)
 const previewPan = reactive({ x: 0, y: 0 })
 const isPreviewDragging = ref(false)
-const managerIsAdmin = ref(false)
 const cadDownloading = ref(false)
 const cadDownloadStatus = ref('')
 const previewDragStart = reactive({
@@ -200,9 +197,18 @@ const previewDragStart = reactive({
   panX: 0,
   panY: 0
 })
-let stopManagerAccessListener = null
-let managerAccessRequestVersion = 0
-
+const previewPointers = new Map()
+const previewPinchStart = {
+  distance: 0,
+  zoom: MIN_PREVIEW_ZOOM,
+  midpointX: 0,
+  midpointY: 0,
+  stageCenterX: 0,
+  stageCenterY: 0,
+  panX: 0,
+  panY: 0
+}
+let isPreviewPinching = false
 const currentCase = computed(() => {
   const routeId = String(route.params.id || '')
   const work = displayWorks.value.find((item) => String(item.id) === routeId) || displayWorks.value[0] || {}
@@ -312,13 +318,26 @@ function goBlueprint() {
  * @returns {Promise<void>}
  */
 async function downloadCadDrawing() {
-  if (!managerIsAdmin.value || !currentCase.value.cadFilePath || cadDownloading.value) {
+  if (!currentCase.value.cadFilePath || cadDownloading.value) {
     return
   }
 
   cadDownloading.value = true
   cadDownloadStatus.value = ''
   try {
+    let accessState
+    try {
+      accessState = await getManagerAccessState()
+    } catch (error) {
+      cadDownloadStatus.value = `管理员权限检查失败：${error.message}`
+      return
+    }
+
+    if (!accessState.isAdmin) {
+      cadDownloadStatus.value = '请先登录后台管理员'
+      return
+    }
+
     const fileName = currentCase.value.cadFileName || 'drawing'
     const url = await createCaseCadDownloadUrl(currentCase.value.cadFilePath, fileName)
     const response = await fetch(url)
@@ -430,6 +449,8 @@ function resetPreviewTransform() {
   previewPan.y = 0
   isPreviewDragging.value = false
   previewDragStart.pointerId = null
+  previewPointers.clear()
+  isPreviewPinching = false
 }
 
 /**
@@ -443,30 +464,38 @@ function handlePreviewWheel(event) {
 }
 
 /**
- * 在图片已放大时记录拖拽起点并捕获当前指针。
+ * 记录预览指针位置，并在放大状态下初始化单指拖动或双指缩放。
  * @param {PointerEvent} event 指针按下事件。
  * @returns {void}
  */
 function startPreviewDrag(event) {
-  if (previewZoom.value <= MIN_PREVIEW_ZOOM) {
-    return
-  }
-
-  isPreviewDragging.value = true
-  previewDragStart.pointerId = event.pointerId
-  previewDragStart.x = event.clientX
-  previewDragStart.y = event.clientY
-  previewDragStart.panX = previewPan.x
-  previewDragStart.panY = previewPan.y
+  previewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
   event.currentTarget.setPointerCapture(event.pointerId)
+
+  if (previewPointers.size >= 2) {
+    beginPreviewPinch(event.currentTarget.parentElement)
+  } else if (previewZoom.value > MIN_PREVIEW_ZOOM) {
+    beginPreviewDrag(event)
+  }
 }
 
 /**
- * 根据当前指针与起点的距离更新预览图片平移量。
+ * 保存指针位置，并根据单指或双指手势更新图片变换。
  * @param {PointerEvent} event 指针移动事件。
  * @returns {void}
  */
 function movePreviewDrag(event) {
+  if (!previewPointers.has(event.pointerId)) {
+    return
+  }
+
+  previewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+
+  if (previewPointers.size >= 2) {
+    updatePreviewPinch()
+    return
+  }
+
   if (!isPreviewDragging.value || previewDragStart.pointerId !== event.pointerId) {
     return
   }
@@ -476,21 +505,84 @@ function movePreviewDrag(event) {
 }
 
 /**
- * 释放当前指针捕获并结束预览图片拖拽。
+ * 释放指针捕获，并在剩余指针仍按下时继续相应手势。
  * @param {PointerEvent} event 指针结束事件。
  * @returns {void}
  */
 function stopPreviewDrag(event) {
-  if (!isPreviewDragging.value || previewDragStart.pointerId !== event.pointerId) {
-    return
-  }
-
   if (event.currentTarget.hasPointerCapture(event.pointerId)) {
     event.currentTarget.releasePointerCapture(event.pointerId)
   }
 
+  previewPointers.delete(event.pointerId)
+  if (previewPointers.size >= 2) {
+    beginPreviewPinch(event.currentTarget.parentElement)
+    return
+  }
+
+  isPreviewPinching = false
+  if (previewPointers.size === 1 && previewZoom.value > MIN_PREVIEW_ZOOM) {
+    const [pointerId, point] = previewPointers.entries().next().value
+    beginPreviewDrag({ pointerId, clientX: point.x, clientY: point.y })
+    return
+  }
+
   isPreviewDragging.value = false
   previewDragStart.pointerId = null
+}
+
+function beginPreviewDrag(event) {
+  isPreviewDragging.value = true
+  previewDragStart.pointerId = event.pointerId
+  previewDragStart.x = event.clientX
+  previewDragStart.y = event.clientY
+  previewDragStart.panX = previewPan.x
+  previewDragStart.panY = previewPan.y
+}
+
+function beginPreviewPinch(stage) {
+  const points = Array.from(previewPointers.values()).slice(0, 2)
+  const [first, second] = points
+  const rect = stage.getBoundingClientRect()
+  previewPinchStart.distance = Math.hypot(second.x - first.x, second.y - first.y)
+  previewPinchStart.zoom = previewZoom.value
+  previewPinchStart.midpointX = (first.x + second.x) / 2
+  previewPinchStart.midpointY = (first.y + second.y) / 2
+  previewPinchStart.stageCenterX = rect.left + rect.width / 2
+  previewPinchStart.stageCenterY = rect.top + rect.height / 2
+  previewPinchStart.panX = previewPan.x
+  previewPinchStart.panY = previewPan.y
+  isPreviewPinching = true
+  isPreviewDragging.value = true
+  previewDragStart.pointerId = null
+}
+
+function updatePreviewPinch() {
+  if (!isPreviewPinching) {
+    return
+  }
+
+  const points = Array.from(previewPointers.values()).slice(0, 2)
+  const [first, second] = points
+  const midpointX = (first.x + second.x) / 2
+  const midpointY = (first.y + second.y) / 2
+  const distance = Math.hypot(second.x - first.x, second.y - first.y)
+  const zoom = clampPreviewZoom(
+    previewPinchStart.zoom * distance / Math.max(previewPinchStart.distance, 1)
+  )
+
+  previewZoom.value = zoom
+  if (zoom === MIN_PREVIEW_ZOOM) {
+    previewPan.x = 0
+    previewPan.y = 0
+    return
+  }
+
+  const scale = zoom / previewPinchStart.zoom
+  const startX = previewPinchStart.midpointX - previewPinchStart.stageCenterX - previewPinchStart.panX
+  const startY = previewPinchStart.midpointY - previewPinchStart.stageCenterY - previewPinchStart.panY
+  previewPan.x = midpointX - previewPinchStart.stageCenterX - scale * startX
+  previewPan.y = midpointY - previewPinchStart.stageCenterY - scale * startY
 }
 
 watch(
@@ -517,36 +609,10 @@ function refreshDetail() {
 
 onMounted(() => {
   window.addEventListener('donghe-custom-cases-updated', refreshDetail)
-  stopManagerAccessListener = onManagerAccessChange((accessState) => {
-    managerAccessRequestVersion += 1
-    managerIsAdmin.value = !accessState.error && accessState.isAdmin
-    if (accessState.error) {
-      cadDownloadStatus.value = currentCase.value.cadFilePath
-        ? `管理员权限检查失败：${accessState.error.message}`
-        : ''
-    } else {
-      cadDownloadStatus.value = ''
-    }
-  })
-
-  const requestVersion = ++managerAccessRequestVersion
-  getManagerAccessState().then((accessState) => {
-    if (requestVersion === managerAccessRequestVersion) {
-      managerIsAdmin.value = accessState.isAdmin
-    }
-  }).catch((error) => {
-    if (requestVersion === managerAccessRequestVersion) {
-      managerIsAdmin.value = false
-      cadDownloadStatus.value = currentCase.value.cadFilePath
-        ? `管理员权限检查失败：${error.message}`
-        : ''
-    }
-  })
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('donghe-custom-cases-updated', refreshDetail)
-  stopManagerAccessListener?.()
 })
 </script>
 
@@ -962,12 +1028,18 @@ onBeforeUnmount(() => {
   }
 
   .image-preview {
-    gap: clamp(10px, 3.2vw, 16px);
-    padding: clamp(14px, 4vw, 20px);
+    gap: 8px;
+    padding:
+      max(12px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      max(12px, env(safe-area-inset-bottom))
+      max(12px, env(safe-area-inset-left));
   }
 
   .preview-stage {
-    max-height: calc(100svh - clamp(118px, 30vw, 156px));
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none;
   }
 
   .preview-toolbar {
@@ -1012,8 +1084,8 @@ onBeforeUnmount(() => {
   }
 
   .preview-image {
-    max-width: calc(100vw - clamp(28px, 8vw, 40px));
-    max-height: calc(100svh - clamp(118px, 30vw, 156px));
+    max-width: 100%;
+    max-height: 100%;
   }
 }
 </style>
