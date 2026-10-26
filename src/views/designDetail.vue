@@ -104,12 +104,24 @@
             <span class="dh-action__label">{{ cadDownloading ? '正在准备下载' : '下载 CAD 图纸' }}</span>
             <span class="dh-action__mark">↓</span>
           </button>
-          <p v-if="currentCase.cadFilePath && cadDownloadStatus" class="cad-download-status" role="status">
-            {{ cadDownloadStatus }}
-          </p>
         </div>
       </footer>
     </main>
+
+    <div
+      v-if="cadDownloadStatus"
+      class="cad-notice-backdrop"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="cad-notice-title"
+      @click.self="closeCadDownloadNotice"
+    >
+      <section class="cad-notice">
+        <h2 id="cad-notice-title">CAD 图纸提示</h2>
+        <p>{{ cadDownloadStatus }}</p>
+        <button type="button" @click="closeCadDownloadNotice">知道了</button>
+      </section>
+    </div>
 
     <div
       v-if="isPreviewOpen"
@@ -142,7 +154,7 @@
       >
         ›
       </button>
-      <div class="preview-stage">
+      <div class="preview-stage" @click.self="closePreview">
         <img
           :src="activeItem.full"
           :alt="activeItem.alt"
@@ -258,26 +270,23 @@ const previewZoomLabel = computed(() => `${Math.round(previewZoom.value * 100)}%
 const previewImageStyle = computed(() => ({
   transform: `translate3d(${previewPan.x}px, ${previewPan.y}px, 0) scale(${previewZoom.value})`
 }))
-const prevImageIndex = computed(() => {
-  if (!galleryItems.value.length) return 0
-  return (activeIndex.value - 1 + galleryItems.value.length) % galleryItems.value.length
-})
-const nextImageIndex = computed(() => {
-  if (!galleryItems.value.length) return 0
-  return (activeIndex.value + 1) % galleryItems.value.length
-})
 
 watch(activeIndex, (index) => {
   mobilePage.value = Math.floor(index / MOBILE_THUMB_PAGE_SIZE)
 })
+
+function changeImage(direction) {
+  const imageCount = galleryItems.value.length
+  if (!imageCount) return
+  activeIndex.value = (activeIndex.value + direction + imageCount) % imageCount
+}
 
 /**
  * 循环切换到画册上一张图片。
  * @returns {void}
  */
 function goPrev() {
-  if (!galleryItems.value.length) return
-  activeIndex.value = prevImageIndex.value
+  changeImage(-1)
 }
 
 /**
@@ -285,8 +294,7 @@ function goPrev() {
  * @returns {void}
  */
 function goNext() {
-  if (!galleryItems.value.length) return
-  activeIndex.value = nextImageIndex.value
+  changeImage(1)
 }
 
 /**
@@ -311,6 +319,10 @@ function go3D() {
  */
 function goBlueprint() {
   openExternalLink(blueprintURL.value)
+}
+
+function closeCadDownloadNotice() {
+  cadDownloadStatus.value = ''
 }
 
 /**
@@ -588,10 +600,7 @@ function updatePreviewPinch() {
 watch(
   () => route.params.id,
   () => {
-    displayWorks.value = getDisplayWorksList()
-    displayDesignCases.value = getDisplayDesignCases()
-    activeIndex.value = 0
-    mobilePage.value = 0
+    refreshDetail()
     isPreviewOpen.value = false
   }
 )
@@ -605,6 +614,7 @@ function refreshDetail() {
   displayDesignCases.value = getDisplayDesignCases()
   activeIndex.value = 0
   mobilePage.value = 0
+  cadDownloadStatus.value = ''
 }
 
 onMounted(() => {
@@ -804,6 +814,47 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
   gap: 12px;
   margin-left: auto;
+}
+
+.cad-notice-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(12, 15, 20, 0.56);
+  backdrop-filter: blur(4px);
+}
+
+.cad-notice {
+  width: min(100%, 420px);
+  padding: 32px;
+  background: var(--color-paper);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.24);
+}
+
+.cad-notice h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.cad-notice p {
+  margin: 16px 0 24px;
+  color: var(--color-ink-soft);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.cad-notice button {
+  min-width: 96px;
+  border: 0;
+  padding: 10px 18px;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  cursor: pointer;
 }
 
 .image-preview {
