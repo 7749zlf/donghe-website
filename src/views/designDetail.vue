@@ -82,7 +82,9 @@
           <span class="section-kicker">PROJECT VIDEO</span>
           <h2>项目视频</h2>
         </div>
-        <video :src="currentCase.videoUrl" controls playsinline preload="metadata"></video>
+        <div class="video-player-frame">
+          <video :src="currentCase.videoUrl" controls playsinline preload="metadata"></video>
+        </div>
       </section>
 
       <footer class="page-nav">
@@ -755,11 +757,18 @@ onBeforeUnmount(() => {
   font-weight: 500;
 }
 
-.video-section video {
+.video-player-frame {
   display: block;
   width: 100%;
-  max-height: 720px;
+  aspect-ratio: 16 / 9;
   background: #111;
+  overflow: hidden;
+}
+
+.video-player-frame video {
+  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
