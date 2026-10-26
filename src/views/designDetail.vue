@@ -82,31 +82,8 @@
           <span class="section-kicker">PROJECT VIDEO</span>
           <h2>项目视频</h2>
         </div>
-        <div
-          ref="videoPlayerFrame"
-          class="video-player-frame"
-          :class="{ 'is-fullscreen': isVideoFullscreen }"
-        >
-          <video
-            ref="videoPlayer"
-            :src="currentCase.videoUrl"
-            controls
-            playsinline
-            preload="auto"
-            @webkitbeginfullscreen="isVideoFullscreen = true"
-            @webkitendfullscreen="isVideoFullscreen = false"
-          ></video>
-          <button
-            type="button"
-            class="video-fullscreen-button"
-            :aria-label="isVideoFullscreen ? '退出全屏' : '全屏播放'"
-            @click="toggleVideoFullscreen"
-          >
-            {{ isVideoFullscreen ? '退出全屏' : '全屏播放' }}
-          </button>
-          <p v-if="videoFullscreenError" class="video-fullscreen-error" role="alert">
-            {{ videoFullscreenError }}
-          </p>
+        <div class="video-player-frame">
+          <video :src="currentCase.videoUrl" controls playsinline preload="metadata"></video>
         </div>
       </section>
 
@@ -235,10 +212,6 @@ const previewPan = reactive({ x: 0, y: 0 })
 const isPreviewDragging = ref(false)
 const cadDownloading = ref(false)
 const cadDownloadStatus = ref('')
-const videoPlayerFrame = ref(null)
-const videoPlayer = ref(null)
-const isVideoFullscreen = ref(false)
-const videoFullscreenError = ref('')
 const previewDragStart = reactive({
   pointerId: null,
   x: 0,
@@ -656,56 +629,11 @@ function refreshDetail() {
 
 onMounted(() => {
   window.addEventListener('donghe-custom-cases-updated', refreshDetail)
-  document.addEventListener('fullscreenchange', syncVideoFullscreenState)
-  document.addEventListener('webkitfullscreenchange', syncVideoFullscreenState)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('donghe-custom-cases-updated', refreshDetail)
-  document.removeEventListener('fullscreenchange', syncVideoFullscreenState)
-  document.removeEventListener('webkitfullscreenchange', syncVideoFullscreenState)
 })
-
-function syncVideoFullscreenState() {
-  const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-  isVideoFullscreen.value = fullscreenElement === videoPlayerFrame.value
-}
-
-async function toggleVideoFullscreen() {
-  const frame = videoPlayerFrame.value
-  const video = videoPlayer.value
-  if (!frame || !video) {
-    return
-  }
-
-  videoFullscreenError.value = ''
-  try {
-    const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement
-    if (fullscreenElement === frame) {
-      const exitFullscreen = document.exitFullscreen || document.webkitExitFullscreen
-      if (exitFullscreen) {
-        await exitFullscreen.call(document)
-      }
-      return
-    }
-
-    if (frame.requestFullscreen) {
-      await frame.requestFullscreen()
-      return
-    }
-    if (frame.webkitRequestFullscreen) {
-      frame.webkitRequestFullscreen()
-      return
-    }
-    if (video.webkitEnterFullscreen) {
-      video.webkitEnterFullscreen()
-      return
-    }
-    videoFullscreenError.value = '当前浏览器不支持全屏播放。'
-  } catch (error) {
-    videoFullscreenError.value = '无法进入全屏，请检查浏览器权限后重试。'
-  }
-}
 </script>
 
 <style scoped lang="scss">
@@ -830,7 +758,7 @@ async function toggleVideoFullscreen() {
 }
 
 .video-player-frame {
-  position: relative;
+  display: block;
   width: 100%;
   aspect-ratio: 16 / 9;
   background: #111;
@@ -838,49 +766,10 @@ async function toggleVideoFullscreen() {
 }
 
 .video-player-frame video {
-  position: absolute;
-  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-.video-player-frame.is-fullscreen {
-  width: 100vw;
-  height: 100vh;
-  aspect-ratio: auto;
-  background: #000;
-}
-
-.video-fullscreen-button {
-  position: absolute;
-  z-index: 1;
-  top: 16px;
-  right: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 4px;
-  padding: 9px 14px;
-  background: rgba(0, 0, 0, 0.65);
-  color: #fff;
-  font: inherit;
-  cursor: pointer;
-}
-
-.video-fullscreen-button:hover {
-  background: rgba(0, 0, 0, 0.85);
-}
-
-.video-fullscreen-error {
-  position: absolute;
-  z-index: 1;
-  right: 16px;
-  bottom: 56px;
-  left: 16px;
-  margin: 0;
-  color: #fff;
-  text-align: center;
-  text-shadow: 0 1px 4px #000;
 }
 
 .gallery-main {
