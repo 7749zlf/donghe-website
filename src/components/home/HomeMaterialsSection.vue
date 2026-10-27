@@ -1,8 +1,8 @@
 <template>
   <section id="approach" class="materials-section">
-    <div class="materials-shell">
+    <div class="materials-shell dh-content-shell">
       <div class="materials-copy" v-reveal="{ variant: 'left' }">
-        <span class="section-kicker">MATERIAL LANGUAGE</span>
+        <span class="section-kicker dh-eyebrow">MATERIAL LANGUAGE</span>
         <h2>材料不是背景，是空间性格。</h2>
         <p>
           木的温润、石的重量、金属的冷感、织物的柔软，都会改变人对空间的判断。东禾把这些细节放在同一张秩序表里推敲。
@@ -45,8 +45,6 @@
 }
 
 .materials-shell {
-  width: min(1240px, calc(100% - 64px));
-  margin: 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 0.72fr) minmax(520px, 1fr);
   gap: 58px;
@@ -63,8 +61,6 @@
   display: inline-block;
   margin-bottom: 18px;
   color: var(--color-rust);
-  font-size: 12px;
-  letter-spacing: 3.4px;
 }
 
 .materials-copy h2 {
@@ -184,7 +180,6 @@
   }
 
   .materials-shell {
-    width: calc(100% - 36px);
     gap: 34px;
   }
 

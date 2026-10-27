@@ -261,28 +261,3 @@ onBeforeUnmount(() => {
   stopAutoSlide()
 })
 </script>
-
-<style lang="scss">
-:root {
-  --text-primary: var(--color-ink);
-  --text-secondary: var(--color-ink-soft);
-  --text-muted: var(--color-muted);
-  --border: var(--color-line);
-  --border-light: rgba(42, 39, 31, 0.08);
-  --bg-light: var(--color-warm);
-  --bg-footer: var(--color-ink);
-  --radius-lg: 8px;
-  --radius-sm: 4px;
-}
-
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  font-family: 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: var(--text-primary);
-  background: var(--color-paper);
-}
-</style>

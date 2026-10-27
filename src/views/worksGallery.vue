@@ -1,6 +1,6 @@
 <template>
   <div class="works-page">
-    <div class="works-shell">
+    <div class="works-shell dh-content-shell">
       <WorksFilters
         v-model:search-query.trim="searchQuery"
         :active-category="activeCategory"
@@ -290,11 +290,6 @@ onBeforeUnmount(() => {
   background: var(--color-paper);
 }
 
-.works-shell {
-  width: min(1240px, calc(100% - 64px));
-  margin: 0 auto;
-}
-
 .works-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
@@ -396,10 +391,6 @@ onBeforeUnmount(() => {
 @media (max-width: 760px) {
   .works-page {
     padding: 46px 0 72px;
-  }
-
-  .works-shell {
-    width: calc(100% - 36px);
   }
 
   .works-header {

@@ -10,7 +10,7 @@
 
     <section class="form-section">
       <h3>客户与项目</h3>
-      <div class="form-grid">
+      <div class="form-grid dh-form-grid">
         <label class="field">
           <span>客户名称</span>
           <input v-model.trim="editor.clientName" type="text" required />
@@ -204,7 +204,6 @@ defineEmits(['submit', 'add-item', 'remove-item', 'preview'])
 .editor-heading h2 { margin-top: 5px; font-size: 24px; }
 .mode-badge { padding: 7px 10px; background: #eef2f2; color: #59625d; font-size: 13px; }
 .form-section h3 { margin-bottom: 18px; font-size: 19px; }
-.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .field,
 .line-field { min-width: 0; display: grid; gap: 7px; }
 .field.wide { grid-column: 1 / -1; }

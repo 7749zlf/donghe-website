@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import reveal from './directives/reveal'
+import './styles/shared.scss'
 import { setCloudCases } from './mock/data'
 import { fetchCloudCases, isCloudCasesEnabled } from './services/cloudCases'
 

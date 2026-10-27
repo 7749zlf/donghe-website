@@ -18,7 +18,7 @@
       </button>
 
       <div class="project-copy">
-        <span class="section-kicker">PROJECT NOTES</span>
+        <span class="section-kicker dh-eyebrow">PROJECT NOTES</span>
         <h1>{{ name }}</h1>
         <p>{{ note || '先看条件，再看结果。这个项目的重点在尺度、材质和光线的关系是否成立。' }}</p>
         <dl class="project-meta">
@@ -206,8 +206,6 @@ function openPreview() {
   display: inline-block;
   margin-bottom: 16px;
   color: var(--color-olive);
-  font-size: 12px;
-  letter-spacing: 3.4px;
 }
 
 .project-copy h1 {

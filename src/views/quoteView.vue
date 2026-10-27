@@ -115,7 +115,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { calculateQuoteTotals, fetchQuoteByToken, formatCurrency, quoteStatusLabel } from '@/services/quotes'
 
@@ -173,23 +173,29 @@ function printQuote() {
  * 根据路由 token 加载客户可见报价单。
  * @returns {Promise<void>}
  */
-async function loadQuote() {
+async function loadQuote(token, _previousToken, onCleanup) {
+  let active = true
+  onCleanup(() => { active = false })
   loading.value = true
   errorMessage.value = ''
+  quote.value = null
 
   try {
-    quote.value = await fetchQuoteByToken(route.params.token)
+    const result = await fetchQuoteByToken(token)
+    if (!active) return
+    quote.value = result
     if (!quote.value) {
       errorMessage.value = '链接不存在、报价尚未发送或已经失效。'
     }
   } catch (error) {
+    if (!active) return
     errorMessage.value = `报价单读取失败：${error.message}`
   } finally {
-    loading.value = false
+    if (active) loading.value = false
   }
 }
 
-onMounted(loadQuote)
+watch(() => route.params.token, loadQuote, { immediate: true })
 </script>
 
 <style scoped lang="scss">

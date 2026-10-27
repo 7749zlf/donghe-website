@@ -1,15 +1,15 @@
 <template>
   <section id="works" class="section works">
-    <div class="container section-head" v-reveal>
+    <div class="container dh-content-shell section-head" v-reveal>
       <div>
-        <span class="section-kicker">SELECTED WORKS</span>
+        <span class="section-kicker dh-eyebrow">SELECTED WORKS</span>
         <h2>被现场验证过的空间。</h2>
       </div>
       <p>不按热闹排序，只保留能说明尺度、材质和落地能力的项目。</p>
     </div>
 
     <!-- 筛选状态由首页统一管理，组件只负责展示选项并上报用户选择。 -->
-    <div class="container work-filters" v-reveal="{ delay: 120 }">
+    <div class="container dh-content-shell work-filters" v-reveal="{ delay: 120 }">
       <label class="filter-select">
         <span>空间</span>
         <select :value="activeSpace" @change="$emit('change-space', $event.target.value)">
@@ -29,7 +29,7 @@
       </label>
     </div>
 
-    <div v-if="projects.length" class="container work-grid">
+    <div v-if="projects.length" class="container dh-content-shell work-grid">
       <article
         v-for="(item, index) in projects"
         :key="item.id"
@@ -56,7 +56,7 @@
       </article>
     </div>
 
-    <p v-else class="container work-empty">暂无匹配作品</p>
+    <p v-else class="container dh-content-shell work-empty">暂无匹配作品</p>
 
     <button class="dh-action more-btn" v-reveal="{ delay: 160 }" @click="$emit('view-more')">
       <span class="dh-action__label">打开完整项目索引</span>
@@ -111,11 +111,6 @@ function formatProjectMeta(item) {
 </script>
 
 <style scoped lang="scss">
-.container {
-  width: min(1240px, calc(100% - 64px));
-  margin: 0 auto;
-}
-
 .section {
   padding: 108px 0;
 }
@@ -139,8 +134,6 @@ function formatProjectMeta(item) {
   display: inline-block;
   margin-bottom: 14px;
   color: var(--color-olive);
-  font-size: 12px;
-  letter-spacing: 3.4px;
 }
 
 .section-head h2 {
@@ -372,10 +365,6 @@ function formatProjectMeta(item) {
 }
 
 @media (max-width: 760px) {
-  .container {
-    width: calc(100% - 36px);
-  }
-
   .section {
     padding: 74px 0;
   }

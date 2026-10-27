@@ -1,5 +1,11 @@
 export function normalizeExternalLink(value) {
-  return String(value ?? '').trim()
+  const link = String(value ?? '').trim()
+  try {
+    const url = new URL(link)
+    return ['http:', 'https:'].includes(url.protocol) ? link : ''
+  } catch (error) {
+    return ''
+  }
 }
 
 export function normalizeCaseLinks(caseItem = {}) {
@@ -13,9 +19,10 @@ export function normalizeCaseLinks(caseItem = {}) {
 }
 
 export function openExternalLink(link) {
-  if (!link) {
+  const safeLink = normalizeExternalLink(link)
+  if (!safeLink) {
     return
   }
 
-  window.open(link, '_blank')
+  window.open(safeLink, '_blank', 'noopener,noreferrer')
 }

@@ -11,12 +11,12 @@
       <form class="auth-panel" @submit.prevent="handleLogin">
         <h1>管理员登录</h1>
 
-        <label class="field">
+        <label class="field dh-field">
           <span>邮箱</span>
           <input v-model.trim="loginForm.email" type="email" autocomplete="username" required />
         </label>
 
-        <label class="field">
+        <label class="field dh-field">
           <span>密码</span>
           <input v-model="loginForm.password" type="password" autocomplete="current-password" required />
         </label>
@@ -135,6 +135,7 @@ import {
   uploadCaseCadFile,
   uploadCaseVideo
 } from '@/services/cloudCases'
+import { validatePlayableVideo } from '@/utils/contentVideos'
 
 const caseTags = tags.slice(1)
 const caseStylePresets = stylePresets
@@ -753,6 +754,7 @@ function removeCaseVideo() {
  * @returns {Promise<void>}
  */
 async function handleVideoUpload(event) {
+  if (videoUploading.value) return
   const input = event.target
   const file = input.files?.[0]
   input.value = ''
@@ -765,8 +767,10 @@ async function handleVideoUpload(event) {
   }
 
   videoUploading.value = true
-  statusText.value = `正在上传视频：${file.name}`
+  statusText.value = `正在检查视频兼容性：${file.name}`
   try {
+    await validatePlayableVideo(file)
+    statusText.value = `正在上传视频：${file.name}`
     const videoUrl = await uploadCaseVideo(file, currentCaseId())
     form.videoUrl = videoUrl
     uploadedCaseVideoUrls.add(videoUrl)
@@ -944,33 +948,6 @@ onUnmounted(() => {
 
 .auth-actions {
   margin-top: 4px;
-}
-
-.auth-panel .field {
-  min-width: 0;
-  display: grid;
-  gap: 8px;
-}
-
-.auth-panel .field span {
-  color: #242a32;
-  font-size: 15px;
-}
-
-.auth-panel .field input {
-  box-sizing: border-box;
-  width: 100%;
-  height: 46px;
-  border: 1px solid #d8dde4;
-  background: #fbfbfb;
-  color: #11161d;
-  padding: 12px 13px;
-  font: inherit;
-}
-
-.auth-panel .field input:focus {
-  outline: 2px solid rgba(17, 22, 29, 0.16);
-  border-color: #11161d;
 }
 
 .form-actions {

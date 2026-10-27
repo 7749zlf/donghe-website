@@ -7,12 +7,6 @@ const CASE_CAD_BUCKET = 'case-cad-files'
 const CASE_VIDEOS_BUCKET = 'case-videos'
 const CAD_FILE_EXTENSIONS = new Set(['dwg', 'dxf', 'dwt', 'dws', 'dwf', 'dgn'])
 const MAX_CAD_FILE_SIZE = 50 * 1024 * 1024
-const VIDEO_FILE_TYPES = new Map([
-  ['mp4', 'video/mp4'],
-  ['webm', 'video/webm'],
-  ['mov', 'video/quicktime'],
-  ['ogv', 'video/ogg']
-])
 const MAX_CASE_VIDEO_SIZE = 100 * 1024 * 1024
 
 const enabled = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY)
@@ -276,9 +270,8 @@ export async function deleteCaseCadFiles(paths) {
  */
 export async function uploadCaseVideo(file, caseId = 'case') {
   const extension = String(file.name || '').split('.').pop().toLowerCase()
-  const contentType = VIDEO_FILE_TYPES.get(extension)
-  if (!contentType || (file.type && file.type !== contentType)) {
-    throw new Error('仅支持 MP4、WebM、MOV 和 OGV 格式视频。')
+  if (extension !== 'mp4' || (file.type && file.type !== 'video/mp4')) {
+    throw new Error('请上传 H.264 视频编码、AAC 音频编码的 MP4 文件。')
   }
   if (file.size > MAX_CASE_VIDEO_SIZE) {
     throw new Error('视频文件不能超过 100MB。')
@@ -291,7 +284,7 @@ export async function uploadCaseVideo(file, caseId = 'case') {
     .from(CASE_VIDEOS_BUCKET)
     .upload(path, file, {
       cacheControl: '31536000',
-      contentType,
+      contentType: 'video/mp4',
       upsert: false
     })
 

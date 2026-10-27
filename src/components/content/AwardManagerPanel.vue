@@ -8,61 +8,62 @@
       </div>
 
       <div ref="formScroll" class="case-form-scroll">
-        <label class="field">
+        <label class="field dh-field">
           <span>奖项名称</span>
           <input v-model.trim="awardForm.title" type="text" required placeholder="例如：年度设计奖" />
         </label>
 
-        <div class="form-grid award-form-grid">
-          <label class="field">
+        <div class="form-grid dh-form-grid award-form-grid">
+          <label class="field dh-field">
             <span>年份 / 时间</span>
             <input v-model.trim="awardForm.year" type="text" placeholder="例如：2026年" />
           </label>
 
-          <label class="field wide-field">
+          <label class="field dh-field wide-field">
             <span>图片说明</span>
             <input v-model.trim="awardForm.imageAlt" type="text" placeholder="例如：年度设计奖证书" />
           </label>
         </div>
 
-        <label class="field">
+        <label class="field dh-field">
           <span>奖项说明</span>
           <textarea v-model.trim="awardForm.desc" rows="3" placeholder="例如：由某某设计协会颁发"></textarea>
         </label>
 
-        <div class="field upload-field">
+        <div class="field dh-field upload-field dh-upload-field">
           <span>奖项图片</span>
-          <label class="upload-box">
+          <label class="upload-box dh-upload-box">
             <input type="file" accept="image/*" @change="$emit('image-upload', $event)" />
             <strong>{{ awardUploading ? '正在上传图片' : '选择奖项图片' }}</strong>
             <small>{{ cloudEnabled ? '图片会上传到云端图库' : '本地模式会保存到当前浏览器' }}</small>
           </label>
 
-          <div class="external-image-entry">
+          <div class="external-image-entry dh-external-entry">
             <input
               :value="externalImageUrl"
+              class="dh-control"
               type="url"
               placeholder="https:// 外部图片链接"
               aria-label="外部奖项图片链接"
               @input="$emit('update:externalImageUrl', $event.target.value.trim())"
               @keyup.enter.prevent="$emit('add-external-image')"
             />
-            <button type="button" @click="$emit('add-external-image')">添加链接</button>
+            <button class="dh-button" type="button" @click="$emit('add-external-image')">添加链接</button>
           </div>
 
-          <div v-if="awardForm.image" class="upload-preview-grid award-preview-grid">
-            <article class="upload-preview">
+          <div v-if="awardForm.image" class="upload-preview-grid dh-preview-grid award-preview-grid">
+            <article class="upload-preview dh-preview-card">
               <button
-                class="preview-image-button"
+                class="preview-image-button dh-image-button"
                 type="button"
                 @click="$emit('preview-image', awardForm.image, awardForm.imageAlt || awardForm.title)"
               >
                 <img :src="awardForm.image" :alt="awardForm.imageAlt || awardForm.title || '奖项图片'" loading="lazy" decoding="async" />
                 <span>放大</span>
               </button>
-              <div class="preview-actions">
+              <div class="preview-actions dh-preview-actions">
                 <span>当前图片</span>
-                <button type="button" @click="$emit('remove-image')">删除</button>
+                <button class="dh-button dh-button--secondary" type="button" @click="$emit('remove-image')">删除</button>
               </div>
             </article>
           </div>
@@ -216,50 +217,12 @@ defineExpose({ resetScroll })
 .saved-head h2 { margin: 0; font-size: 24px; font-weight: 500; }
 .plain-btn { border: 1px solid #d8dde4; background: #fff; color: #11161d; padding: 9px 14px; cursor: pointer; }
 .mode-badge { margin-right: auto; padding: 7px 10px; background: #eef2f7; color: #46515f; font-size: 13px; }
-.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .award-form-grid { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); }
-.field { display: grid; gap: 8px; }
-.field span { color: #242a32; font-size: 15px; }
-.field input,
-.field select,
-.field textarea,
-.external-image-entry input {
-  box-sizing: border-box;
-  width: 100%;
-  border: 1px solid #d8dde4;
-  background: #fbfbfb;
-  color: #11161d;
-  padding: 12px 13px;
-  font: inherit;
-}
-.field input,
-.field select { height: 46px; }
-.field textarea { resize: vertical; }
-.upload-field { gap: 12px; }
-.upload-box { position: relative; display: grid; gap: 6px; border: 1px dashed #c8d0da; background: #fbfbfb; padding: 18px; cursor: pointer; }
-.upload-box input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-.upload-box strong { color: #11161d; font-size: 16px; font-weight: 500; }
-.upload-box small { color: #69717d; font-size: 13px; }
-.external-image-entry { display: flex; gap: 8px; }
-.external-image-entry input { min-width: 0; background: #fff; padding: 10px 12px; }
-.external-image-entry button { flex: 0 0 auto; border: 1px solid #11161d; background: #11161d; color: #fff; padding: 0 14px; cursor: pointer; }
-.upload-preview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .award-preview-grid { grid-template-columns: minmax(0, 1fr); }
-.upload-preview { border: 1px solid #e2e5e9; background: #fff; }
-.preview-image-button,
 .saved-image-button { border: 0; padding: 0; background: transparent; cursor: zoom-in; }
-.preview-image-button { position: relative; display: block; width: 100%; }
-.preview-image-button span { position: absolute; right: 8px; bottom: 8px; padding: 5px 8px; background: rgba(17, 22, 29, 0.82); color: #fff; font-size: 12px; opacity: 0; transition: opacity 0.2s ease; }
-.preview-image-button:hover span,
-.preview-image-button:focus-visible span { opacity: 1; }
-.preview-image-button:focus-visible,
 .saved-image-button:focus-visible { outline: 2px solid #11161d; outline-offset: 2px; }
-.upload-preview img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; background: #ddd; }
-.preview-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 8px; }
-.preview-actions span,
 .saved-head span,
 .item-head span { color: #69717d; font-size: 13px; }
-.preview-actions button { border: 1px solid #d8dde4; background: #fff; color: #11161d; padding: 6px 8px; cursor: pointer; }
 .preview-actions button:last-child { color: #8b2f2f; }
 .form-actions { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
 .form-actions p,
@@ -296,15 +259,12 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 @media (max-width: 760px) {
-  .form-grid,
   .award-form-grid,
   .upload-preview-grid,
   .saved-item { grid-template-columns: 1fr; }
   .form-actions,
   .saved-head,
   .item-head,
-  .external-image-entry { align-items: stretch; flex-direction: column; }
-  .external-image-entry button { min-height: 42px; }
   .saved-item img,
   .saved-image-button { width: 100%; }
 }

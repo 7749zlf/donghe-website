@@ -1,8 +1,8 @@
 <template>
   <section id="contact" class="section contact">
-    <div class="container contact-layout">
+    <div class="container dh-content-shell contact-layout">
       <div class="contact-copy" v-reveal="{ variant: 'left' }">
-        <span class="section-kicker">CONTACT</span>
+        <span class="section-kicker dh-eyebrow">CONTACT</span>
         <h2>把项目聊清楚，再决定风格该往哪边走。</h2>
         <p>如果你手上已经有现场照片、平面图或预算范围，发给我们，判断会更快。</p>
       </div>
@@ -26,11 +26,6 @@
 </template>
 
 <style scoped lang="scss">
-.container {
-  width: min(1240px, calc(100% - 64px));
-  margin: 0 auto;
-}
-
 .section {
   padding: 108px 0 114px;
 }
@@ -53,8 +48,6 @@
   display: inline-block;
   margin-bottom: 18px;
   color: var(--color-brass);
-  font-size: 12px;
-  letter-spacing: 3.4px;
 }
 
 .contact-copy h2 {
@@ -116,10 +109,6 @@
 }
 
 @media (max-width: 760px) {
-  .container {
-    width: calc(100% - 36px);
-  }
-
   .section {
     padding: 74px 0 80px;
   }

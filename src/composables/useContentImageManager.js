@@ -70,6 +70,9 @@ export function useContentImageManager({
 
   async function handleImageUpload(event) {
     const input = event.target
+    if (uploading.value) {
+      return
+    }
     const files = Array.from(input.files || []).filter(isSupportedImage)
 
     if (!files.length) {
@@ -82,6 +85,7 @@ export function useContentImageManager({
 
     const newImages = []
     const needsCover = !form.images.length
+    let imagesAppended = false
     let optimizedCount = 0
 
     try {
@@ -107,6 +111,7 @@ export function useContentImageManager({
       }
 
       form.images = [...form.images, ...newImages]
+      imagesAppended = true
 
       if (needsCover && firstPreparedFile) {
         statusText.value = '正在生成列表封面。'
@@ -124,7 +129,9 @@ export function useContentImageManager({
       statusText.value = `已添加 ${newImages.length} 张图片，${optimizedCount} 张已转为 WebP，并生成了轻量列表封面。`
     } catch (error) {
       if (newImages.length) {
-        form.images = [...form.images, ...newImages]
+        if (!imagesAppended) {
+          form.images = [...form.images, ...newImages]
+        }
         if (!form.coverImage) {
           form.coverImage = form.images[0]
         }

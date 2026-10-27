@@ -75,7 +75,7 @@ values (
   'case-videos',
   true,
   104857600,
-  array['video/mp4', 'video/webm', 'video/quicktime', 'video/ogg']
+  array['video/mp4']
 )
 on conflict (id) do update
 set

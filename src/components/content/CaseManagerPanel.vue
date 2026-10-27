@@ -8,13 +8,13 @@
       </div>
 
       <div ref="formScroll" class="case-form-scroll">
-        <label class="field">
+        <label class="field dh-field">
           <span>作品名称</span>
           <input v-model.trim="form.name" type="text" required placeholder="例如：东禾新办公室" />
         </label>
 
-        <div class="form-grid">
-          <label class="field">
+        <div class="form-grid dh-form-grid">
+          <label class="field dh-field">
             <span>空间类型</span>
             <div class="select-control">
               <select v-model="form.category">
@@ -22,7 +22,7 @@
               </select>
             </div>
           </label>
-          <label class="field">
+          <label class="field dh-field">
             <span>设计风格</span>
             <div class="select-control">
               <select :value="selectedStyleOption" @change="$emit('style-option-change', $event)">
@@ -39,21 +39,21 @@
               placeholder="输入自定义风格"
             />
           </label>
-          <label class="field">
+          <label class="field dh-field">
             <span>空间信息</span>
             <input v-model.trim="form.type" type="text" placeholder="例如：商业空间 / 上饶" />
           </label>
-          <label class="field">
+          <label class="field dh-field">
             <span>年份</span>
             <input v-model.trim="form.year" type="text" placeholder="例如：2026年" />
           </label>
         </div>
 
-        <label class="field">
+        <label class="field dh-field">
           <span>3D 链接</span>
           <input v-model.trim="form.url" type="url" placeholder="https://..." />
         </label>
-        <label class="field">
+        <label class="field dh-field">
           <span>水电底图</span>
           <input v-model.trim="form.blueprintUrl" type="url" placeholder="https://..." />
         </label>
@@ -183,22 +183,10 @@ defineExpose({ resetScroll })
 .mode-badge { margin-right: auto; padding: 7px 10px; background: #eef2f7; color: #46515f; font-size: 13px; }
 .plain-btn { border: 1px solid #d8dde4; background: #fff; color: #11161d; padding: 9px 14px; cursor: pointer; }
 .case-form-scroll { flex: 1 1 auto; min-height: 0; display: grid; gap: 18px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 0 28px 20px; scrollbar-color: #c5ccd5 transparent; scrollbar-width: thin; }
-.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.field { min-width: 0; display: grid; gap: 8px; }
-.field span { color: #242a32; font-size: 15px; }
-.field input,
-.field select,
-.field textarea { box-sizing: border-box; width: 100%; border: 1px solid #d8dde4; background: #fbfbfb; color: #11161d; padding: 12px 13px; font: inherit; }
-.field input,
-.field select { height: 46px; }
-.field textarea { resize: vertical; }
 .select-control { position: relative; min-width: 0; }
 .select-control::after { content: ''; position: absolute; top: 50%; right: 16px; width: 7px; height: 7px; border-right: 1.5px solid #69717d; border-bottom: 1.5px solid #69717d; pointer-events: none; transform: translateY(-70%) rotate(45deg); }
 .select-control select { display: block; padding: 0 42px 0 13px; appearance: none; }
 .select-control:focus-within::after { border-color: #11161d; transform: translateY(-35%) rotate(225deg); }
-.field input:focus,
-.field select:focus,
-.field textarea:focus { outline: 2px solid rgba(17, 22, 29, 0.16); border-color: #11161d; }
 .form-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .form-actions p { margin: 0; color: #69717d; }
 .form-actions button { border: 0; background: #11161d; color: #fff; padding: 11px 16px; cursor: pointer; }
@@ -211,7 +199,6 @@ defineExpose({ resetScroll })
   .case-form-scroll { overflow: visible; }
 }
 @media (max-width: 760px) {
-  .form-grid { grid-template-columns: 1fr; }
   .form-actions { align-items: stretch; flex-direction: column; }
 }
 </style>

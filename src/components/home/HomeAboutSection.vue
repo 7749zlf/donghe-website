@@ -1,8 +1,8 @@
 <template>
   <section id="about" class="section about">
-    <div class="container about-layout">
+    <div class="container dh-content-shell about-layout">
       <div class="about-copy" v-reveal="{ variant: 'left' }">
-        <span class="section-kicker">ABOUT DONGHE</span>
+        <span class="section-kicker dh-eyebrow">ABOUT DONGHE</span>
         <h2>先校准生活方式，再讨论风格。</h2>
         <p>
           东禾专注商业、办公与居住空间的室内设计。我们先看现场条件、人的行为路径和预算边界，再把材质、灯光、收纳与施工细节放进同一个系统里。
@@ -56,11 +56,6 @@ defineEmits(['view-more'])
 </script>
 
 <style scoped lang="scss">
-.container {
-  width: min(1240px, calc(100% - 64px));
-  margin: 0 auto;
-}
-
 .section {
   padding: 118px 0 104px;
 }
@@ -80,8 +75,6 @@ defineEmits(['view-more'])
   display: inline-block;
   margin-bottom: 18px;
   color: var(--color-olive);
-  font-size: 12px;
-  letter-spacing: 3.4px;
 }
 
 .about-copy h2 {
@@ -196,10 +189,6 @@ defineEmits(['view-more'])
 }
 
 @media (max-width: 760px) {
-  .container {
-    width: calc(100% - 36px);
-  }
-
   .section {
     padding: 72px 0 68px;
   }

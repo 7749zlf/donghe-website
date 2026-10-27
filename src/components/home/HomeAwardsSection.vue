@@ -1,12 +1,12 @@
 <template>
   <section class="section awards">
-    <div class="container section-head" v-reveal>
-      <span class="section-kicker">RECOGNITION</span>
+    <div class="container dh-content-shell section-head" v-reveal>
+      <span class="section-kicker dh-eyebrow">RECOGNITION</span>
       <h2>荣誉，是项目被看见的结果。</h2>
       <p>它说明设计不只停留在概念层面，也经得起审美、执行和行业标准的验证。</p>
     </div>
 
-    <div class="container award-list">
+    <div class="container dh-content-shell award-list">
       <article
         v-for="(item, index) in awards"
         :key="item.id || item.title"
@@ -68,11 +68,6 @@ function closePreview() {
 </script>
 
 <style scoped lang="scss">
-.container {
-  width: min(1240px, calc(100% - 64px));
-  margin: 0 auto;
-}
-
 .section {
   padding: 104px 0;
 }
@@ -93,8 +88,6 @@ function closePreview() {
 .section-kicker {
   grid-column: 1 / -1;
   color: rgba(255, 255, 255, 0.58);
-  font-size: 12px;
-  letter-spacing: 3.4px;
 }
 
 .section-head h2 {
@@ -262,10 +255,6 @@ function closePreview() {
 }
 
 @media (max-width: 760px) {
-  .container {
-    width: calc(100% - 36px);
-  }
-
   .section {
     padding: 74px 0;
   }

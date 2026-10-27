@@ -112,7 +112,16 @@ export function useContentRecordActions({
     try {
       if (cloudEnabled) {
         saved = await upsertCloudCase(formPayload())
-        await refreshCloudList()
+        // 写入已提交的文件不能再被草稿清理删除，即使后续刷新失败。
+        getCaseMedia(saved).forEach((url) => uploadedCaseMedia.delete(url))
+        uploadedCaseCadPaths.delete(saved.cadFilePath)
+        uploadedCaseVideoUrls.delete(saved.videoUrl)
+        try {
+          await refreshCloudList()
+        } catch (error) {
+          statusText.value = `已保存《${saved.name}》，但列表刷新失败：${error.message}。请稍后刷新，旧文件暂未清理。`
+          return
+        }
         const retainedMedia = new Set(getCurrentCaseMedia())
         const removedMedia = uniqueMediaUrls([
           [...originalCaseMedia],
@@ -129,7 +138,7 @@ export function useContentRecordActions({
           console.warn('Failed to clean unused case images:', cleanupError)
         }
         const removedCadPaths = getUnusedCaseCadPaths([
-          originalCaseCadPath,
+          originalCaseCadPath.value,
           ...uploadedCaseCadPaths
         ])
         if (removedCadPaths.length) {
@@ -141,7 +150,7 @@ export function useContentRecordActions({
           }
         }
         const removedVideoUrls = getUnusedCaseVideoUrls([
-          originalCaseVideoUrl,
+          originalCaseVideoUrl.value,
           ...uploadedCaseVideoUrls
         ])
         if (removedVideoUrls.length) {
@@ -198,7 +207,13 @@ export function useContentRecordActions({
     try {
       if (cloudEnabled) {
         saved = await upsertCloudAward(awardPayload())
-        await refreshCloudList()
+        uploadedAwardMedia.delete(saved.image)
+        try {
+          await refreshCloudList()
+        } catch (error) {
+          awardStatusText.value = `已保存《${saved.title}》，但列表刷新失败：${error.message}。请稍后刷新，旧图片暂未清理。`
+          return
+        }
         const retainedMedia = new Set(uniqueMediaUrls([awardForm.image]))
         const removedMedia = uniqueMediaUrls([
           [...originalAwardMedia],

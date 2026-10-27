@@ -1,6 +1,6 @@
 <template>
   <div class="view-more-page">
-    <main class="project-shell">
+    <main v-if="currentCase.id" class="project-shell dh-content-shell">
       <ProjectGallery
         :name="currentCase.name"
         :note="currentCase.note"
@@ -13,7 +13,7 @@
 
       <section v-if="currentCase.videoUrl" class="video-section">
         <div class="video-section-heading">
-          <span class="section-kicker">PROJECT VIDEO</span>
+          <span class="section-kicker dh-eyebrow">PROJECT VIDEO</span>
           <h2>项目视频</h2>
         </div>
         <div
@@ -22,11 +22,14 @@
           :class="{ 'is-fullscreen': isVideoFullscreen }"
         >
           <video
+            :key="currentCase.videoUrl"
             ref="videoPlayer"
             :src="currentCase.videoUrl"
             controls
             playsinline
-            preload="auto"
+            preload="metadata"
+            @loadedmetadata="checkVideoPicture"
+            @playing="checkVideoPicture"
             @error="handleVideoError"
             @webkitbeginfullscreen="isVideoFullscreen = true"
             @webkitendfullscreen="isVideoFullscreen = false"
@@ -73,6 +76,11 @@
         </div>
       </footer>
     </main>
+    <main v-else class="project-shell dh-content-shell" role="status">
+      <h1>作品暂时无法查看</h1>
+      <p>作品可能尚未加载、已隐藏或已删除，请稍后重试或返回作品索引。</p>
+      <button type="button" class="dh-action" @click="goWorks">返回索引</button>
+    </main>
 
     <div
       v-if="cadDownloadStatus"
@@ -116,7 +124,7 @@ const isVideoFullscreen = ref(false)
 const videoStatus = ref('')
 const currentCase = computed(() => {
   const routeId = String(route.params.id || '')
-  const work = displayWorks.value.find((item) => String(item.id) === routeId) || displayWorks.value[0] || {}
+  const work = displayWorks.value.find((item) => String(item.id) === routeId) || {}
   const designCase = displayDesignCases.value.find((item) => String(item.id) === String(work.id || routeId)) || {}
   const list = work.list || designCase.list || []
 
@@ -228,6 +236,7 @@ function refreshDetail() {
   displayWorks.value = getDisplayWorksList()
   displayDesignCases.value = getDisplayDesignCases()
   cadDownloadStatus.value = ''
+  videoStatus.value = ''
 }
 
 onMounted(() => {
@@ -247,8 +256,23 @@ function syncVideoFullscreenState() {
   isVideoFullscreen.value = fullscreenElement === videoPlayerFrame.value
 }
 
-function handleVideoError() {
-  videoStatus.value = '视频无法播放，请确认文件编码为 H.264 的 MP4，或检查视频链接是否有效。'
+function handleVideoError(event) {
+  const mediaError = event.currentTarget.error
+  const messages = {
+    2: '视频加载失败，请检查网络连接、Supabase 视频桶公开读取权限和视频链接。',
+    3: '视频解码失败，可能使用了浏览器不支持的编码。请转换为 H.264 视频编码、AAC 音频的 MP4 后重新上传。',
+    4: '浏览器不支持该视频格式或编码。请转换为 H.264 视频编码、AAC 音频的 MP4 后重新上传。'
+  }
+  videoStatus.value = messages[mediaError?.code] || '视频无法播放，请检查视频链接、存储权限和文件编码。'
+}
+
+function checkVideoPicture(event) {
+  const video = event.currentTarget
+  if (!video.videoWidth || !video.videoHeight) {
+    videoStatus.value = '音频可以播放，但浏览器无法解码视频画面。请在后台替换为 H.264/AAC MP4。'
+    return
+  }
+  videoStatus.value = ''
 }
 
 async function toggleVideoFullscreen() {
@@ -296,8 +320,6 @@ async function toggleVideoFullscreen() {
 }
 
 .project-shell {
-  width: min(1240px, calc(100% - 64px));
-  margin: 0 auto;
   padding: 56px 0 86px;
 }
 
@@ -305,8 +327,6 @@ async function toggleVideoFullscreen() {
   display: inline-block;
   margin-bottom: 16px;
   color: var(--color-olive);
-  font-size: 12px;
-  letter-spacing: 3.4px;
 }
 
 .video-section {
@@ -324,9 +344,18 @@ async function toggleVideoFullscreen() {
 .video-player-frame {
   position: relative;
   width: 100%;
+  height: 0;
+  padding-top: 56.25%;
   aspect-ratio: 16 / 9;
   background: #111;
   overflow: hidden;
+}
+
+@supports (aspect-ratio: 16 / 9) {
+  .video-player-frame {
+    height: auto;
+    padding-top: 0;
+  }
 }
 
 .video-player-frame video {
@@ -341,6 +370,7 @@ async function toggleVideoFullscreen() {
 .video-player-frame.is-fullscreen {
   width: 100vw;
   height: 100vh;
+  padding-top: 0;
   aspect-ratio: auto;
   background: #000;
 }
@@ -437,7 +467,6 @@ async function toggleVideoFullscreen() {
 
 @media (max-width: 760px) {
   .project-shell {
-    width: calc(100% - 36px);
     padding: 36px 0 68px;
   }
 

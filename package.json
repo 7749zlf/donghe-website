@@ -5,8 +5,8 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint && eslint src/services/quoteDomain.mjs",
-    "test": "node tests/quoteDomain.test.js"
+    "lint": "vue-cli-service lint && eslint src/services/quoteDomain.mjs src/services/caseLinks.mjs src/utils/contentVideos.js",
+    "test": "node --test tests/quoteDomain.test.js tests/contentRegressions.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",

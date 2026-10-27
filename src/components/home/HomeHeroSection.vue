@@ -27,7 +27,7 @@
     <div class="hero-shade"></div>
     <div class="hero-light-field"></div>
 
-    <div class="hero-content">
+    <div class="hero-content dh-content-shell">
       <Transition name="hero-copy" mode="out-in">
         <div :key="currentSlide.id || currentSlideIndex" class="hero-copy" v-reveal="{ variant: 'left' }">
           <span class="eyebrow">DONGHE DH</span>
@@ -262,8 +262,6 @@ watch(
   position: absolute;
   inset: 0;
   z-index: 3;
-  width: min(1240px, calc(100% - 64px));
-  margin: 0 auto;
   display: flex;
   align-items: center;
   pointer-events: none;
@@ -475,7 +473,6 @@ watch(
   }
 
   .hero-content {
-    width: calc(100% - 36px);
     align-items: flex-end;
     padding-bottom: 104px;
   }
